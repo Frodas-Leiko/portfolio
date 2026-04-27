@@ -1,0 +1,394 @@
+/* ============================================================
+   PORTFOLIO — main.css
+   Single source of truth für Design-Tokens und Komponenten.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap');
+
+/* ============================================================
+   1. DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Farben */
+  --bg:         #0d0d0c;
+  --bg-card:    #161614;
+  --bg-elev:    #1f1f1c;
+  --line:       #2a2a26;
+
+  --text:       #f0ebe0;
+  --text-dim:   #8a8676;
+  --text-faint: #56544a;
+
+  --accent:     #d4a85a;
+  --green:      #7fb069;
+  --yellow:     #e8b339;
+  --red:        #c95a4f;
+
+  /* Typografie */
+  --serif: 'Fraunces', Georgia, serif;
+  --mono:  'JetBrains Mono', ui-monospace, monospace;
+
+  /* Abstände — 4px-Raster */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  14px;
+  --s-4:  18px;
+  --s-5:  22px;
+  --s-6:  28px;
+  --s-7:  44px;
+  --s-8:  72px;
+
+  /* Radien */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 16px;
+
+  /* Layout */
+  --content-max: 720px;
+  --reading-max: 540px;
+}
+
+/* ============================================================
+   2. RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display: flex;
+  flex-direction: column;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+a:hover, a:focus {
+  border-bottom-color: var(--accent);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ============================================================
+   3. TYPOGRAFIE
+   ============================================================ */
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+h1 { font-size: clamp(32px, 7vw, 48px); }
+h2 { font-size: clamp(24px, 5vw, 28px); }
+h3 { font-size: 22px; letter-spacing: -0.01em; }
+h4 { font-size: 18px; }
+
+p { margin-bottom: var(--s-3); }
+p:last-child { margin-bottom: 0; }
+
+.lead {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+}
+
+.dim { color: var(--text-dim); }
+.faint { color: var(--text-faint); }
+
+/* ============================================================
+   4. LAYOUT
+   ============================================================ */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  border: none;
+}
+.brand .ampersand {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.site-nav {
+  display: flex;
+  gap: var(--s-4);
+}
+.site-nav a {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  border: none;
+}
+.site-nav a:hover,
+.site-nav a.active {
+  color: var(--text);
+}
+
+.site-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-5);
+}
+
+.site-main.reading {
+  max-width: var(--reading-max);
+}
+
+.site-footer {
+  padding: var(--s-5) var(--s-4);
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.site-footer a {
+  color: var(--text-dim);
+  border: none;
+}
+
+section + section {
+  margin-top: var(--s-8);
+}
+
+/* Hero */
+.hero {
+  padding: var(--s-7) 0 var(--s-8);
+}
+.hero .label {
+  margin-bottom: var(--s-3);
+  display: block;
+}
+.hero h1 {
+  margin-bottom: var(--s-4);
+}
+.hero .lead {
+  max-width: var(--reading-max);
+}
+
+/* ============================================================
+   5. KOMPONENTEN
+   ============================================================ */
+
+/* --- Card --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-5);
+}
+
+.card-link {
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-5);
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s;
+}
+.card-link:hover,
+.card-link:focus {
+  border-color: var(--text-dim);
+  background: var(--bg-elev);
+}
+
+.card-link .label {
+  margin-bottom: var(--s-2);
+  display: block;
+}
+.card-link h3 {
+  margin-bottom: var(--s-2);
+}
+.card-link p {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* --- Button --- */
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: var(--s-3) var(--s-5);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.8; }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.btn-secondary:hover,
+.btn-secondary:focus {
+  border-color: var(--text-dim);
+}
+
+.btn-block { display: block; width: 100%; }
+
+/* --- Chip / Pill --- */
+.chip {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--mono);
+  font-size: 12px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* --- Input --- */
+.input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--text-dim); }
+
+/* --- Project Grid --- */
+.grid {
+  display: grid;
+  gap: var(--s-4);
+}
+.grid-2 { grid-template-columns: 1fr; }
+
+@media (min-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+}
+
+/* --- List --- */
+.list-plain {
+  list-style: none;
+}
+.list-plain li {
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+.list-plain li:last-child {
+  border-bottom: none;
+}
+
+/* --- Inline metadata --- */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ============================================================
+   6. UTILITIES
+   ============================================================ */
+.stack-1 > * + * { margin-top: var(--s-1); }
+.stack-2 > * + * { margin-top: var(--s-2); }
+.stack-3 > * + * { margin-top: var(--s-3); }
+.stack-4 > * + * { margin-top: var(--s-4); }
+.stack-5 > * + * { margin-top: var(--s-5); }
+.stack-6 > * + * { margin-top: var(--s-6); }
+
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+
+/* ============================================================
+   7. RESPONSIVE
+   ============================================================ */
+@media (min-width: 600px) {
+  .site-main {
+    padding: var(--s-8) var(--s-5);
+  }
+}

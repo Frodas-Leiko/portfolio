@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SKP Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0d0d0c;
+  --bg-card: #161614;
+  --bg-elev: #1f1f1c;
+  --line: #2a2a26;
+  --text: #f0ebe0;
+  --text-dim: #8a8676;
+  --text-faint: #56544a;
+  --accent: #d4a85a;
+  --green: #7fb069;
+  --yellow: #e8b339;
+  --red: #c95a4f;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --serif: 'Fraunces', Georgia, serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.brand .ampersand { color: var(--accent); font-style: italic; }
+
+.stats {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-num { color: var(--text); font-weight: 700; }
+.stat-num.due { color: var(--accent); }
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+.icon-btn:active { background: var(--bg-elev); color: var(--text); }
+
+/* MAIN AREA */
+main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 22px 22px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.deck-tag {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+}
+
+.direction-tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-bottom: 22px;
+  opacity: 0.85;
+}
+
+.question {
+  font-family: var(--serif);
+  font-size: 38px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+  word-break: break-word;
+}
+
+.question.smaller { font-size: 26px; }
+
+/* INPUT */
+.input-wrap {
+  margin-bottom: 18px;
+}
+
+.answer-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 17px;
+  padding: 16px 18px;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.answer-input:focus { border-color: var(--text-dim); }
+.answer-input.r-green { border-color: var(--green); background: rgba(127, 176, 105, 0.08); }
+.answer-input.r-yellow { border-color: var(--yellow); background: rgba(232, 179, 57, 0.08); }
+.answer-input.r-red { border-color: var(--red); background: rgba(201, 90, 79, 0.08); }
+
+/* PRIMARY BUTTONS */
+.primary-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.primary-btn:active { opacity: 0.8; }
+.primary-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* REVEAL */
+.reveal {
+  margin-top: 8px;
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.reveal-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.reveal-term {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.reveal-term.green { color: var(--green); }
+
+.reveal-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.reveal-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  white-space: pre-line;
+}
+
+.reveal-details strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* RATING BUTTONS */
+.rate-primary {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.rate-primary .primary-label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.rate-primary .primary-hint {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.7;
+}
+
+.rate-primary[data-verdict="green"] { background: var(--green); }
+.rate-primary[data-verdict="yellow"] { background: var(--yellow); }
+.rate-primary[data-verdict="red"] { background: var(--red); color: var(--text); }
+
+.overrides {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rate-btn-small {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 10px 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  transition: all 0.15s;
+}
+.rate-btn-small:active { transform: scale(0.96); border-color: var(--text-dim); color: var(--text); }
+.rate-btn-small .interval-hint {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.override-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 16px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+/* DONE STATE */
+.done-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+}
+.done-state h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.done-state p { color: var(--text-dim); font-size: 14px; line-height: 1.5; }
+
+/* SETTINGS SHEET */
+.sheet-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.sheet-bg.open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  padding: 14px 22px calc(28px + env(safe-area-inset-bottom));
+  z-index: 11;
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+
+.sheet h2 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 22px;
+  letter-spacing: -0.02em;
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+  margin-top: 22px;
+}
+.section-label:first-of-type { margin-top: 0; }
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.danger-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--red);
+  padding: 14px;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.detail-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.detail-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: 6px;
+}
+.detail-stat .label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+.detail-stat .value {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+@media (min-width: 600px) {
+  body { max-width: 540px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">SKP <span class="ampersand">&amp;</span> Co.</div>
+  <div class="stats">
+    <div><span class="stat-num due" id="stat-due">0</span> fällig</div>
+    <div><span class="stat-num" id="stat-total">0</span> total</div>
+  </div>
+  <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⋯</button>
+</header>
+
+<main id="main"></main>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <h2>Einstellungen</h2>
+
+  <div class="section-label">Modus</div>
+  <div class="chip-row" id="mode-chips">
+    <button class="chip" data-mode="forward">Nummer → Begriff</button>
+    <button class="chip" data-mode="reverse">Begriff → Nummer</button>
+    <button class="chip" data-mode="both">Beide</button>
+  </div>
+
+  <div class="section-label">Filter Gesetz</div>
+  <div class="chip-row" id="filter-chips"></div>
+
+  <div class="section-label">Statistik</div>
+  <div class="detail-stats">
+    <div class="detail-stat"><div class="label">Neu</div><div class="value" id="d-new">0</div></div>
+    <div class="detail-stat"><div class="label">Lernend</div><div class="value" id="d-learn">0</div></div>
+    <div class="detail-stat"><div class="label">Gefestigt</div><div class="value" id="d-mature">0</div></div>
+    <div class="detail-stat"><div class="label">Heute gelernt</div><div class="value" id="d-today">0</div></div>
+  </div>
+
+  <div class="section-label">Reset</div>
+  <button class="danger-btn" id="reset-btn">Lernfortschritt zurücksetzen</button>
+</div>
+
+<script>
+/* =========================================================
+   CARDS — embedded
+   ========================================================= */
+const RAW = [
+["§ 34a GewO","Bewachungsgewerbe — Erlaubnispflicht. Voraussetzungen: Zuverlässigkeit + geordnete Vermögensverhältnisse + Sachkunde","Erlaubnis nötig für jede gewerbsmäßige Bewachung von Leben oder Eigentum fremder Personen.\n\nDrei Voraussetzungen für die Erlaubnis:\n• Persönliche Zuverlässigkeit (keine bestimmten Vorstrafen, keine extremistischen Aktivitäten)\n• Geordnete Vermögensverhältnisse (keine Insolvenz, keine eidesstattliche Versicherung)\n• Sachkundenachweis: Unterrichtung (40 Stunden) für einfache Tätigkeiten ODER Sachkundeprüfung (80 Stunden) für leitende, schutzbezogene oder waffentragende Tätigkeiten\n\nWegfall der Zuverlässigkeit führt zum Erlaubnisentzug. Regelüberprüfung alle 5 Jahre."],
+["§ 14 GewO","Gewerbeanzeige — jedes Gewerbe muss beim Gewerbeamt angemeldet werden","Pflicht des Gewerbetreibenden zur Anzeige bei:\n• Aufnahme des Gewerbes\n• Verlegung des Betriebs\n• Wechsel oder Erweiterung des Gegenstands\n• Aufgabe des Gewerbes\n\nFormale Anzeige, kein Erlaubnisverfahren. Vom § 34a GewO (Erlaubnis) zu unterscheiden — die Anzeige ist immer zu machen, die Erlaubnis nur für bestimmte Gewerbe."],
+["§ 29 GewO","Auskunfts- und Nachschaupflicht des Gewerbetreibenden","Die Behörde darf zur Überprüfung der Gewerbeausübung:\n• Räume und Anlagen während der Geschäftszeit betreten\n• Geschäftsunterlagen einsehen\n• Auskünfte verlangen\n\nDer Gewerbetreibende ist zur Mitwirkung verpflichtet."],
+["§ 11b GewO","Bewacherregister beim BAFA — zentrale Datenbank","Beim Bundesamt für Wirtschaft und Ausfuhrkontrolle (BAFA) seit 2019 geführte zentrale Datenbank.\n\nEnthält:\n• Bewachungsunternehmen mit Erlaubnis nach § 34a\n• Wachpersonen mit Eintrag\n• Daten zur Zuverlässigkeitsprüfung\n• Sachkundenachweise und Unterrichtungen\n\nLöste das alte Problem dezentraler Erfassung durch einzelne Gewerbeämter. Bevor eine Wachperson eingesetzt wird, muss das Unternehmen sie beim BAFA registrieren."],
+["§ 8 BewachV","Datenschutz und Verschwiegenheit über Geschäfts-/Betriebsgeheimnisse","Wachpersonen müssen vom Unternehmer schriftlich auf Verschwiegenheit verpflichtet werden über:\n• Geschäfts- und Betriebsgeheimnisse\n• Personenbezogene Daten\n• Wahrnehmungen aus dem Bewachungseinsatz\n\nDie Verschwiegenheitspflicht gilt auch nach Ende des Arbeitsverhältnisses fort. Verstoß kann nach § 203 StGB strafbar sein."],
+["§ 14 BewachV","Pflicht zur Haftpflichtversicherung des Unternehmers","Der Bewachungsunternehmer (nicht der Mitarbeiter) muss eine Haftpflichtversicherung abschließen und über die gesamte Tätigkeitsdauer aufrechterhalten.\n\nVoraussetzung für die Erlaubnis nach § 34a GewO. Mindestdeckungssummen siehe § 15 BewachV."],
+["§ 15 BewachV","Mindestdeckungssummen — 1 Mio Personen / 250k Sach / 15k Abhandenkommen / 12,5k Vermögen","Pflichtige Mindestdeckungssummen der Haftpflichtversicherung:\n\n• Personenschäden: 1.000.000 €\n• Sachschäden: 250.000 €\n• Abhandenkommen bewachter Sachen: 15.000 €\n• Reine Vermögensschäden: 12.500 €\n\nMerkhilfe: Eins-Mio-Zweifuffzig-Fünfzehn-Zwölffuffzig.\nAbsolute Untergrenzen, höhere Versicherung möglich."],
+["§ 16 BewachV","Zuverlässigkeit auch der Beschäftigten","Der Unternehmer darf nur zuverlässige Personen mit Bewachungsaufgaben betrauen.\n\nPrüfung erfolgt durch:\n• Eigene Bewertung des Unternehmers\n• Abfrage im Bewacherregister beim BAFA\n• Erweitertes Führungszeugnis\n\nUnzuverlässig ist u.a., wer in den letzten 5 Jahren wegen bestimmter Delikte rechtskräftig verurteilt wurde."],
+["§ 17 BewachV","Dienstanweisung — keine Polizeibefugnisse, Waffen nur mit Zustimmung, Waffengebrauch melden","Pflichtinhalte der Dienstanweisung — gegen Empfangsbekenntnis auszuhändigen:\n\n1. Wachperson hat NICHT die Befugnisse eines Polizeibeamten\n\n2. Waffen dürfen NUR mit ausdrücklicher Zustimmung des Gewerbetreibenden geführt werden\n\n3. JEDER Waffengebrauch ist unverzüglich der Polizei UND dem Gewerbetreibenden zu melden\n\nZusätzlich wird die DGUV Vorschrift 23 ausgehändigt. Aufbewahrung der Empfangsbekenntnisse: 3 Jahre (§ 21 BewachV)."],
+["§ 18 BewachV","Dienstausweis — muss sich deutlich von amtlichen Ausweisen unterscheiden","Pflichtinhalte des Dienstausweises:\n• Name und Vorname der Wachperson\n• Name und Anschrift des Unternehmens\n• Lichtbild\n\nIm Dienst immer mitzuführen, zusammen mit dem Personalausweis. Muss sich deutlich von amtlichen Ausweisen (Polizei, Bundeswehr, Zoll) unterscheiden — sonst Verwechslungsgefahr und Risiko der Amtsanmaßung (§ 132 StGB)."],
+["§ 19 BewachV","Dienstkleidung — nicht mit Polizei/Bundeswehr/Justiz verwechselbar","Beim Betreten eingefriedeten Besitztums ist Dienstkleidung Pflicht.\n\nDarf nicht verwechselbar sein mit Uniformen von:\n• Polizei\n• Bundeswehr\n• Justiz\n\nKeine amtsähnlichen Abzeichen oder Hoheitssymbole. Verstoß kann § 132a StGB (Missbrauch von Titeln und Abzeichen) auslösen."],
+["§ 20 BewachV","Waffengebrauchs-Anzeigepflicht","Anzeige an die zuständige Behörde bei:\n• Schusswaffengebrauch im Dienst\n• Sachschäden durch Waffengebrauch\n• Auch ohne Verletzungen\n\nPflicht des Unternehmers (nicht des Mitarbeiters). Konkretisiert die Meldepflicht aus § 17 BewachV."],
+["§ 21 BewachV","Buchführungspflicht — 3 Jahre Aufbewahrung","Aufbewahrungspflicht 3 Jahre für:\n• Personalakten der Wachpersonen\n• Empfangsbekenntnisse über Dienstanweisungen\n• Auftragsunterlagen\n• Schichtpläne und Einsatzlisten\n\nFrist beginnt nach Ende des Arbeitsverhältnisses bzw. Auftrags."],
+["§ 22 BewachV","Ordnungswidrigkeiten — Bußgeld bis 5.000 Euro","Typische Verstöße, die Bußgeld auslösen:\n• Fehlende oder mangelhafte Dienstanweisung\n• Verstoß gegen Versicherungspflicht\n• Mangelhafte Buchführung\n• Einsatz ohne Eintrag im Bewacherregister\n• Unterlassen der Verschwiegenheitsverpflichtung\n\nBußgeldrahmen bis 5.000 Euro pro Verstoß."],
+["Art. 1 GG","Menschenwürde — unantastbar, nicht abwägbar","Drei Absätze:\n\n1. Die Würde des Menschen ist unantastbar. Sie zu achten und zu schützen ist Verpflichtung aller staatlichen Gewalt.\n\n2. Bekenntnis zu unverletzlichen und unveräußerlichen Menschenrechten als Grundlage jeder menschlichen Gemeinschaft.\n\n3. Die Grundrechte binden Gesetzgebung, vollziehende Gewalt und Rechtsprechung als unmittelbar geltendes Recht.\n\nMenschenwürde ist absolut: nicht abwägbar, nicht einschränkbar. Höchstrangiges Verfassungsprinzip, durch Ewigkeitsklausel (Art. 79 III GG) änderungsfest."],
+["Art. 2 GG","Freie Entfaltung der Persönlichkeit / informationelle Selbstbestimmung","Zwei Schutzbereiche:\n• Recht auf freie Entfaltung der Persönlichkeit\n• Recht auf Leben und körperliche Unversehrtheit, Freiheit der Person\n\nAbgeleitete Rechte:\n• Allgemeines Persönlichkeitsrecht\n• Informationelle Selbstbestimmung (Grundlage des Datenschutzrechts)\n• Recht am eigenen Bild und Wort\n\nSchranken: Rechte anderer, verfassungsmäßige Ordnung, Sittengesetz."],
+["Art. 3 GG","Gleichheitssatz","Drei Absätze:\n\n1. Alle Menschen sind vor dem Gesetz gleich\n\n2. Männer und Frauen sind gleichberechtigt — der Staat fördert die tatsächliche Durchsetzung\n\n3. Niemand darf wegen Geschlecht, Abstammung, Rasse, Sprache, Heimat, Herkunft, Glauben, religiöser oder politischer Anschauungen, Behinderung benachteiligt oder bevorzugt werden\n\nRichtet sich primär gegen den Staat. Nicht jede Ungleichbehandlung verboten — nur willkürliche."],
+["Art. 5 GG","Meinungsfreiheit","Schutzbereich umfasst:\n• Meinungsfreiheit\n• Informationsfreiheit\n• Pressefreiheit\n• Rundfunk- und Filmfreiheit\n• Kunst- und Wissenschaftsfreiheit\n\nSchranken (Abs. 2):\n• Allgemeine Gesetze\n• Bestimmungen zum Schutz der Jugend\n• Recht der persönlichen Ehre\n\nKeine Vorzensur. Tatsachenbehauptungen genießen Schutz nur, wenn sie wahr sind."],
+["Art. 8 GG","Versammlungsfreiheit — Deutschengrundrecht, friedlich + ohne Waffen","Versammlungsfreiheit als Deutschengrundrecht.\n\nTatbestandsvoraussetzungen:\n• Friedlich\n• Ohne Waffen\n\nNicht-Voraussetzung: Anmeldung. Eine nicht angemeldete Versammlung ist ordnungswidrig, bleibt aber grundrechtlich geschützt.\n\nUnter freiem Himmel: Anmeldepflicht 48 Stunden im Voraus (Versammlungsgesetz). Versammlung in geschlossenen Räumen: keine Anmeldepflicht."],
+["Art. 10 GG","Brief-, Post-, Fernmeldegeheimnis","Schutz der Vertraulichkeit individueller Kommunikation.\n\nUmfasst:\n• Briefverkehr\n• Postverkehr (auch Pakete)\n• Telefongespräche\n• E-Mails und elektronische Nachrichten\n\nEinschränkungen nur durch Gesetz möglich (z.B. G10-Gesetz für Verfassungsschutz)."],
+["Art. 12 GG","Freie Berufswahl","Drei Schutzbereiche:\n• Berufswahl (welcher Beruf)\n• Arbeitsplatzwahl (wo)\n• Ausbildungsstättenwahl\n\nFreie Berufsausübung kann durch Gesetz geregelt werden — z.B. § 34a GewO. Drei-Stufen-Theorie:\n1. Reine Ausübungsregelungen (mild)\n2. Subjektive Zulassungsschranken\n3. Objektive Zulassungsschranken (höchste Hürde)"],
+["Art. 13 GG","Unverletzlichkeit der Wohnung — umschlossener Raum zum Wohnen/Schlafen","Wohnung = umschlossener Raum, der zum Wohnen oder Schlafen genutzt wird.\n\nGeschützt:\n• Wohnungen und Häuser\n• Hotelzimmer\n• Wohnwagen (bei Wohnnutzung)\n• Zelte (bei Wohnnutzung)\n\nNICHT geschützt:\n• Geschäftsräume (begrenzter Schutz)\n• Autos\n\nDurchsuchungen grundsätzlich nur durch Richter angeordnet. Eilfall durch Staatsanwalt oder Polizei zulässig (Gefahr im Verzug)."],
+["Art. 14 GG","Eigentum","Drei Absätze:\n1. Eigentum und Erbrecht werden gewährleistet — Inhalt und Schranken durch Gesetz\n2. Eigentum verpflichtet — sein Gebrauch soll dem Wohl der Allgemeinheit dienen (Sozialbindung)\n3. Enteignung nur durch Gesetz, das Art und Ausmaß der Entschädigung regelt\n\nGeschützt ist konkretes Eigentum, NICHT das Vermögen als Ganzes — wichtige Abgrenzung für § 823 BGB."],
+["Art. 20 GG","Staatsstrukturprinzipien — Demokratie, Rechtsstaat, Bundesstaat, Sozialstaat, Gewaltenteilung","Fünf Strukturprinzipien:\n\n• Demokratie — Volkssouveränität, Wahlen, Mehrheitsprinzip\n• Republik — kein Monarch als Staatsoberhaupt\n• Bundesstaat — föderale Ordnung mit Bund und Ländern\n• Rechtsstaat — Gesetzesbindung, Gewaltenteilung, Rechtsschutz\n• Sozialstaat — Verpflichtung zu sozialer Gerechtigkeit\n\nEwigkeitsklausel (Art. 79 III GG): Diese Prinzipien dürfen nicht abgeschafft werden — Sicherung der Grundordnung."],
+["Art. 5 DSGVO","Acht Datenschutzgrundsätze — Rechtmäßigkeit, Zweckbindung, Datenminimierung","Acht Grundsätze für die Verarbeitung personenbezogener Daten:\n\n1. Rechtmäßigkeit — gesetzliche Grundlage oder Einwilligung\n2. Verarbeitung nach Treu und Glauben\n3. Transparenz — für die betroffene Person nachvollziehbar\n4. Zweckbindung — nur für festgelegte, eindeutige, legitime Zwecke\n5. Datenminimierung — auf das Notwendige beschränkt\n6. Richtigkeit — sachlich richtig, ggf. aktualisiert\n7. Speicherbegrenzung — nur so lange wie nötig\n8. Integrität und Vertraulichkeit — Schutz vor unbefugtem Zugriff\n\nPlus Rechenschaftspflicht (Abs. 2): Verantwortlicher muss Einhaltung nachweisen können."],
+["Art. 6 DSGVO","Rechtmäßigkeit der Verarbeitung — Gesetz oder Einwilligung","Verarbeitung ist nur rechtmäßig, wenn mindestens eine der folgenden Voraussetzungen erfüllt ist:\n\na) Einwilligung der betroffenen Person\nb) Erfüllung eines Vertrages\nc) Rechtliche Verpflichtung\nd) Schutz lebenswichtiger Interessen\ne) Wahrnehmung einer Aufgabe im öffentlichen Interesse\nf) Berechtigtes Interesse des Verantwortlichen (mit Abwägung)\n\nFür Bewachungsdienst meist (b) Vertrag oder (f) berechtigtes Interesse einschlägig."],
+["Art. 7 DSGVO","Einwilligung — freiwillig, informiert, widerrufbar","Voraussetzungen einer wirksamen Einwilligung:\n\n• Freiwillig — ohne Druck oder Zwang\n• Informiert — Person muss wissen, worein sie einwilligt\n• Konkret — für bestimmte Zwecke\n• Eindeutig — durch klare, bestätigende Handlung\n• Widerrufbar — jederzeit, so einfach wie die Erteilung\n\nBeweislast für die Einwilligung trägt der Verantwortliche."],
+["Art. 9 DSGVO","Besondere Kategorien — Gesundheit, Religion, grundsätzlich verboten","Besondere Kategorien personenbezogener Daten:\n\n• Rassische und ethnische Herkunft\n• Politische Meinungen\n• Religiöse oder weltanschauliche Überzeugungen\n• Gewerkschaftszugehörigkeit\n• Genetische Daten\n• Biometrische Daten zur eindeutigen Identifizierung\n• Gesundheitsdaten\n• Daten zum Sexualleben oder zur sexuellen Orientierung\n\nVerarbeitung grundsätzlich VERBOTEN. Ausnahmen: ausdrückliche Einwilligung, lebenswichtige Interessen, gesetzliche Pflichten im Arbeitsrecht etc."],
+["Art. 32 DSGVO","Sicherheit der Verarbeitung — Pseudonymisierung, Verschlüsselung","Technische und organisatorische Maßnahmen (TOMs) zum Schutz der Daten:\n\n• Pseudonymisierung und Verschlüsselung\n• Sicherstellung von Vertraulichkeit, Integrität, Verfügbarkeit, Belastbarkeit\n• Schnelle Wiederherstellung nach Vorfällen\n• Regelmäßige Überprüfung und Bewertung\n\nZu berücksichtigen: Stand der Technik, Implementierungskosten, Eintrittswahrscheinlichkeit und Schwere der Risiken."],
+["Art. 33 DSGVO","Meldung Datenpanne an Aufsichtsbehörde — 72 Stunden","Bei Verletzung des Schutzes personenbezogener Daten:\n\n• Meldung an Aufsichtsbehörde binnen 72 Stunden nach Bekanntwerden\n• Wenn nicht möglich: Begründung für die Verzögerung\n• Wenn voraussichtlich KEIN Risiko: keine Meldung nötig\n\nMeldung muss enthalten:\n• Art der Verletzung\n• Kategorien und ungefähre Zahl der betroffenen Personen\n• Wahrscheinliche Folgen\n• Ergriffene oder geplante Gegenmaßnahmen"],
+["Art. 34 DSGVO","Benachrichtigung der Betroffenen bei hohem Risiko","Separate Pflicht zur Benachrichtigung der betroffenen Personen — höhere Schwelle als Art. 33.\n\nNur wenn voraussichtlich HOHES Risiko für persönliche Rechte und Freiheiten.\n\nBenachrichtigung kann unterbleiben, wenn:\n• Daten waren wirksam verschlüsselt\n• Nachträgliche Maßnahmen haben das hohe Risiko beseitigt\n• Unverhältnismäßiger Aufwand → öffentliche Bekanntmachung als Ersatz\n\nWichtig: Pflicht des Verantwortlichen, NICHT der Aufsichtsbehörde."],
+["Art. 37 DSGVO","Datenschutzbeauftragter","Pflicht zur Bestellung eines Datenschutzbeauftragten bei:\n• Öffentlichen Stellen\n• Kerngeschäft mit umfangreicher regelmäßiger Überwachung\n• Verarbeitung besonderer Kategorien (Art. 9) im großen Stil\n\nIn Deutschland zusätzlich: bei mind. 20 Personen, die ständig automatisiert Daten verarbeiten (BDSG)."],
+["Art. 82 DSGVO","Schadenersatz — Gefährdungshaftung","Anspruch auf Schadenersatz bei materiellem oder immateriellem Schaden durch Datenschutzverstoß.\n\nGefährdungshaftung — Verantwortlicher haftet auch ohne Verschulden.\n\nEntlastung nur, wenn der Verantwortliche nachweist, dass er für den Schaden in keinerlei Hinsicht verantwortlich ist."],
+["§ 226 BGB","Schikaneverbot — Rechtsausübung nur zur Schädigung ist unzulässig","Die Ausübung eines Rechts ist unzulässig, wenn sie nur den Zweck haben kann, einem anderen Schaden zuzufügen.\n\nFragt nach dem WARUM einer Handlung, nicht dem WIE VIEL.\nNur einschlägig, wenn Schädigung die EINZIGE plausible Motivation ist.\n\nGrenze zur regulären Rechtsausübung: Wenn ein eigenes berechtigtes Interesse erkennbar ist, greift § 226 nicht."],
+["§ 227 BGB","Notwehr zivilrechtlich — gegen Angriff von Mensch","Notwehr im Privatrecht — inhaltsgleich mit § 32 StGB.\n\nVoraussetzungen:\n• Gegenwärtiger Angriff (unmittelbar bevorstehend, gerade stattfindend, noch andauernd)\n• Rechtswidriger Angriff\n• Durch einen Menschen\n• Erforderliche Verteidigung (mildestes geeignetes Mittel)\n\nFolge: Schadenersatz des Angreifers ausgeschlossen — er hat sich selbst ins Unrecht gesetzt.\n\nGilt auch als Nothilfe (Verteidigung anderer)."],
+["§ 228 BGB","Defensiver Notstand — Gefahr von einer Sache, Einwirkung auf diese Sache","Wer eine fremde Sache beschädigt oder zerstört, um eine durch sie drohende Gefahr abzuwenden, handelt nicht widerrechtlich.\n\nVoraussetzungen:\n• Gefahr geht von einer Sache aus\n• Einwirkung erfolgt auf DIESE Sache\n• Eingriff ist erforderlich (kein milderes Mittel)\n• Schaden steht nicht außer Verhältnis zur Gefahr\n\nKein Schadenersatzanspruch des Eigentümers — er trägt Mitverantwortung durch seine gefährliche Sache.\n\nBeispiel: Hund greift Sie an — Sie schlagen ihn weg."],
+["§ 229 BGB","Allgemeine Selbsthilfe — Anspruchsdurchsetzung im Notfall","Selbsthilfe zur Sicherung eines zivilrechtlichen Anspruchs.\n\nDrei Voraussetzungen:\n• Obrigkeitliche Hilfe ist nicht rechtzeitig zu erlangen\n• Ohne sofortiges Eingreifen wäre die Verwirklichung des Anspruchs vereitelt oder wesentlich erschwert\n• Verhältnismäßigkeit (mildestes Mittel)\n\nBeispiel: Schuldner will mit Tasche voll Geld ins Ausland fliehen — Gläubiger darf ihn festhalten.\n\nÜberschreitung führt zu Schadenersatzpflicht (§ 231 BGB)."],
+["§ 823 BGB","Schadenersatz aus unerlaubter Handlung — Schaden, Kausalität, Widerrechtlichkeit, Schuld","Zentrale Norm für zivilrechtlichen Schadenersatz.\n\nVierstufiges Prüfschema:\n1. Schaden ist objektiv eingetreten\n2. Kausalität — Schaden ist Folge der Rechtsgutsverletzung\n3. Widerrechtlichkeit — Verstoß gegen geltendes Recht (kein Rechtfertigungsgrund greift)\n4. Schuld — Vorsatz oder Fahrlässigkeit\n\nAbs. 1: Schutz konkreter Rechtsgüter (Leben, Körper, Gesundheit, Freiheit, Eigentum)\nAbs. 2: Verstoß gegen Schutzgesetz\n\nNICHT geschützt: Vermögen als Ganzes (dafür § 826 BGB)."],
+["§ 826 BGB","Sittenwidrige Schädigung — auch reine Vermögensschäden","Wer in einer gegen die guten Sitten verstoßenden Weise einem anderen vorsätzlich Schaden zufügt, ist zum Ersatz verpflichtet.\n\nUnterschied zu § 823:\n• Erfasst auch reine Vermögensschäden\n• Setzt Sittenwidrigkeit voraus\n• Vorsatz erforderlich (nicht nur Fahrlässigkeit)\n\nBeispiele: betrügerische Anlageberatung, gezielte Ruinierung eines Konkurrenten."],
+["§ 833 BGB","Tierhalterhaftung — Gefährdungshaftung","Wird durch ein Tier ein Mensch getötet oder verletzt oder eine Sache beschädigt, haftet der Tierhalter.\n\nGefährdungshaftung — kein Verschulden erforderlich.\n\nBegründung: Vom Tier geht eine typische, unberechenbare Gefahr aus. Wer den Vorteil der Tierhaltung hat, soll auch das Risiko tragen.\n\nEinschränkung bei Nutztieren (Satz 2): Halter haftet nur bei verletzter Sorgfalt."],
+["§ 854 BGB","Besitz — tatsächliche Gewalt über eine Sache","Besitz wird durch Erlangung der tatsächlichen Gewalt über die Sache erworben.\n\nBesitz = Zustand, KEIN Recht.\nWer eine Sache in der Hand hat oder in seinem Wirkungsbereich, ist Besitzer.\n\nDer Besitzer muss nicht Eigentümer sein — Mieter, Leihnehmer, Dieb können Besitzer sein.\n\nUnterscheidung:\n• Unmittelbarer Besitzer (direkter Zugriff)\n• Mittelbarer Besitzer (z.B. Vermieter)"],
+["§ 855 BGB","Besitzdiener — wer für andere die tatsächliche Gewalt ausübt","Besitzdiener: Wer die tatsächliche Gewalt über eine Sache für einen anderen in dessen Haushalt oder Erwerbsgeschäft oder in einem ähnlichen Verhältnis ausübt.\n\nVoraussetzungen:\n• Tatsächliche Gewalt vorhanden\n• Soziale Abhängigkeit / Weisungsgebundenheit\n• Für einen anderen (den Besitzherrn)\n\nDer Besitzdiener ist NICHT Besitzer — die Befugnisse hängen daran.\n\nHIER SITZT DER SICHERHEITSMITARBEITER:\nEr übt die tatsächliche Gewalt für den Auftraggeber aus, ist aber nicht selbst Besitzer."],
+["§ 858 BGB","Verbotene Eigenmacht — Besitzentziehung oder Besitzstörung","Verbotene Eigenmacht: ohne Willen des Besitzers den Besitz entziehen oder ihn im Besitz stören.\n\nZwei Varianten:\n• Besitzentziehung — Sache wird weggenommen\n• Besitzstörung — Nutzung wird beeinträchtigt, ohne Wegnahme\n\nFolge: Begründet Selbsthilferechte (§§ 859, 860 BGB) und Anspruch auf Wiedereinräumung des Besitzes (§ 861)."],
+["§ 859 BGB","Selbsthilfe des Besitzers — Besitzwehr und Besitzkehr","Zwei Selbsthilferechte des Besitzers:\n\n• Besitzwehr (Abs. 1): Gewalt zur Abwehr verbotener Eigenmacht — Schutz im Moment des Angriffs\n\n• Besitzkehr (Abs. 2): Wiederbeschaffung des gerade Entzogenen \"auf frischer Tat\" — Verfolgung des Täters und Rücknahme der Sache\n\nBesitzkehr endet mit Verlust der Frische (Täter ist entkommen, Tat ist abgeschlossen). Danach nur noch zivilrechtlicher Anspruch auf Herausgabe."],
+["§ 860 BGB","Selbsthilfe des Besitzdieners — operative Kernbefugnis des Sicherheitsmitarbeiters","Der Besitzdiener darf dieselben Selbsthilferechte ausüben wie der Besitzer (§ 859).\n\nDIE OPERATIVE KERNBEFUGNIS DES SICHERHEITSMITARBEITERS.\n\nObwohl er selbst nicht Besitzer ist, darf er:\n• Verbotene Eigenmacht abwehren (Besitzwehr)\n• Entzogenes auf frischer Tat zurückholen (Besitzkehr)\n\nDie Befugnisse leiten sich vom Besitz seines Auftraggebers ab."],
+["§ 903 BGB","Eigentum — rechtliche Gewalt über eine Sache","Der Eigentümer einer Sache kann mit ihr nach Belieben verfahren und andere von jeder Einwirkung ausschließen, soweit nicht Gesetz oder Rechte Dritter entgegenstehen.\n\nEigentum = Recht, KEIN Zustand.\n\nUmfasst:\n• Verfügungsbefugnis (verkaufen, verschenken, zerstören)\n• Ausschlussbefugnis (andere fernhalten)\n\nEingeschränkt durch:\n• Gesetze (z.B. Baurecht, Naturschutz)\n• Rechte Dritter (z.B. Mieter, Pfandgläubiger)\n• Sozialbindung (Art. 14 II GG)"],
+["§ 904 BGB","Aggressiver Notstand — Einwirkung auf unbeteiligte Sache, mit Schadenersatzpflicht","Der Eigentümer einer Sache muss die Einwirkung dulden, wenn dies zur Abwendung einer gegenwärtigen Gefahr notwendig ist und der drohende Schaden gegenüber dem dem Eigentümer zugefügten unverhältnismäßig groß ist.\n\nVoraussetzungen:\n• Gegenwärtige Gefahr\n• Einwirkung auf UNBETEILIGTE fremde Sache\n• Eingriff ist notwendig\n• Drohender Schaden ist UNVERHÄLTNISMÄSSIG GRÖßER\n\nFolge: Eigentümer muss dulden, BEHÄLT ABER Schadenersatzanspruch — er trägt keine Verantwortung für die Gefahrenlage."],
+["§ 965 BGB","Pflichten des Finders — Anzeige, Verwahrung","Wer eine verlorene Sache findet, muss:\n• Den Verlierer oder Eigentümer benachrichtigen, wenn bekannt\n• Bei Wert über 10 €: Anzeige beim Fundamt\n• Sache in Verwahrung nehmen\n\nFundsache wird zum Eigentum durch:\n• Annahme durch Fundamt\n• Eigentumserwerb nach 6 Monaten (§ 973)"],
+["§ 971 BGB","Finderlohn","Anspruch des Finders bei Rückgabe an den Eigentümer:\n\n• Bis 500 € Wert: 5%\n• Über 500 € Wert: 5% von 500 + 3% vom Rest\n• Tier: 3%\n\nAnspruch entfällt, wenn der Finder seine Pflichten verletzt hat."],
+["§ 973 BGB","Eigentumserwerb des Finders nach 6 Monaten","Mit Ablauf von 6 Monaten nach Anzeige beim Fundamt erwirbt der Finder das Eigentum, wenn der Verlierer nicht ermittelt wurde.\n\nVoraussetzungen:\n• Sache wurde ordnungsgemäß angezeigt\n• Eigentümer ist unbekannt geblieben\n• Frist von 6 Monaten ist abgelaufen\n\nAusnahme: Sachen, die in öffentlichen Räumen gefunden werden (Fundbüro), gehen an den Berechtigten der Räume."],
+["§ 1 StGB","Keine Strafe ohne Gesetz — Bestimmtheit, Rückwirkungsverbot","Eine Tat kann nur bestraft werden, wenn die Strafbarkeit gesetzlich bestimmt war, bevor die Tat begangen wurde.\n\nVier Garantien:\n• Bestimmtheitsgrundsatz (Strafnorm muss klar formuliert sein)\n• Rückwirkungsverbot (kein Strafgesetz nachträglich anwendbar)\n• Analogieverbot (zu Lasten des Täters)\n• Schriftlichkeitsgebot (kein Gewohnheitsrecht zu Lasten des Täters)\n\nGrundprinzip des rechtsstaatlichen Strafrechts."],
+["§ 11 StGB","Legaldefinitionen — Angehöriger, Amtsträger, rechtswidrige Tat","Wichtigste Legaldefinitionen:\n\n• Angehöriger: Verwandte und Verschwägerte gerader Linie, Geschwister, Ehegatten/Lebenspartner, Verlobte\n• Amtsträger: Beamter, Richter, sonstige Personen mit Aufgaben öffentlicher Verwaltung\n• Rechtswidrige Tat: erfüllt Tatbestand eines Strafgesetzes\n• Vorhaben: Pläne und Vorbereitungen zu einer Tat\n\nGilt für das gesamte StGB."],
+["§ 12 StGB","Verbrechen vs Vergehen — Trennlinie 1 Jahr Mindeststrafe","Trennung nach Mindeststrafe:\n\n• VERBRECHEN: rechtswidrige Tat, die im Mindestmaß mit Freiheitsstrafe von einem Jahr oder darüber bedroht ist\n→ Versuch immer strafbar\n→ Beispiele: Mord, Totschlag, Raub, Brandstiftung\n\n• VERGEHEN: alle anderen Straftaten\n→ Versuch nur strafbar, wenn Gesetz es ausdrücklich anordnet\n→ Beispiele: einfacher Diebstahl, Körperverletzung, Beleidigung\n\nMaßgeblich ist die Mindeststrafe, NICHT die Höchststrafe oder die im konkreten Fall verhängte Strafe."],
+["§ 13 StGB","Garantenpflicht — unechtes Unterlassungsdelikt","Wer es unterlässt, einen zum Tatbestand gehörenden Erfolg abzuwenden, ist nur strafbar, wenn er rechtlich dafür einzustehen hat.\n\nGarantenstellung kann entstehen aus:\n• Gesetz (z.B. elterliche Sorge)\n• Vertrag (z.B. Sicherheitsdienst-Auftrag)\n• Vorausgegangenem gefährdendem Tun (Ingerenz)\n• Tatsächlicher Übernahme von Schutzfunktionen\n• Beherrschung von Gefahrenquellen\n\nFür Sicherheitsmitarbeiter: Garant aus Bewachungsvertrag."],
+["§ 15 StGB","Vorsatz und Fahrlässigkeit","Strafbar ist nur vorsätzliches Handeln, wenn das Gesetz nicht ausdrücklich fahrlässiges Handeln mit Strafe bedroht.\n\nVorsatzformen:\n• Absicht (dolus directus 1. Grades) — gewollt\n• Direkter Vorsatz (dolus directus 2. Grades) — sicher gewusst\n• Bedingter Vorsatz (dolus eventualis) — billigend in Kauf genommen\n\nFahrlässigkeitsformen:\n• Bewusste Fahrlässigkeit — Risiko erkannt, aber gehofft, dass es nicht eintritt\n• Unbewusste Fahrlässigkeit — Risiko gar nicht erkannt"],
+["§ 16 StGB","Irrtum über Tatumstände — Putativnotwehr","Wer bei Begehung der Tat einen Umstand nicht kennt, der zum gesetzlichen Tatbestand gehört, handelt nicht vorsätzlich.\n\nFolgen:\n• Vorsatztat entfällt\n• Fahrlässigkeitsstrafbarkeit bleibt möglich\n\nGrundlage der Putativnotwehr:\nWer irrig die Notwehrlage annimmt, kann nicht wegen Vorsatztat bestraft werden.\nFahrlässige Tat (z.B. fahrlässige Körperverletzung) bleibt aber denkbar."],
+["§ 20 StGB","Schuldunfähigkeit — unter 14, krankhaft, ab 3,0 Promille","Drei Schuldunfähigkeitsgründe:\n\n• Unter 14 Jahren (Strafunmündigkeit)\n• Krankhafte seelische Störung (z.B. Psychose)\n• Tiefgreifende Bewusstseinsstörung (Affekt)\n• Schwachsinn\n• Andere schwere seelische Abartigkeit\n\nVoll alkoholbedingt: ab ca. 3,0 Promille\nVerminderte Schuldfähigkeit (§ 21): ab ca. 2,0 Promille\n\nAusnahme: Actio libera in causa — wer sich vorsätzlich in Schuldunfähigkeit versetzt, um eine Tat zu begehen, bleibt strafbar."],
+["§ 23 StGB","Versuch","Versuch beginnt mit dem unmittelbaren Ansetzen zur Tatbestandsverwirklichung.\n\nStrafbarkeit:\n• Verbrechen: Versuch immer strafbar\n• Vergehen: nur wenn ausdrücklich angeordnet\n\nVersuch wird milder bestraft als Vollendung (§ 23 II) — der konkrete Strafrahmen kann bis zur Hälfte gemildert werden."],
+["§ 24 StGB","Rücktritt vom Versuch","Vom Versuch wird nicht bestraft, wer:\n\n• Freiwillig die Tatausführung aufgibt (unbeendeter Versuch)\noder\n• Freiwillig die Vollendung verhindert (beendeter Versuch)\noder\n• Sich freiwillig und ernsthaft bemüht, die Vollendung zu verhindern (wenn Tat ohne sein Zutun nicht vollendet wird)\n\nFreiwilligkeit ist zentral — nicht aus äußerem Zwang."],
+["§ 25 StGB","Täterschaft — unmittelbar, Mittäter, mittelbar","Drei Täterschaftsformen:\n\n• Unmittelbarer Täter (Abs. 1 Var. 1): begeht die Tat selbst\n• Mittelbarer Täter (Abs. 1 Var. 2): begeht die Tat durch einen anderen (z.B. nutzt einen schuldunfähigen Hintermann als Werkzeug)\n• Mittäter (Abs. 2): mehrere begehen die Tat gemeinschaftlich, mit gemeinsamem Tatplan und arbeitsteiligem Vorgehen\n\nAlle drei Formen sind volle Täterschaft, nicht Teilnahme."],
+["§ 26 StGB","Anstiftung — wie Täter bestraft","Wer einen anderen vorsätzlich zu dessen vorsätzlich begangener rechtswidriger Tat bestimmt hat, wird wie ein Täter bestraft.\n\nVoraussetzungen:\n• Vorsätzliches Bestimmen\n• Eines anderen\n• Zu dessen vorsätzlich begangener rechtswidriger Haupttat\n\nStrafrahmen wie beim Täter selbst — keine Milderung."],
+["§ 27 StGB","Beihilfe — milder bestraft","Wer einem anderen zu dessen vorsätzlich begangener rechtswidriger Tat Hilfe leistet, wird als Gehilfe bestraft.\n\nVoraussetzungen:\n• Hilfeleistung (physisch oder psychisch)\n• Zu vorsätzlicher rechtswidriger Haupttat\n• Doppelvorsatz (auf Hilfe und Haupttat)\n\nFolge: Strafe ist obligatorisch zu mildern (§ 27 II i.V.m. § 49 I)."],
+["§ 32 StGB","Notwehr strafrechtlich — rechtfertigend","Notwehr = die Verteidigung, die erforderlich ist, um einen gegenwärtigen rechtswidrigen Angriff von sich oder einem anderen abzuwenden.\n\nNotwehrlage:\n• Angriff auf ein Rechtsgut\n• Gegenwärtig (unmittelbar bevorstehend, gerade stattfindend, andauernd)\n• Rechtswidrig\n• Durch einen Menschen\n\nNotwehrhandlung:\n• Erforderlich (mildestes geeignetes Mittel)\n• Geboten (sozialethisch angemessen)\n\nKeine Verhältnismäßigkeit im engeren Sinne — der Angreifer hat sich selbst ins Unrecht gesetzt.\n\nUmfasst auch Nothilfe (\"oder einem anderen\")."],
+["§ 33 StGB","Notwehrexzess — entschuldigend bei Verwirrung, Furcht, Schrecken","Überschreitet der Täter die Grenzen der Notwehr aus Verwirrung, Furcht oder Schrecken, wird er nicht bestraft.\n\nEntschuldigungsgrund (nicht Rechtfertigungsgrund) — Tat bleibt rechtswidrig, aber Täter handelt schuldlos.\n\nNur asthenische Affekte (Schwächegefühle) entschuldigen:\n✓ Verwirrung, Furcht, Schrecken — straffrei\n✗ Wut, Zorn, Hass, Rachsucht (sthenische Affekte) — voll strafbar\n\nVoraussetzung: Es muss eine echte Notwehrlage bestanden haben."],
+["§ 34 StGB","Rechtfertigender Notstand — Interessenabwägung","Wer in einer gegenwärtigen, nicht anders abwendbaren Gefahr für ein Rechtsgut eine Tat begeht, um die Gefahr abzuwenden, handelt nicht rechtswidrig, wenn das geschützte Interesse das beeinträchtigte wesentlich überwiegt.\n\nVoraussetzungen:\n• Gegenwärtige Gefahr für ein Rechtsgut (eigenes oder fremdes)\n• Tat ist erforderlich zur Gefahrenabwehr\n• Geschütztes Interesse überwiegt WESENTLICH\n• Tat ist angemessenes Mittel\n\nUnterschied zur Notwehr: Kein menschlicher Angreifer nötig. Dafür strenge Interessenabwägung."],
+["§ 35 StGB","Entschuldigender Notstand — nur Leib, Leben, Freiheit, nahestehende Personen","Engerer als § 34. Tat bleibt rechtswidrig, aber Täter handelt schuldlos.\n\nZwei Einschränkungen gegenüber § 34:\n• Rechtsgüter: NUR Leben, Körper, Freiheit (nicht Eigentum, Ehre)\n• Personenkreis: NUR eigene Person, Angehörige, nahestehende Personen\n\nAusgeschlossen, wenn:\n• Täter hat Notstandslage selbst herbeigeführt\n• Täter steht in besonderem Rechtsverhältnis (Garantenstellung) — Sicherheitsmitarbeiter haben erhöhte Gefahrtragungspflicht für aufgabenbezogene Gefahren"],
+["§ 123 StGB","Hausfriedensbruch","Wer in die Wohnung, Geschäftsräume oder das befriedete Besitztum eines anderen widerrechtlich eindringt oder, wenn er ohne Befugnis darin verweilt, sich auf Aufforderung des Berechtigten nicht entfernt.\n\nGeschütztes Rechtsgut: Hausrecht (aus Art. 13/14 GG, §§ 903/854 BGB).\n\nTwo Tatvarianten:\n• Widerrechtliches Eindringen\n• Verweilen trotz Aufforderung\n\nAntragsdelikt (§ 123 II)."],
+["§ 132 StGB","Amtsanmaßung","Wer unbefugt sich mit der Ausübung eines öffentlichen Amtes befasst oder eine Handlung vornimmt, die nur kraft eines öffentlichen Amtes vorgenommen werden darf.\n\nZwei Varianten:\n• Anmaßung der Amtsausübung allgemein\n• Vornahme einer Amtshandlung\n\nDie bloße Behauptung \"Ich bin Polizist\" ist nicht ausreichend — es muss eine konkrete Handlung folgen."],
+["§ 132a StGB","Missbrauch von Titeln, Berufsbezeichnungen, Abzeichen","Wer unbefugt führt:\n• Titel (Doktor, Professor)\n• Berufsbezeichnungen (Arzt, Rechtsanwalt)\n• Akademische Grade\n• Uniformen, Amtskleidung, Abzeichen (in- und ausländische)\n\nKnüpft direkt an §§ 18, 19 BewachV an: Wenn Sicherheitsuniform und -ausweis Verwechslung mit Polizei zulassen, droht § 132a StGB."],
+["§ 138 StGB","Nichtanzeige geplanter Straftaten","Wer von dem Vorhaben einer der in der Vorschrift aufgeführten Straftaten glaubhaft erfährt und es zu einer Zeit unterlässt, der Behörde oder dem Bedrohten Anzeige zu machen, zu der die Ausführung noch verhindert werden kann.\n\nKatalog umfasst u.a.:\n• Mord, Totschlag, Völkermord\n• Erpresserischer Menschenraub\n• Geldfälschung\n• Schwere Brandstiftung\n• Hochverrat, Landesverrat\n• Bandenraub\n\nWichtig: Nur SCHWERE Taten, nicht alle Straftaten."],
+["§ 153 StGB","Falsche uneidliche Aussage — Vergehen","Wer als Zeuge oder Sachverständiger vor Gericht oder vor einer anderen zur eidlichen Vernehmung zuständigen Stelle uneidlich falsch aussagt.\n\nVergehen — Strafrahmen 3 Monate bis 5 Jahre.\n\nVoraussetzungen:\n• Zeugen- oder Sachverständigenstellung\n• Vernehmung durch zuständige Stelle (Gericht, Staatsanwaltschaft, Untersuchungsausschuss)\n• Aussage objektiv falsch\n• Vorsatz\n\nAngeklagte sind keine Zeugen — sie können nicht nach § 153 strafbar werden, auch wenn sie lügen."],
+["§ 154 StGB","Meineid — Verbrechen","Wer vor Gericht oder einer anderen zur Abnahme von Eiden zuständigen Stelle falsch schwört.\n\nVERBRECHEN — Strafrahmen 1 bis 15 Jahre.\n\nQualifizierung gegenüber § 153:\n• Aussage erfolgt unter Eid\n• Bewusste Wahrheitsverletzung\n\nMildere Form: § 156 (falsche Versicherung an Eides statt) bis 3 Jahre."],
+["§ 164 StGB","Falsche Verdächtigung — gegen unschuldige Person","Wer einen anderen bei einer Behörde wider besseres Wissen einer rechtswidrigen Tat oder eines Pflichtverstoßes verdächtigt, in der Absicht, ein behördliches Verfahren gegen ihn herbeizuführen.\n\nUnterschied zu § 145d:\n• § 164: konkrete unschuldige Person wird verdächtigt\n• § 145d: keine konkrete Person, sondern Justiz wird beschäftigt\n\nGeschütztes Rechtsgut: Ehre und Freiheit der unschuldigen Person + ordnungsgemäße Rechtspflege."],
+["§ 211 StGB","Mord","Mörder ist, wer aus niedrigen Beweggründen, heimtückisch, grausam oder mit gemeingefährlichen Mitteln oder zur Ermöglichung oder Verdeckung einer anderen Straftat einen Menschen tötet.\n\nMordmerkmale (drei Gruppen):\n\nVerwerflichkeit der Motive:\n• Mordlust, Befriedigung des Geschlechtstriebs, Habgier, sonstige niedrige Beweggründe\n\nVerwerflichkeit der Tatausführung:\n• Heimtückisch, grausam, mit gemeingefährlichen Mitteln\n\nVerwerflichkeit der Zweckverfolgung:\n• Zur Ermöglichung oder Verdeckung einer Straftat\n\nStrafe: lebenslange Freiheitsstrafe."],
+["§ 212 StGB","Totschlag","Wer einen Menschen tötet, ohne Mörder zu sein.\n\nGrundtatbestand der Tötungsdelikte. Strafrahmen 5 bis 15 Jahre.\nMinder schwerer Fall (Abs. 1): 1 bis 10 Jahre.\nBesonders schwerer Fall (Abs. 2): lebenslange Freiheitsstrafe.\n\nUnterschied zum Mord: Es fehlt ein Mordmerkmal."],
+["§ 223 StGB","Einfache Körperverletzung — Antragsdelikt","Wer eine andere Person körperlich misshandelt oder an der Gesundheit schädigt.\n\nZwei Tatvarianten:\n• Körperliche Misshandlung — üble, unangemessene Behandlung mit nicht unerheblicher Beeinträchtigung des körperlichen Wohlbefindens\n• Gesundheitsschädigung — Hervorrufen oder Steigern eines pathologischen Zustands\n\nAntragsdelikt — wird nur auf Strafantrag verfolgt (Ausnahme: besonderes öffentliches Interesse).\n\nStrafrahmen bis 5 Jahre."],
+["§ 224 StGB","Gefährliche Körperverletzung — durch Tatmittel, bis 10 Jahre","Qualifikation der Körperverletzung durch das TATMITTEL.\n\nQualifikationsmerkmale:\n• Beibringung von Gift oder anderen gesundheitsschädlichen Stoffen\n• Mit einer Waffe oder gefährlichen Werkzeug\n• Hinterlistiger Überfall\n• Mit einem anderen Beteiligten gemeinschaftlich\n• Lebensgefährdende Behandlung\n\nOffizialdelikt — wird ohne Antrag verfolgt.\n\nStrafrahmen 6 Monate bis 10 Jahre."],
+["§ 226 StGB","Schwere Körperverletzung — durch Folge, Verbrechen","Qualifikation durch die FOLGE der Tat.\n\nSchwere Folgen:\n• Verlust der Sehkraft, des Gehörs, der Sprache, der Fortpflanzungsfähigkeit\n• Verlust eines wichtigen Körperglieds\n• Dauerhafte Entstellung\n• Siechtum, Lähmung, Geisteskrankheit\n\nVERBRECHEN — Strafrahmen 1 bis 10 Jahre, in besonders schweren Fällen 3 bis 15 Jahre."],
+["§ 229 StGB","Fahrlässige Körperverletzung","Wer durch Fahrlässigkeit die Körperverletzung einer anderen Person verursacht.\n\nKein Vorsatz erforderlich — Sorgfaltspflichtverletzung reicht.\n\nStrafrahmen bis 3 Jahre.\n\nAntragsdelikt (außer öffentliches Interesse).\n\nWichtig: Fahrlässigkeit ist nur strafbar, wenn das Gesetz es ausdrücklich vorsieht (§ 15 StGB) — § 229 ist eine solche ausdrückliche Anordnung."],
+["§ 238 StGB","Nachstellung — Stalking","Wer einer Person in einer Weise unbefugt nachstellt, die geeignet ist, ihre Lebensgestaltung schwerwiegend zu beeinträchtigen.\n\nTatvarianten u.a.:\n• Räumliche Nähe aufsuchen\n• Kontaktversuche per Telekommunikation\n• Bestellungen unter dem Namen des Opfers\n• Drohung mit Verletzung von Leben/Körper/Gesundheit/Freiheit\n\nKeine Antragspflicht mehr seit 2017 (Reform)."],
+["§ 239 StGB","Freiheitsberaubung","Wer einen Menschen einsperrt oder auf andere Weise der Freiheit beraubt.\n\nTatvarianten:\n• Einsperren (Raum verschließen)\n• Andere Beraubung der Fortbewegungsfreiheit (festhalten, fesseln, drohen)\n\nWichtige Praxis-Relevanz: Eine unrechtmäßige Festnahme nach § 127 StPO (z.B. ohne Voraussetzungen) erfüllt § 239!"],
+["§ 240 StGB","Nötigung","Wer einen Menschen rechtswidrig mit Gewalt oder durch Drohung mit einem empfindlichen Übel zu einer Handlung, Duldung oder Unterlassung nötigt.\n\nVoraussetzungen:\n• Nötigungsmittel — Gewalt ODER Drohung mit empfindlichem Übel\n• Nötigungserfolg — Handlung, Duldung, Unterlassung\n• Verwerflichkeit der Mittel-Zweck-Relation\n\nNicht jede Drohung ist Nötigung — nur wenn die Mittel-Zweck-Relation als verwerflich anzusehen ist."],
+["§ 241 StGB","Bedrohung","Wer einen Menschen mit der Begehung einer gegen ihn oder eine ihm nahestehende Person gerichteten rechtswidrigen Tat bedroht.\n\nUnterschied zur Nötigung:\n• § 241: bloße Drohung, ohne dass etwas erlangt werden soll\n• § 240: Drohung als Mittel zur Erzwingung von Verhalten\n\nSeit 2021 verschärft: Drohung mit jeder rechtswidrigen Tat reicht (früher nur Verbrechen)."],
+["§ 242 StGB","Diebstahl — Wegnahme mit Zueignungsabsicht","Wer eine fremde bewegliche Sache einem anderen in der Absicht wegnimmt, die Sache sich oder einem Dritten rechtswidrig zuzueignen.\n\nTatbestandsmerkmale:\n• Fremde bewegliche Sache\n• Wegnahme = Bruch fremden Gewahrsams + Begründung neuen Gewahrsams\n• Zueignungsabsicht\n• Rechtswidrigkeit der Zueignung\n\nStrafrahmen bis 5 Jahre."],
+["§ 243 StGB","Besonders schwerer Fall des Diebstahls","Strafverschärfende Regelbeispiele bei Diebstahl:\n\n• Einbrechen, Einsteigen, Eindringen mit falschem Schlüssel\n• Diebstahl gegen Sicherung (Behältnis, Versperrung)\n• Gewerbsmäßigkeit\n• Diebstahl in Kirchen, sonstigen religiösen Einrichtungen\n• Diebstahl an Hilflosen\n• Diebstahl von Schusswaffen, Sprengstoff\n\nStrafrahmen 3 Monate bis 10 Jahre."],
+["§ 244 StGB","Diebstahl mit Waffen, Bandendiebstahl, Wohnungseinbruch","Qualifikationen des Diebstahls (echte Verbrechen):\n\n• Diebstahl mit Waffen — Beisichführen einer Waffe oder eines anderen gefährlichen Werkzeugs\n• Bandendiebstahl — Mitglied einer Bande, die sich zur fortgesetzten Begehung verbunden hat\n• Wohnungseinbruchsdiebstahl — Einbruch in eine Privatwohnung\n\nStrafrahmen 6 Monate bis 10 Jahre, beim Wohnungseinbruch in Privatwohnung 1 bis 10 Jahre (Verbrechen)."],
+["§ 246 StGB","Unterschlagung — Sache schon im Besitz","Wer eine fremde bewegliche Sache sich oder einem Dritten rechtswidrig zueignet.\n\nUnterschied zum Diebstahl:\n• Diebstahl: Sache muss erst weggenommen werden\n• Unterschlagung: Täter HAT die Sache bereits (anvertraut, gefunden, geliehen)\n\nKeine Wegnahme nötig — der Täter steht schon in Sachherrschaft.\n\nStrafrahmen bis 3 Jahre, bei Anvertrauensverhältnis bis 5 Jahre (Veruntreuung)."],
+["§ 248a StGB","Geringwertige Sachen — Antragsdelikt","Diebstahl und Unterschlagung geringwertiger Sachen werden nur auf Antrag verfolgt, wenn nicht öffentliches Interesse besteht.\n\nGrenze \"geringwertig\": etwa 25-50 € (rechtsprechungsabhängig).\n\nFolge: Ohne Strafantrag des Geschädigten wird nicht verfolgt — gibt Geschädigtem Steuerung in der Hand."],
+["§ 249 StGB","Raub — Verbrechen","Wer mit Gewalt gegen eine Person oder unter Anwendung von Drohungen mit gegenwärtiger Gefahr für Leib oder Leben eine fremde bewegliche Sache wegnimmt, in der Absicht der Zueignung.\n\nKombination aus Diebstahl + Nötigung:\n• Wegnahme mit Zueignungsabsicht (Diebstahlskomponente)\n• Gewalt gegen Person ODER Drohung mit gegenwärtiger Gefahr für Leib/Leben (Nötigungskomponente)\n\nVERBRECHEN — Strafrahmen 1 bis 15 Jahre."],
+["§ 252 StGB","Räuberischer Diebstahl","Wer auf frischer Tat beim Diebstahl betroffen, gegen eine Person Gewalt verübt oder Drohungen mit gegenwärtiger Gefahr für Leib oder Leben anwendet, um den Besitz des gestohlenen Gutes zu erhalten.\n\nDer Übergang vom Diebstahl zum Raub:\nWer beim Diebstahl ertappt wird und dann Gewalt anwendet, um die Beute zu sichern, wird wie ein Räuber bestraft.\n\nVoraussetzung: Tat ist auf frischer Tat — räumlich und zeitlich noch eng zur Tat."],
+["§ 253 StGB","Erpressung","Wer einen Menschen rechtswidrig mit Gewalt oder durch Drohung mit empfindlichem Übel zu einer Handlung, Duldung oder Unterlassung nötigt und dadurch dem Vermögen einen Nachteil zufügt, um sich oder einen Dritten zu Unrecht zu bereichern.\n\nVerhältnis zur Nötigung:\n• Nötigung (§ 240): allgemein, nicht zwingend Vermögensschaden\n• Erpressung (§ 253): Sonderform der Nötigung mit Vermögensschaden + Bereicherungsabsicht\n\nStrafrahmen bis 5 Jahre, in schweren Fällen mehr."],
+["§ 255 StGB","Räuberische Erpressung","Erpressung mit Gewalt gegen eine Person oder Drohung mit gegenwärtiger Gefahr für Leib oder Leben → wird wie Raub bestraft.\n\nUnterschied zum einfachen Raub:\n• Raub (§ 249): Wegnahme der Sache durch den Täter\n• Räuberische Erpressung: Opfer gibt die Sache (durch Nötigung erzwungen)\n\nDie Rechtsprechung behandelt beide oft gleich, der Strafrahmen ist identisch."],
+["§ 257 StGB","Begünstigung — sichert Beute","Wer einem anderen, der eine rechtswidrige Tat begangen hat, in der Absicht Hilfe leistet, ihm die Vorteile der Tat zu sichern.\n\nUnterschied zu anderen Anschlussdelikten:\n• § 257: sichert die BEUTE (Vorteile der Tat)\n• § 258: schützt den TÄTER (Strafvereitelung)\n• § 259: KAUFT die Beute (Hehlerei)\n\nStrafrahmen bis 5 Jahre, nicht höher als Vortat."],
+["§ 258 StGB","Strafvereitelung — schützt Schuldigen","Wer absichtlich oder wissentlich verhindert, dass ein anderer für eine rechtswidrige Tat bestraft oder einer Maßregel unterworfen wird.\n\nZUGUNSTEN DES SCHULDIGEN.\n\nNicht strafbar:\n• Strafvereitelung zugunsten Angehöriger (§ 258 VI)\n• Selbstbegünstigung (eigene Tat verbergen)\n\nGrenze zum bloßen Schweigen: Aktives Tun (Alibi geben, Beweise vernichten) ist Strafvereitelung. Bloßes Nicht-Aussagen meist nicht."],
+["§ 259 StGB","Hehlerei","Wer eine Sache, die ein anderer gestohlen oder sonst durch eine gegen fremdes Vermögen gerichtete rechtswidrige Tat erlangt hat, ankauft, sich oder einem Dritten verschafft, absetzt oder absetzen hilft, um sich oder einen Dritten zu bereichern.\n\nVoraussetzungen:\n• Sache aus Vortat (Diebstahl, Betrug, Unterschlagung)\n• Tathandlung: Ankaufen, Verschaffen, Absetzen\n• Bereicherungsabsicht\n\nStrafrahmen bis 5 Jahre, gewerbsmäßig bis 10 Jahre."],
+["§ 263 StGB","Betrug","Wer in der Absicht, sich oder einem Dritten einen rechtswidrigen Vermögensvorteil zu verschaffen, das Vermögen eines anderen dadurch beschädigt, dass er durch Vorspiegelung falscher oder durch Entstellung oder Unterdrückung wahrer Tatsachen einen Irrtum erregt oder unterhält.\n\nVierschritt-Tatbestand:\n1. Täuschung über Tatsachen\n2. Irrtum beim Getäuschten\n3. Vermögensverfügung\n4. Vermögensschaden\n\nPlus Bereicherungsabsicht.\n\nStrafrahmen bis 5 Jahre, in schweren Fällen bis 10 Jahre."],
+["§ 263a StGB","Computerbetrug","Wer in der Absicht der rechtswidrigen Bereicherung das Vermögen eines anderen schädigt, indem er das Ergebnis eines Datenverarbeitungsvorgangs durch unrichtige Gestaltung des Programms, durch Verwendung unrichtiger oder unvollständiger Daten oder sonst unbefugt beeinflusst.\n\nWarum eigene Norm? Computer haben keinen \"Irrtum\" im Sinne des § 263.\n\nTypische Fälle:\n• Manipulation von Geldautomaten\n• Hacker, die Konten leerräumen\n• Phishing"],
+["§ 265a StGB","Erschleichen von Leistungen — Schwarzfahren","Wer die Leistung eines Automaten oder eines öffentlichen Zwecken dienenden Telekommunikationsnetzes, die Beförderung durch ein Verkehrsmittel oder den Zutritt zu einer Veranstaltung oder einer Einrichtung in der Absicht erschleicht, das Entgelt nicht zu entrichten.\n\nKlassische Fälle:\n• Schwarzfahren in Bus/Bahn\n• Eintritt ohne Ticket erschleichen\n• Automatenmissbrauch ohne Computerbetrug\n\nStrafrahmen bis 1 Jahr — milder als § 263."],
+["§ 266 StGB","Untreue","Wer die ihm durch Gesetz, behördlichen Auftrag oder Rechtsgeschäft eingeräumte Befugnis missbraucht oder die ihm obliegende Pflicht verletzt, fremde Vermögensinteressen wahrzunehmen, und dadurch dem, dessen Interessen er zu betreuen hat, Nachteil zufügt.\n\nZwei Tatvarianten:\n• Missbrauchstatbestand — Überschreitung des rechtlich Dürfens\n• Treuebruchstatbestand — Verletzung der Vermögensbetreuungspflicht\n\nTäterkreis ist eingeschränkt: nur Personen mit Vermögensbetreuungspflicht (Geschäftsführer, Vermögensverwalter, Notare etc.)."],
+["§ 267 StGB","Urkundenfälschung","Wer zur Täuschung im Rechtsverkehr eine unechte Urkunde herstellt, eine echte Urkunde verfälscht oder eine unechte oder verfälschte Urkunde gebraucht.\n\nDrei Tatvarianten:\n• Herstellen einer unechten Urkunde (z.B. gefälschte Quittung)\n• Verfälschen einer echten Urkunde (z.B. Datum ändern)\n• Gebrauchen der gefälschten Urkunde\n\nUrkundenbegriff: verkörperte Gedankenerklärung mit erkennbarem Aussteller, geeignet und bestimmt zum Beweis im Rechtsverkehr.\n\nStrafrahmen bis 5 Jahre."],
+["§ 281 StGB","Missbrauch von Ausweispapieren","Wer einen Ausweis, der für einen anderen ausgestellt ist, zur Täuschung im Rechtsverkehr gebraucht oder zur Täuschung im Rechtsverkehr einem anderen einen Ausweis überlässt, der nicht für diesen ausgestellt ist.\n\nUnterschied zur Urkundenfälschung (§ 267):\n• § 267: man verändert/erstellt eine unechte Urkunde\n• § 281: man nutzt einen ECHTEN Ausweis, der aber für einen ANDEREN gilt\n\nStrafrahmen bis 1 Jahr."],
+["§ 303 StGB","Sachbeschädigung","Wer rechtswidrig eine fremde Sache beschädigt oder zerstört.\n\nAuch (§ 303 II): Unbefugte, nicht nur unerhebliche und nicht nur vorübergehende Veränderung des Erscheinungsbilds — z.B. Graffiti.\n\nAntragsdelikt — Strafverfolgung nur auf Antrag, außer öffentliches Interesse.\n\nStrafrahmen bis 2 Jahre."],
+["§ 306 StGB","Brandstiftung — Verbrechen","Wer ein in der Vorschrift aufgeführtes Objekt in Brand setzt oder durch Brandlegung ganz oder teilweise zerstört.\n\nObjekte u.a.:\n• Gebäude\n• Schiffe, Hütten\n• Wirtschaftliche Anlagen\n• Wälder, Heiden\n\nVERBRECHEN — Strafrahmen 1 bis 10 Jahre.\n\nQualifikationen:\n• § 306a — schwere Brandstiftung (Wohnungen)\n• § 306b — besonders schwere Brandstiftung\n• § 306c — Todesfolge"],
+["§ 323a StGB","Vollrausch — Auffangtatbestand hinter actio libera in causa","Wer sich vorsätzlich oder fahrlässig durch alkoholische Getränke oder andere berauschende Mittel in einen Rausch versetzt und in diesem Zustand eine rechtswidrige Tat begeht, die er nicht bestraft werden kann, weil er infolge des Rausches schuldunfähig war oder weil dies nicht auszuschließen ist.\n\nAuffangtatbestand für Fälle, in denen actio libera in causa nicht beweisbar ist.\n\nUnterschied:\n• actio libera in causa: Täter wird wegen DER TAT bestraft (er hatte sie beim Trinken im Blick)\n• § 323a: Täter wird wegen DES BERAUSCHENS bestraft (Tat war nicht geplant)"],
+["§ 323c StGB","Unterlassene Hilfeleistung — echtes Unterlassungsdelikt","Wer bei Unglücksfällen oder gemeiner Gefahr oder Not nicht Hilfe leistet, obwohl dies erforderlich und ihm den Umständen nach zuzumuten ist, insbesondere ohne erhebliche eigene Gefahr und ohne Verletzung anderer wichtiger Pflichten möglich.\n\nEchtes Unterlassungsdelikt — gilt für JEDEN.\n\nVoraussetzungen:\n• Unglücksfall, gemeine Gefahr oder Not\n• Hilfeleistung erforderlich\n• Hilfeleistung zumutbar (ohne erhebliche eigene Gefahr)\n\nStrafrahmen bis 1 Jahr."],
+["§ 48 StPO","Zeugenpflicht zur Aussage","Grundsätzliche Pflicht eines Zeugen:\n• Vor Gericht erscheinen\n• Aussagen\n• Ggf. einen Eid leisten\n\nAusnahmen:\n• Zeugnisverweigerungsrechte (§§ 52, 53 StPO)\n• Auskunftsverweigerung (§ 55 StPO)\n\nVerstoß: Ordnungsgeld, Beugehaft, Vorführung möglich."],
+["§ 52 StPO","Zeugnisverweigerung für Angehörige","Zur Verweigerung des Zeugnisses berechtigt sind Angehörige des Beschuldigten:\n• Verlobte\n• Ehegatten oder Lebenspartner (auch frühere)\n• Verwandte und Verschwägerte gerader Linie\n• Geschwister, Schwager\n\nMüssen vor jeder Vernehmung über das Recht belehrt werden.\n\nGrund: Konflikt zwischen Wahrheitspflicht und Schutz familiärer Bindungen."],
+["§ 55 StPO","Auskunftsverweigerung bei Selbstbelastung","Jeder Zeuge kann die Auskunft auf einzelne Fragen verweigern, deren Beantwortung ihm selbst oder einem Angehörigen die Gefahr zuziehen würde, wegen einer Straftat oder einer Ordnungswidrigkeit verfolgt zu werden.\n\nGrundlage: Nemo tenetur se ipsum accusare — niemand muss sich selbst belasten.\n\nGilt nicht für ganze Aussage, nur für einzelne Fragen.\nMuss vor jeder Vernehmung darauf hingewiesen werden."],
+["§ 127 StPO","Vorläufige Festnahme — Jedermannsrecht. Straftat, frische Tat, Identität oder Flucht, Verhältnismäßigkeit","Jedermannsrecht zur vorläufigen Festnahme.\n\nVier Voraussetzungen — alle müssen vorliegen:\n\n1. Eine STRAFTAT liegt vor (nicht nur Verdacht — Tatbestand muss erfüllt sein)\n\n2. Auf FRISCHER TAT betroffen oder verfolgt (enger räumlicher und zeitlicher Zusammenhang)\n\n3. Identität nicht sofort feststellbar ODER Fluchtverdacht\n\n4. Verhältnismäßigkeit der Festnahmehandlung\n\nFolgen bei fehlender Voraussetzung:\n• Freiheitsberaubung (§ 239 StGB)\n• Nötigung (§ 240)\n• Bei Gewaltanwendung: Körperverletzung (§§ 223 ff.)\n\nDer Festgenommene ist UNVERZÜGLICH der Polizei zu übergeben."],
+["§ 1 WaffG","Begriffsbestimmungen","Definitionen wichtiger Begriffe des Waffengesetzes:\n\n• Schusswaffe — Gegenstand zum Verschießen von Geschossen\n• Munition\n• Wesentliche Teile\n• Schießen\n• Erwerben\n• Besitzen\n• Führen — die tatsächliche Gewalt außerhalb der eigenen Wohnung, Geschäftsräume usw.\n• Verbringen\n\nGrundlage für die spätere Anwendung des Gesetzes."],
+["§ 2 WaffG","Grundsätze — was erlaubnispflichtig oder verboten ist","Dreistufiges Ampelsystem mit Anlage 2:\n\n• FREI: bestimmte Waffen ohne Erlaubnis (z.B. einfache Druckluftwaffen, Bogen)\n• ERLAUBNISPFLICHTIG: die meisten Waffen (Pistolen, Gewehre, etc.)\n• VERBOTEN: bestimmte Waffen sind komplett verboten (z.B. Butterfly-Messer, bestimmte Maschinenwaffen, Schalldämpfer)\n\nUnterschied zur GewO: WaffG ist Grundverbot mit Ausnahmen, GewO ist Grundfreiheit mit Filter."],
+["§ 4 WaffG","Vier Erlaubnisvoraussetzungen — 18 Jahre, Zuverlässigkeit, Sachkunde, Bedürfnis","Vier kumulative Voraussetzungen:\n\n1. Mindestalter 18 Jahre (z.T. 21 für Großkaliber)\n\n2. Erforderliche Zuverlässigkeit (§ 5) UND persönliche Eignung (§ 6)\n\n3. Erforderliche Sachkunde (§ 7)\n\n4. BEDÜRFNIS — der entscheidende Unterschied zur GewO. Muss konkret nachgewiesen werden:\n• Sportschützen\n• Jäger\n• Bewachungsunternehmer\n• Gefährdete Personen\n\nFür Privatpersonen praktisch unerreichbar — übliches Bedürfnis genügt nicht."],
+["§ 5 WaffG","Zuverlässigkeit","Unzuverlässigkeit liegt vor bei:\n\n• Bestimmten Vorstrafen (Gewaltdelikte, Drogendelikte, mind. 60 Tagessätze allgemein)\n• Verfassungsfeindlichen Aktivitäten (Mitgliedschaft in verbotenen Organisationen)\n• Unsorgfältiger Aufbewahrung von Waffen (in der Vergangenheit)\n• Persönlichkeitsstörungen / Suchterkrankungen\n• Trunkenheitsdelikten am Steuer\n\nÜberprüfung durch Behörde, BZR-Auskunft, ggf. Verfassungsschutzanfrage."],
+["§ 6 WaffG","Persönliche Eignung","Eignung fehlt bei:\n• Geschäftsunfähigkeit\n• Beschränkter Geschäftsfähigkeit (außer Volljährigkeit)\n• Abhängigkeit von Alkohol oder anderen berauschenden Mitteln\n• Geistiger Behinderung oder seelischer Erkrankung\n• Sonstiger persönlicher Unzuverlässigkeit\n\nBei Zweifeln kann die Behörde ein medizinisches oder psychologisches Gutachten verlangen.\n\nUnter 25-Jährige müssen ohnehin ein Gutachten vorlegen."],
+["§ 7 WaffG","Sachkunde","Nachweis durch:\n• Sachkundeprüfung (theoretisch + praktisch)\n• Anerkannte Ausbildung (z.B. Jagdschein, Schießsportausbildung)\n• Beruflicher Umgang (Polizei, Bundeswehr — eingeschränkt)\n\nInhalte:\n• Rechtsvorschriften\n• Handhabung von Waffen\n• Munitionskunde\n• Verhalten beim Schießen\n\nDer Sachkundeprüfung-Nachweis ist NICHT identisch mit dem § 34a Sachkundenachweis (das ist für Bewachungstätigkeit)."],
+["§ 10 WaffG","Erlaubnisarten — Waffenbesitzkarte, Waffenschein, kleiner Waffenschein","Drei Hauptarten der Erlaubnis:\n\n• WAFFENBESITZKARTE (WBK): erlaubt den BESITZ einer bestimmten Waffe (Eigentum, Aufbewahrung)\n\n• WAFFENSCHEIN: erlaubt das FÜHREN einer Waffe (Mitnehmen außerhalb eigener Räume oder Schießstätten)\n\n• KLEINER WAFFENSCHEIN: erlaubt das Führen von Schreckschuss-, Reizstoff- und Signalwaffen\n\nDer kleine Waffenschein ist eine PERSÖNLICHE Erlaubnis (auf den Mitarbeiter ausgestellt) — anders als § 28 WaffG (Erlaubnis des Unternehmens)."],
+["§ 28 WaffG","Bewachungsunternehmen — Schusswaffen nur bei Auftragsdurchführung","Sondervorschrift für Schusswaffen im Bewachungsgewerbe.\n\nVoraussetzungen:\n• Bewachungsauftrag betrifft besonders gefährdetes Eigentum oder Leben\n• Erlaubnis wird auf das UNTERNEHMEN ausgestellt\n• Mitarbeiter werden NAMENTLICH eingetragen\n• Schusswaffenführung nur bei tatsächlicher Auftragsdurchführung\n\nUnterschied zum kleinen Waffenschein:\n• § 28 WaffG: Unternehmensebene\n• Kleiner Waffenschein: Mitarbeiterebene (für Reiz/Signal/Schreckschuss)"],
+["§ 36 WaffG","Aufbewahrung — Munition getrennt","Schusswaffen und Munition sind sicher aufzubewahren.\n\nMindestanforderungen:\n• Sicherheitsbehältnis nach DIN-Norm (Sicherheitsstufe abhängig von Anzahl und Art der Waffen)\n• Munition GETRENNT von Waffen (außer kurzzeitige gemeinsame Aufbewahrung beim Transport)\n• Nicht im Kfz aufbewahren\n• Verschluss in eigenem Behältnis möglich\n\nVerstoß = Unzuverlässigkeit + Bußgeld (§ 53)."],
+["§ 37 WaffG","Anzeigepflichten — Verlust, Erbschaft, Fund, Zerstörung","Anzeige an die zuständige Waffenbehörde bei:\n\n• ABHANDENKOMMEN (Verlust, Diebstahl) — unverzüglich\n• ERBSCHAFT oder FUND einer erlaubnispflichtigen Waffe — unverzüglich\n• ZERSTÖRUNG oder UNBRAUCHBARMACHUNG\n• ERWERB erlaubnispflichtiger Waffen oder Munition\n\nAdressat: Waffenbehörde (sitzt beim Ordnungs- oder Landratsamt), nicht Polizei.\nBei Diebstahl zusätzlich Strafanzeige bei Polizei.\n\nVerbotene Waffen (§ 42): Anzeige bei Sicherstellung im Dienst."],
+["§ 38 WaffG","Ausweispflicht beim Führen","Wer eine Schusswaffe führt, muss mitführen:\n• Waffenschein bzw. die entsprechende Erlaubnis\n• Personalausweis oder Pass\n\nMuss auf Verlangen den zuständigen Personen vorgezeigt werden:\n• Polizei\n• Behördenmitarbeiter\n\nVerstoß: Bußgeld bis 10.000 € (§ 53)."],
+["§ 42 WaffG","Führungsverbot auf öffentlichen Veranstaltungen","Auf öffentlichen Veranstaltungen ist das Führen von Waffen verboten.\n\nÖffentliche Veranstaltungen u.a.:\n• Volksfeste, Konzerte, Sportveranstaltungen\n• Versammlungen, Demonstrationen\n• Messen\n\nAusnahme nur durch Sondergenehmigung der zuständigen Behörde — voraussetzungen:\n• Keine Gefahr für öffentliche Sicherheit\n• Zuverlässigkeit + Eignung\n• Besonderes Bedürfnis\n\nUnabhängig von § 28 WaffG-Erlaubnis: Auf einer öffentlichen Veranstaltung greift § 42 zusätzlich."],
+["§ 42a WaffG","Anscheinswaffen — Führungsverbot","Verbot des Führens in der Öffentlichkeit:\n\n• ANSCHEINSWAFFEN — täuschend echt aussehende, aber nicht funktionsfähige Waffen (Deko-Pistolen, Filmrequisiten)\n• Hieb- und Stoßwaffen mit feststehender Klinge mit Klingenlänge über 12 cm\n• Einhandmesser\n\nAusnahmen:\n• Berechtigtes Interesse (Brauchtumspflege, Berufsausübung, Sport)\n• Transport in verschlossenem Behältnis\n\nFührungsverbot, NICHT Besitzverbot."],
+["§ 53 WaffG","Bußgeld bis 10.000 Euro","Bußgeldrahmen für Ordnungswidrigkeiten nach WaffG.\n\nTypische Verstöße:\n• Verstoß gegen Aufbewahrungspflichten\n• Verletzung der Anzeigepflichten (§ 37)\n• Verstoß gegen Ausweispflichten (§ 38)\n• Führen ohne erforderliche Erlaubnis (sofern keine Straftat)\n\nBei Vorsatz schwerer als Fahrlässigkeit. Höchstgrenze 10.000 € pro Verstoß.\n\nStraftatbestände (§§ 51, 52, 52a) gehen vor."],
+["§ 2 SGB VII","Pflichtversicherung in der gesetzlichen Unfallversicherung","Pflichtversichert sind kraft Gesetzes:\n• Beschäftigte (Arbeitnehmer)\n• Lernende (Auszubildende, Schüler, Studenten — letztere nur in best. Bereichen)\n• Helfer im Unglücksfall\n• Selbstständige in bestimmten Berufen\n\nNicht versichert: Selbstständige Bewachungsunternehmer (außer freiwillige Versicherung).\n\nBeitrag trägt der Unternehmer allein — keine Beteiligung des Arbeitnehmers."],
+["§ 8 SGB VII","Versicherte Tätigkeit — inkl. Wegeunfall","Versicherte Tätigkeit umfasst:\n• Berufstätigkeit selbst\n• Wege zur und von der Arbeit (Wegeunfall)\n• Bestimmte Nebenwege (Kindergarten, Mittagessen außerhalb)\n• Betriebliche Veranstaltungen (Betriebsfeier, Betriebsausflug)\n\nNicht versichert: rein eigenwirtschaftliche Verrichtungen während der Arbeit (z.B. Privates erledigen).\n\nUnterbricht der Arbeitnehmer den Weg zu eigenwirtschaftlichen Zwecken (länger als 2 Stunden), ist der Folgeweg nicht mehr versichert."],
+["§ 22 SGB VII","Sicherheitsbeauftragte — Pflicht ab 20 Beschäftigten","Pflicht des Unternehmers zur Bestellung von Sicherheitsbeauftragten ab 20 regelmäßig beschäftigten Versicherten.\n\nAufgaben:\n• Unterstützung des Unternehmers bei Arbeitsschutz\n• Beobachtung der Sicherheitseinrichtungen\n• Aufmerksamkeit auf Unfallgefahren\n• Hinweise an Beschäftigte\n\nNICHT verantwortlich für Arbeitsschutz (das bleibt der Unternehmer) — eher Beobachter und Berater. Keine Entscheidungsbefugnisse."],
+["§ 193 SGB VII","Unfallanzeige bei Arbeitsunfähigkeit länger als 3 Tage","Pflicht zur Unfallanzeige an die Berufsgenossenschaft bei:\n• Arbeitsunfähigkeit von mehr als 3 Kalendertagen\n• Tödlichem Arbeitsunfall (immer, sofort)\n• Berufskrankheiten\n\nAnzeigepflichtig: Unternehmer (nicht der Arbeitnehmer).\n\nFrist: binnen 3 Tagen nach Kenntnis.\n\nFehlende Anzeige: Bußgeld bis 10.000 € (§ 209)."],
+["§ 209 SGB VII","Bußgeld bis 10.000 Euro","Ordnungswidrigkeitenrahmen nach SGB VII.\n\nTypische Verstöße:\n• Fehlende oder verspätete Unfallanzeige (§ 193)\n• Verletzung der Mitwirkungspflichten\n• Verstoß gegen Vorschriften der Unfallversicherung\n\nBei Vorsatz höher als bei Fahrlässigkeit, max. 10.000 €."],
+["§ 3 ArbSchG","Allgemeine Schutzpflicht des Arbeitgebers","Der Arbeitgeber ist verpflichtet, die erforderlichen Maßnahmen des Arbeitsschutzes zu treffen:\n\n• Beurteilung der Arbeitsbedingungen (Gefährdungsbeurteilung)\n• Prüfung der Wirksamkeit der Maßnahmen\n• Anpassung an wandelnde Verhältnisse\n• Stetige Verbesserung\n\nGrundnorm des Arbeitsschutzes — kostenlos für den Arbeitnehmer.\n\nBeteiligung der Beschäftigten und ihrer Vertretungen."]
+];
+
+/* =========================================================
+   PARSE CARDS
+   ========================================================= */
+const CARDS = RAW.map((row, id) => {
+  const front = row[0];
+  const back = row[1];
+  const details = row[2] || '';
+  const dashIdx = back.indexOf(' — ');
+  const term = dashIdx > 0 ? back.substring(0, dashIdx).trim() : back.trim();
+  const desc = dashIdx > 0 ? back.substring(dashIdx + 3).trim() : '';
+  // Determine law family for filtering
+  let law = 'Sonstige';
+  const f = front;
+  if (f.includes('GewO')) law = 'GewO';
+  else if (f.includes('BewachV')) law = 'BewachV';
+  else if (f.includes('GG')) law = 'GG';
+  else if (f.includes('DSGVO')) law = 'DSGVO';
+  else if (f.includes('BGB')) law = 'BGB';
+  else if (f.includes('StGB')) law = 'StGB';
+  else if (f.includes('StPO')) law = 'StPO';
+  else if (f.includes('WaffG')) law = 'WaffG';
+  else if (f.includes('SGB')) law = 'SGB VII';
+  else if (f.includes('ArbSchG')) law = 'ArbSchG';
+  return { id, front, back, term, desc, details, law };
+});
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
+const STORAGE_KEY = 'skp_trainer_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    progress: {},        // key "id_dir" -> { reps, ease, interval, due, lapses }
+    settings: { mode: 'forward', filter: 'all' },
+    todayCount: 0,
+    todayDate: new Date().toDateString(),
+  };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+// Reset today count on new day
+const todayStr = new Date().toDateString();
+if (state.todayDate !== todayStr) {
+  state.todayDate = todayStr;
+  state.todayCount = 0;
+  saveState();
+}
+
+/* =========================================================
+   SM-2 ALGORITHM
+   ========================================================= */
+function getProgress(cardId, dir) {
+  const key = cardId + '_' + dir;
+  if (!state.progress[key]) {
+    state.progress[key] = { reps: 0, ease: 2.5, interval: 0, due: 0, lapses: 0 };
+  }
+  return state.progress[key];
+}
+
+function applyRating(cardId, dir, quality) {
+  // quality: 0=Nochmal, 3=Schwer, 4=Gut, 5=Einfach
+  const p = getProgress(cardId, dir);
+  if (quality < 3) {
+    p.reps = 0;
+    p.interval = 0; // due immediately again today
+    p.lapses++;
+  } else {
+    if (p.reps === 0) p.interval = 1;
+    else if (p.reps === 1) p.interval = quality === 5 ? 4 : 3;
+    else {
+      const factor = quality === 5 ? p.ease * 1.3 : (quality === 3 ? 1.2 : p.ease);
+      p.interval = Math.max(p.interval + 1, Math.round(p.interval * factor));
+    }
+    p.reps++;
+  }
+  // Update ease
+  p.ease = Math.max(1.3, p.ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  p.due = Date.now() + p.interval * 24 * 60 * 60 * 1000;
+  state.todayCount++;
+  saveState();
+}
+
+function intervalHint(cardId, dir, quality) {
+  const p = getProgress(cardId, dir);
+  if (quality < 3) return '<10 min';
+  let interval;
+  if (p.reps === 0) interval = 1;
+  else if (p.reps === 1) interval = quality === 5 ? 4 : 3;
+  else {
+    const factor = quality === 5 ? p.ease * 1.3 : (quality === 3 ? 1.2 : p.ease);
+    interval = Math.max(p.interval + 1, Math.round(p.interval * factor));
+  }
+  if (interval < 30) return interval + ' Tag' + (interval === 1 ? '' : 'e');
+  const months = Math.round(interval / 30);
+  return '~' + months + ' Mon';
+}
+
+/* =========================================================
+   CARD QUEUE
+   ========================================================= */
+function getActiveCards() {
+  if (state.settings.filter === 'all') return CARDS;
+  return CARDS.filter(c => c.law === state.settings.filter);
+}
+
+function buildQueue() {
+  const cards = getActiveCards();
+  const now = Date.now();
+  const directions = state.settings.mode === 'both' ? ['forward', 'reverse']
+                   : [state.settings.mode];
+
+  const due = [];
+  const newOnes = [];
+  for (const card of cards) {
+    for (const dir of directions) {
+      const p = getProgress(card.id, dir);
+      if (p.due === 0) {
+        newOnes.push({ card, dir });
+      } else if (p.due <= now) {
+        due.push({ card, dir });
+      }
+    }
+  }
+  // Mix: due first, then up to 10 new per session
+  const queue = [...due, ...newOnes.slice(0, Math.max(0, 15 - due.length))];
+  // Shuffle so order isn't predictable
+  for (let i = queue.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [queue[i], queue[j]] = [queue[j], queue[i]];
+  }
+  return queue;
+}
+
+/* =========================================================
+   FUZZY MATCH
+   ========================================================= */
+function normalize(s) {
+  return s.toLowerCase()
+    .replace(/§/g, '')
+    .replace(/[.,;:!?()"„""''–—-]/g, ' ')
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = new Array(b.length + 1);
+  let curr = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      curr[j] = Math.min(curr[j-1] + 1, prev[j] + 1, prev[j-1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+function checkAnswer(input, expected) {
+  const a = normalize(input);
+  const b = normalize(expected);
+  if (!a) return 'red';
+  if (a === b) return 'green';
+  // Substring tolerance for short answers
+  if (b.includes(a) && a.length >= b.length * 0.6) return 'green';
+  const dist = levenshtein(a, b);
+  const len = Math.max(a.length, b.length);
+  const ratio = dist / len;
+  if (ratio <= 0.2) return 'green';
+  if (ratio <= 0.4) return 'yellow';
+  return 'red';
+}
+
+/* =========================================================
+   RENDERING
+   ========================================================= */
+const main = document.getElementById('main');
+let currentItem = null;
+let revealed = false;
+let queue = [];
+
+function refreshStats() {
+  const cards = getActiveCards();
+  const directions = state.settings.mode === 'both' ? ['forward', 'reverse']
+                   : [state.settings.mode];
+  const now = Date.now();
+  let due = 0, total = 0, newC = 0, learn = 0, mature = 0;
+  for (const card of cards) {
+    for (const dir of directions) {
+      total++;
+      const p = getProgress(card.id, dir);
+      if (p.due === 0) newC++;
+      else if (p.due <= now) due++;
+      if (p.due > 0 && p.interval < 21) learn++;
+      else if (p.interval >= 21) mature++;
+    }
+  }
+  document.getElementById('stat-due').textContent = due + newC;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('d-new').textContent = newC;
+  document.getElementById('d-learn').textContent = learn;
+  document.getElementById('d-mature').textContent = mature;
+  document.getElementById('d-today').textContent = state.todayCount;
+}
+
+function renderDone() {
+  main.innerHTML = `
+    <div class="done-state">
+      <h2>Alles fällig durchgelernt.</h2>
+      <p>Schau in den Einstellungen, wenn du Modus oder Filter ändern willst, oder komm später wieder — die Karten werden automatisch fällig.</p>
+    </div>
+  `;
+}
+
+function renderCard() {
+  if (!queue.length) queue = buildQueue();
+  if (!queue.length) { renderDone(); return; }
+  currentItem = queue.shift();
+  revealed = false;
+  const { card, dir } = currentItem;
+
+  const isForward = dir === 'forward';
+  const question = isForward ? card.front : card.term;
+  const expected = isForward ? card.term : card.front;
+  const directionLabel = isForward ? 'Nummer → Begriff' : 'Begriff → Nummer';
+
+  main.innerHTML = `
+    <div class="deck-tag">${card.law}</div>
+    <span class="direction-tag">${directionLabel}</span>
+    <div class="question ${question.length > 28 ? 'smaller' : ''}">${question}</div>
+    <div class="input-wrap">
+      <input class="answer-input" id="answer" type="text" autocomplete="off"
+             autocapitalize="off" autocorrect="off" spellcheck="false"
+             placeholder="${isForward ? 'Begriff eintippen…' : 'z.B. § 32 StGB …'}" />
+    </div>
+    <button class="primary-btn" id="submit-btn">Prüfen</button>
+    <div id="reveal-container"></div>
+  `;
+
+  const input = document.getElementById('answer');
+  const submit = document.getElementById('submit-btn');
+  setTimeout(() => input.focus(), 50);
+
+  function reveal(verdict) {
+    revealed = true;
+    input.disabled = true;
+    input.classList.remove('r-green','r-yellow','r-red');
+    if (verdict) input.classList.add('r-' + verdict);
+    submit.style.display = 'none';
+
+    const autoMapping = { green: 4, yellow: 3, red: 0 };
+    const autoQ = autoMapping[verdict] !== undefined ? autoMapping[verdict] : 4;
+    const labelMap = { 0: 'Nochmal', 3: 'Schwer', 4: 'Gut', 5: 'Einfach' };
+    const autoLabel = labelMap[autoQ];
+    const others = [0, 3, 4, 5].filter(q => q !== autoQ);
+
+    const revealHtml = `
+      <div class="reveal">
+        <div class="reveal-label">Antwort</div>
+        <div class="reveal-term ${verdict === 'green' ? 'green' : ''}">${expected}</div>
+        ${(isForward && card.desc) ? `<div class="reveal-desc">${card.desc}</div>` : ''}
+        ${(!isForward && card.desc) ? `<div class="reveal-desc">${card.term} — ${card.desc}</div>` : ''}
+        ${card.details ? `<div class="reveal-details">${card.details}</div>` : ''}
+      </div>
+      <button class="primary-btn rate-primary" data-q="${autoQ}" data-verdict="${verdict}">
+        <span class="primary-label">Weiter <span style="opacity:.6">·</span> ${autoLabel}</span>
+        <span class="primary-hint">nächste Wiederholung in ${intervalHint(card.id, dir, autoQ)}</span>
+      </button>
+      <div class="override-label">War's anders?</div>
+      <div class="overrides">
+        ${others.map(q => `
+          <button class="rate-btn-small" data-q="${q}">
+            ${labelMap[q]}<span class="interval-hint">${intervalHint(card.id, dir, q)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    document.getElementById('reveal-container').innerHTML = revealHtml;
+
+    const handleRating = (q) => {
+      document.removeEventListener('keydown', enterHandler);
+      applyRating(card.id, dir, q);
+      if (q < 3) queue.push({ card, dir });
+      refreshStats();
+      renderCard();
+    };
+
+    const enterHandler = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleRating(autoQ);
+      }
+    };
+    document.addEventListener('keydown', enterHandler);
+
+    document.querySelector('.rate-primary').addEventListener('click', () => handleRating(autoQ));
+    document.querySelectorAll('.rate-btn-small').forEach(b => {
+      b.addEventListener('click', () => handleRating(parseInt(b.dataset.q, 10)));
+    });
+  }
+
+  submit.addEventListener('click', () => {
+    if (revealed) return;
+    const value = input.value;
+    const verdict = checkAnswer(value, expected);
+    reveal(verdict);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !revealed) {
+      e.preventDefault();
+      submit.click();
+    }
+  });
+}
+
+/* =========================================================
+   SETTINGS SHEET
+   ========================================================= */
+const sheet = document.getElementById('sheet');
+const sheetBg = document.getElementById('sheet-bg');
+
+function openSheet() {
+  buildFilterChips();
+  refreshChips();
+  refreshStats();
+  sheet.classList.add('open');
+  sheetBg.classList.add('open');
+}
+function closeSheet() {
+  sheet.classList.remove('open');
+  sheetBg.classList.remove('open');
+}
+
+document.getElementById('open-settings').addEventListener('click', openSheet);
+sheetBg.addEventListener('click', closeSheet);
+
+function buildFilterChips() {
+  const laws = ['all', ...new Set(CARDS.map(c => c.law))];
+  const container = document.getElementById('filter-chips');
+  container.innerHTML = laws.map(l => {
+    const label = l === 'all' ? 'Alle' : l;
+    const count = l === 'all' ? CARDS.length : CARDS.filter(c => c.law === l).length;
+    return `<button class="chip" data-filter="${l}">${label} <span style="opacity:.5;font-size:10px">${count}</span></button>`;
+  }).join('');
+  container.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      state.settings.filter = c.dataset.filter;
+      saveState();
+      refreshChips();
+      refreshStats();
+      queue = [];
+      renderCard();
+    });
+  });
+}
+
+function refreshChips() {
+  document.querySelectorAll('#mode-chips .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.mode === state.settings.mode);
+  });
+  document.querySelectorAll('#filter-chips .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === state.settings.filter);
+  });
+}
+
+document.querySelectorAll('#mode-chips .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    state.settings.mode = c.dataset.mode;
+    saveState();
+    refreshChips();
+    refreshStats();
+    queue = [];
+    renderCard();
+  });
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Wirklich allen Lernfortschritt löschen?')) {
+    state = { progress: {}, settings: state.settings, todayCount: 0, todayDate: new Date().toDateString() };
+    saveState();
+    refreshStats();
+    queue = [];
+    closeSheet();
+    renderCard();
+  }
+});
+
+/* =========================================================
+   START
+   ========================================================= */
+buildFilterChips();
+refreshChips();
+refreshStats();
+renderCard();
+</script>
+</body>
+</html>
