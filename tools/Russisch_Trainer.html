@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Russisch Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0d0d0c;
+  --bg-card: #161614;
+  --bg-elev: #1f1f1c;
+  --line: #2a2a26;
+  --text: #f0ebe0;
+  --text-dim: #8a8676;
+  --text-faint: #56544a;
+  --accent: #d4a85a;
+  --green: #7fb069;
+  --yellow: #e8b339;
+  --red: #c95a4f;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --serif: 'Fraunces', Georgia, serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.brand .ampersand { color: var(--accent); font-style: italic; }
+
+.stats {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-num { color: var(--text); font-weight: 700; }
+.stat-num.due { color: var(--accent); }
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+.icon-btn:active { background: var(--bg-elev); color: var(--text); }
+
+/* MAIN AREA */
+main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 22px 22px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.deck-tag {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+}
+
+.direction-tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-bottom: 22px;
+  opacity: 0.85;
+}
+
+.subkat-tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-bottom: 22px;
+  margin-left: 6px;
+}
+
+.question {
+  font-family: var(--serif);
+  font-size: 38px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.question.smaller { font-size: 28px; }
+.question.cyrillic { font-family: var(--serif); }
+
+.question-sub {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.question-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+/* INPUT */
+.input-wrap {
+  margin-bottom: 18px;
+}
+
+.answer-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 17px;
+  padding: 16px 18px;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.answer-input:focus { border-color: var(--text-dim); }
+.answer-input.r-green { border-color: var(--green); background: rgba(127, 176, 105, 0.08); }
+.answer-input.r-yellow { border-color: var(--yellow); background: rgba(232, 179, 57, 0.08); }
+.answer-input.r-red { border-color: var(--red); background: rgba(201, 90, 79, 0.08); }
+
+/* PRIMARY BUTTONS */
+.primary-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.primary-btn:active { opacity: 0.8; }
+.primary-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* REVEAL */
+.reveal {
+  margin-top: 8px;
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.reveal-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.reveal-term {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+.reveal-term.green { color: var(--green); }
+
+.reveal-translit {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.reveal-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.reveal-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  white-space: pre-line;
+}
+
+.reveal-details strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.reveal-examples {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.reveal-examples .ex-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.reveal-examples .ex-row {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.reveal-examples .ex-row .ex-ru {
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 15px;
+}
+
+/* RATING BUTTONS */
+.rate-primary {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.rate-primary .primary-label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.rate-primary .primary-hint {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.7;
+}
+
+.rate-primary[data-verdict="green"] { background: var(--green); }
+.rate-primary[data-verdict="yellow"] { background: var(--yellow); }
+.rate-primary[data-verdict="red"] { background: var(--red); color: var(--text); }
+
+.overrides {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rate-btn-small {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 10px 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  transition: all 0.15s;
+}
+.rate-btn-small:active { transform: scale(0.96); border-color: var(--text-dim); color: var(--text); }
+.rate-btn-small .interval-hint {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.override-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 16px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+/* DONE STATE */
+.done-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+}
+.done-state h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.done-state p { color: var(--text-dim); font-size: 14px; line-height: 1.5; }
+
+/* SETTINGS SHEET */
+.sheet-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.sheet-bg.open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  padding: 14px 22px calc(28px + env(safe-area-inset-bottom));
+  z-index: 11;
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+
+.sheet h2 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 22px;
+  letter-spacing: -0.02em;
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+  margin-top: 22px;
+}
+.section-label:first-of-type { margin-top: 0; }
+
+.section-help {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip.chip-all {
+  border-color: var(--text-faint);
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.danger-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--red);
+  padding: 14px;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.detail-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.detail-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: 6px;
+}
+.detail-stat .label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+.detail-stat .value {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Lautschrift-Legende */
+.legend-toggle {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legend-content {
+  display: none;
+  margin-top: 8px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.legend-content.open { display: block; }
+.legend-content code {
+  background: var(--bg-elev);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--mono);
+}
+.legend-content strong { color: var(--text); }
+
+@media (min-width: 600px) {
+  body { max-width: 540px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Русский <span class="ampersand">&amp;</span> Co.</div>
+  <div class="stats">
+    <div><span class="stat-num due" id="stat-due">0</span> fällig</div>
+    <div><span class="stat-num" id="stat-total">0</span> total</div>
+  </div>
+  <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⋯</button>
+</header>
+
+<main id="main"></main>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <h2>Einstellungen</h2>
+
+  <div class="section-label">Modus</div>
+  <div class="chip-row" id="mode-chips">
+    <button class="chip" data-mode="de2ru">DE → RU</button>
+    <button class="chip" data-mode="ru2de">RU → DE</button>
+    <button class="chip" data-mode="both">Beide</button>
+  </div>
+
+  <div class="section-label">Themenbereiche</div>
+  <div class="chip-row" id="topic-chips"></div>
+
+  <div class="section-label">Grammatik-Subkarten</div>
+  <div class="section-help">Zusätzliche Karten für Beugungen. Jede aktivierte Form wird als eigene Karte abgefragt — Grundform wird immer mit angezeigt.</div>
+  <div class="chip-row" id="subkat-chips"></div>
+
+  <div class="section-label">Lautschrift</div>
+  <button class="legend-toggle" id="legend-toggle">
+    <span>Aussprache-Legende</span>
+    <span id="legend-arrow">▾</span>
+  </button>
+  <div class="legend-content" id="legend-content">
+    Wir benutzen <strong>keine Fach-Lautschrift</strong>, sondern eine deutsch lesbare Annäherung:<br><br>
+    <strong>Konsonanten:</strong><br>
+    <code>ß</code> = stimmloses s wie in „Straße" (<code>spaßiba</code> = спасибо)<br>
+    <code>s</code> = stimmhaftes s wie in „Sonne"<br>
+    <code>ch</code> = wie in „Bach" (<code>chorroscho</code> = хорошо)<br>
+    <code>tsch</code> = wie in „Tschüss" (<code>tschaj</code> = чай)<br>
+    <code>sch</code> = wie in „Schule"<br>
+    <code>schtsch</code> = sehr weiches sch<br>
+    <code>j</code> = wie in „ja" (<code>njet</code> = нет)<br>
+    <code>r</code> = gerollt mit der Zungenspitze<br><br>
+    <strong>Vokale:</strong><br>
+    <code>y</code> = das harte russische ы — wie ein dumpfes „i", Zunge zurück<br>
+    <code>jo</code> = wie in „Jo" (<code>jolka</code> = ёлка)<br>
+    unbetontes о klingt wie a (deshalb <code>chorraschó</code>)<br><br>
+    <strong>Betonung:</strong> die <strong>BETONTE Silbe</strong> ist GROSSGESCHRIEBEN.<br>
+    Beispiel: <code>spaßIba</code> — Betonung auf „si".
+  </div>
+
+  <div class="section-label">Statistik</div>
+  <div class="detail-stats">
+    <div class="detail-stat"><div class="label">Neu</div><div class="value" id="d-new">0</div></div>
+    <div class="detail-stat"><div class="label">Lernend</div><div class="value" id="d-learn">0</div></div>
+    <div class="detail-stat"><div class="label">Gefestigt</div><div class="value" id="d-mature">0</div></div>
+    <div class="detail-stat"><div class="label">Heute gelernt</div><div class="value" id="d-today">0</div></div>
+  </div>
+
+  <div class="section-label">Reset</div>
+  <button class="danger-btn" id="reset-btn">Lernfortschritt zurücksetzen</button>
+</div>
+
+<script>
+// CARDS — Russisch-Trainer Datensatz
+// Lautschrift-Konvention: deutsch-lesbar, betonte Silbe in GROSSBUCHSTABEN
+
+const CARDS = [
+
+// =========================================================
+// 1. FLOSKELN & REDEWENDUNGEN
+// =========================================================
+{ topic:"Floskeln", ru:"привет", translit:"priwJET", de:"hallo (informell)", notes:"Unter Freunden, mit Du-Form." },
+{ topic:"Floskeln", ru:"здравствуйте", translit:"sdrAStwujtje", de:"guten Tag (formell)", notes:"Höflich, mit Sie-Form. Das erste 'в' wird oft verschluckt." },
+{ topic:"Floskeln", ru:"доброе утро", translit:"dObraje Utra", de:"guten Morgen" },
+{ topic:"Floskeln", ru:"добрый день", translit:"dObry djen", de:"guten Tag" },
+{ topic:"Floskeln", ru:"добрый вечер", translit:"dObry wJEtschir", de:"guten Abend" },
+{ topic:"Floskeln", ru:"спокойной ночи", translit:"spakOjnaj nOtschi", de:"gute Nacht", notes:"Wörtlich: 'einer ruhigen Nacht'." },
+{ topic:"Floskeln", ru:"до свидания", translit:"daßwidAnja", de:"auf Wiedersehen" },
+{ topic:"Floskeln", ru:"пока", translit:"pakA", de:"tschüss (informell)" },
+{ topic:"Floskeln", ru:"как дела?", translit:"kak dilA", de:"wie geht's?" },
+{ topic:"Floskeln", ru:"всё хорошо", translit:"fßjo charaschO", de:"alles gut" },
+{ topic:"Floskeln", ru:"нормально", translit:"narmAljna", de:"in Ordnung / passt schon" },
+{ topic:"Floskeln", ru:"плохо", translit:"plOcha", de:"schlecht" },
+
+// =========================================================
+// 2. HÖFLICHKEIT & SMALLTALK
+// =========================================================
+{ topic:"Höflichkeit", ru:"спасибо", translit:"spaßIba", de:"danke" },
+{ topic:"Höflichkeit", ru:"большое спасибо", translit:"baljschOje spaßIba", de:"vielen Dank" },
+{ topic:"Höflichkeit", ru:"пожалуйста", translit:"paschAlußta", de:"bitte / gern geschehen", notes:"Doppelfunktion: 'bitte' beim Fragen UND 'gern geschehen' als Antwort auf Danke." },
+{ topic:"Höflichkeit", ru:"извините", translit:"iswinItje", de:"entschuldigen Sie", notes:"Höflich, mit Sie-Form. Eigentlich ein Imperativ." },
+{ topic:"Höflichkeit", ru:"прости", translit:"praßtI", de:"entschuldige (informell)" },
+{ topic:"Höflichkeit", ru:"ничего", translit:"nitschiwO", de:"macht nichts / kein Problem", notes:"Wörtlich 'nichts' — Antwort auf Entschuldigung." },
+{ topic:"Höflichkeit", ru:"не за что", translit:"nJEsaschta", de:"keine Ursache", notes:"Antwort auf Danke." },
+{ topic:"Höflichkeit", ru:"очень приятно", translit:"Otschin prijAtna", de:"sehr angenehm", notes:"Beim Kennenlernen." },
+{ topic:"Höflichkeit", ru:"меня зовут …", translit:"minJA sawUt", de:"ich heiße …", notes:"Wörtlich: 'mich nennen sie …'" },
+{ topic:"Höflichkeit", ru:"как вас зовут?", translit:"kak waß sawUt", de:"wie heißen Sie?" },
+
+// =========================================================
+// 3. JA/NEIN & BASISANTWORTEN
+// =========================================================
+{ topic:"Basis", ru:"да", translit:"da", de:"ja" },
+{ topic:"Basis", ru:"нет", translit:"njet", de:"nein" },
+{ topic:"Basis", ru:"может быть", translit:"mOschit byt", de:"vielleicht" },
+{ topic:"Basis", ru:"конечно", translit:"kanJEschna", de:"natürlich / klar" },
+{ topic:"Basis", ru:"не знаю", translit:"njeSnAju", de:"ich weiß nicht" },
+{ topic:"Basis", ru:"я понимаю", translit:"ja panimAju", de:"ich verstehe" },
+{ topic:"Basis", ru:"я не понимаю", translit:"ja njepanimAju", de:"ich verstehe nicht" },
+{ topic:"Basis", ru:"повторите, пожалуйста", translit:"paftarItje paschAlußta", de:"wiederholen Sie bitte" },
+{ topic:"Basis", ru:"медленнее, пожалуйста", translit:"mJEdliniije paschAlußta", de:"langsamer, bitte" },
+{ topic:"Basis", ru:"я говорю по-немецки", translit:"ja gawarJU panimJEzki", de:"ich spreche Deutsch" },
+{ topic:"Basis", ru:"вы говорите по-английски?", translit:"wy gawarItje panangLIjski", de:"sprechen Sie Englisch?" },
+
+// =========================================================
+// 4. SICH AUSDRÜCKEN — WÜNSCHE
+// =========================================================
+{ topic:"Wünsche", ru:"я хочу …", translit:"ja chatschU", de:"ich möchte / ich will …",
+  examples:[
+    { ru:"я хочу чай", translit:"ja chatschU tschaj", de:"ich möchte Tee" },
+    { ru:"я хочу есть", translit:"ja chatschU jeßt", de:"ich möchte essen" }
+  ]
+},
+{ topic:"Wünsche", ru:"я бы хотел …", translit:"ja by chatJEL", de:"ich hätte gerne … (m)", notes:"Höflicher als 'я хочу'. Männliche Form." },
+{ topic:"Wünsche", ru:"я бы хотела …", translit:"ja by chatJEla", de:"ich hätte gerne … (f)", notes:"Weibliche Form." },
+{ topic:"Wünsche", ru:"мне нужен …", translit:"mnje nUschin", de:"ich brauche … (m)", notes:"Vor maskulinen Substantiven: 'мне нужен билет' — ich brauche ein Ticket.",
+  examples:[ { ru:"мне нужен билет", translit:"mnje nUschin bilJET", de:"ich brauche ein Ticket" } ]
+},
+{ topic:"Wünsche", ru:"мне нужна …", translit:"mnje nuschnA", de:"ich brauche … (f)", notes:"Vor femininen Substantiven.",
+  examples:[ { ru:"мне нужна вода", translit:"mnje nuschnA wadA", de:"ich brauche Wasser" } ]
+},
+{ topic:"Wünsche", ru:"мне нужно …", translit:"mnje nUschna", de:"ich brauche … (n) / ich muss …", notes:"Vor neutralen Substantiven ODER vor Verben: 'мне нужно идти' — ich muss gehen.",
+  examples:[ { ru:"мне нужно идти", translit:"mnje nUschna ittI", de:"ich muss gehen" } ]
+},
+{ topic:"Wünsche", ru:"мне нравится …", translit:"mnje nrAwiza", de:"mir gefällt … / ich mag …",
+  examples:[ { ru:"мне нравится Москва", translit:"mnje nrAwiza maßkwA", de:"mir gefällt Moskau" } ]
+},
+{ topic:"Wünsche", ru:"я люблю …", translit:"ja ljublJU", de:"ich liebe / ich mag (sehr) …", notes:"Stärker als 'мне нравится'." },
+
+// =========================================================
+// 5. SICH AUSDRÜCKEN — FRAGEN
+// =========================================================
+{ topic:"Fragen", ru:"что?", translit:"schto", de:"was?" },
+{ topic:"Fragen", ru:"кто?", translit:"kto", de:"wer?" },
+{ topic:"Fragen", ru:"где?", translit:"gdje", de:"wo?" },
+{ topic:"Fragen", ru:"куда?", translit:"kudA", de:"wohin?" },
+{ topic:"Fragen", ru:"откуда?", translit:"atkUda", de:"woher?" },
+{ topic:"Fragen", ru:"когда?", translit:"kagdA", de:"wann?" },
+{ topic:"Fragen", ru:"почему?", translit:"patschimU", de:"warum?" },
+{ topic:"Fragen", ru:"как?", translit:"kak", de:"wie?" },
+{ topic:"Fragen", ru:"сколько?", translit:"skOljka", de:"wie viel?" },
+{ topic:"Fragen", ru:"что это?", translit:"schto Eta", de:"was ist das?" },
+{ topic:"Fragen", ru:"сколько стоит?", translit:"skOljka stOit", de:"wie viel kostet das?" },
+{ topic:"Fragen", ru:"где находится …?", translit:"gdje nachOdiza", de:"wo befindet sich …?",
+  examples:[ { ru:"где находится туалет?", translit:"gdje nachOdiza tualJET", de:"wo ist die Toilette?" } ]
+},
+{ topic:"Fragen", ru:"можно …?", translit:"mOschna", de:"darf ich …? / kann man …?",
+  examples:[ { ru:"можно войти?", translit:"mOschna wajtI", de:"darf ich reinkommen?" } ]
+},
+{ topic:"Fragen", ru:"у вас есть …?", translit:"u waß jeßt", de:"haben Sie …?",
+  examples:[ { ru:"у вас есть кофе?", translit:"u waß jeßt kOfje", de:"haben Sie Kaffee?" } ]
+},
+
+// =========================================================
+// 6. VERNEINUNG
+// =========================================================
+{ topic:"Verneinung", ru:"не", translit:"nje", de:"nicht", notes:"Vor dem Wort, das verneint wird: 'я не знаю'." },
+{ topic:"Verneinung", ru:"нет", translit:"njet", de:"nein / es gibt nicht", notes:"Auch im Sinn von 'nicht vorhanden': 'у меня нет времени' — ich habe keine Zeit." },
+{ topic:"Verneinung", ru:"никогда", translit:"nikagdA", de:"niemals" },
+{ topic:"Verneinung", ru:"ничего", translit:"nitschiwO", de:"nichts" },
+{ topic:"Verneinung", ru:"никто", translit:"niktO", de:"niemand" },
+{ topic:"Verneinung", ru:"нигде", translit:"nigdJE", de:"nirgends" },
+{ topic:"Verneinung", ru:"у меня нет …", translit:"u minJA njet", de:"ich habe kein …", notes:"Wörtlich 'bei mir gibt es kein …'.",
+  examples:[ { ru:"у меня нет времени", translit:"u minJA njet wrJEmini", de:"ich habe keine Zeit" } ]
+},
+
+// =========================================================
+// 7. ZAHLEN, MENGEN, ZEIT
+// =========================================================
+{ topic:"Zahlen & Zeit", ru:"один", translit:"adIN", de:"eins", notes:"Männlich. Weiblich: одна, neutral: одно." },
+{ topic:"Zahlen & Zeit", ru:"два", translit:"dwa", de:"zwei", notes:"Männlich/neutral. Weiblich: две." },
+{ topic:"Zahlen & Zeit", ru:"три", translit:"tri", de:"drei" },
+{ topic:"Zahlen & Zeit", ru:"четыре", translit:"tschitYrje", de:"vier" },
+{ topic:"Zahlen & Zeit", ru:"пять", translit:"pjat", de:"fünf" },
+{ topic:"Zahlen & Zeit", ru:"шесть", translit:"schEßt", de:"sechs" },
+{ topic:"Zahlen & Zeit", ru:"семь", translit:"ßjem", de:"sieben" },
+{ topic:"Zahlen & Zeit", ru:"восемь", translit:"wOßim", de:"acht" },
+{ topic:"Zahlen & Zeit", ru:"девять", translit:"dJEwit", de:"neun" },
+{ topic:"Zahlen & Zeit", ru:"десять", translit:"dJEßit", de:"zehn" },
+{ topic:"Zahlen & Zeit", ru:"двадцать", translit:"dwAtzat", de:"zwanzig" },
+{ topic:"Zahlen & Zeit", ru:"сто", translit:"sto", de:"hundert" },
+{ topic:"Zahlen & Zeit", ru:"тысяча", translit:"tYßitscha", de:"tausend" },
+{ topic:"Zahlen & Zeit", ru:"сегодня", translit:"ßiwOdnja", de:"heute" },
+{ topic:"Zahlen & Zeit", ru:"завтра", translit:"sAftra", de:"morgen" },
+{ topic:"Zahlen & Zeit", ru:"вчера", translit:"ftschirA", de:"gestern" },
+{ topic:"Zahlen & Zeit", ru:"сейчас", translit:"ßitschAß", de:"jetzt" },
+{ topic:"Zahlen & Zeit", ru:"потом", translit:"patOm", de:"später / dann" },
+{ topic:"Zahlen & Zeit", ru:"утро", translit:"Utra", de:"Morgen (Tageszeit)" },
+{ topic:"Zahlen & Zeit", ru:"день", translit:"djen", de:"Tag" },
+{ topic:"Zahlen & Zeit", ru:"вечер", translit:"wJEtschir", de:"Abend" },
+{ topic:"Zahlen & Zeit", ru:"ночь", translit:"notsch", de:"Nacht" },
+{ topic:"Zahlen & Zeit", ru:"час", translit:"tschaß", de:"Stunde / Uhr (Uhrzeit)" },
+{ topic:"Zahlen & Zeit", ru:"минута", translit:"minUta", de:"Minute" },
+
+// =========================================================
+// 8. PERSONEN & FAMILIE
+// =========================================================
+{ topic:"Personen", ru:"я", translit:"ja", de:"ich" },
+{ topic:"Personen", ru:"ты", translit:"ty", de:"du" },
+{ topic:"Personen", ru:"он", translit:"on", de:"er" },
+{ topic:"Personen", ru:"она", translit:"anA", de:"sie" },
+{ topic:"Personen", ru:"оно", translit:"anO", de:"es" },
+{ topic:"Personen", ru:"мы", translit:"my", de:"wir" },
+{ topic:"Personen", ru:"вы", translit:"wy", de:"ihr / Sie" },
+{ topic:"Personen", ru:"они", translit:"anI", de:"sie (Plural)" },
+{ topic:"Personen", ru:"человек", translit:"tschilawJEk", de:"Mensch", notes:"Plural unregelmäßig: люди (ljUdi) — Leute." },
+{ topic:"Personen", ru:"мужчина", translit:"muschtschIna", de:"Mann" },
+{ topic:"Personen", ru:"женщина", translit:"schEnschtschina", de:"Frau" },
+{ topic:"Personen", ru:"друг", translit:"druk", de:"Freund (m)", notes:"Auslautendes г wird wie 'k' gesprochen." },
+{ topic:"Personen", ru:"подруга", translit:"padrUga", de:"Freundin (f)" },
+{ topic:"Personen", ru:"мама", translit:"mAma", de:"Mama" },
+{ topic:"Personen", ru:"папа", translit:"pApa", de:"Papa" },
+{ topic:"Personen", ru:"сын", translit:"syn", de:"Sohn" },
+{ topic:"Personen", ru:"дочь", translit:"dotsch", de:"Tochter" },
+{ topic:"Personen", ru:"брат", translit:"brat", de:"Bruder" },
+{ topic:"Personen", ru:"сестра", translit:"ßistrA", de:"Schwester" },
+{ topic:"Personen", ru:"ребёнок", translit:"ribJOnak", de:"Kind", notes:"Plural unregelmäßig: дети (dJEti) — Kinder." },
+
+// =========================================================
+// 9. ESSEN & TRINKEN
+// =========================================================
+{ topic:"Essen & Trinken", ru:"вода", translit:"wadA", de:"Wasser (f)" },
+{ topic:"Essen & Trinken", ru:"чай", translit:"tschaj", de:"Tee (m)" },
+{ topic:"Essen & Trinken", ru:"кофе", translit:"kOfje", de:"Kaffee (m)", notes:"Unflektierbar — bleibt immer 'кофе'." },
+{ topic:"Essen & Trinken", ru:"молоко", translit:"malakO", de:"Milch (n)" },
+{ topic:"Essen & Trinken", ru:"пиво", translit:"pIwa", de:"Bier (n)" },
+{ topic:"Essen & Trinken", ru:"вино", translit:"winO", de:"Wein (n)" },
+{ topic:"Essen & Trinken", ru:"хлеб", translit:"chljep", de:"Brot (m)" },
+{ topic:"Essen & Trinken", ru:"мясо", translit:"mJAßa", de:"Fleisch (n)" },
+{ topic:"Essen & Trinken", ru:"рыба", translit:"rYba", de:"Fisch (f)" },
+{ topic:"Essen & Trinken", ru:"сыр", translit:"ßyr", de:"Käse (m)" },
+{ topic:"Essen & Trinken", ru:"яйцо", translit:"jaizO", de:"Ei (n)" },
+{ topic:"Essen & Trinken", ru:"суп", translit:"ßup", de:"Suppe (m!)", notes:"Im Russischen männlich." },
+{ topic:"Essen & Trinken", ru:"завтрак", translit:"sAftrak", de:"Frühstück (m)" },
+{ topic:"Essen & Trinken", ru:"обед", translit:"abJET", de:"Mittagessen (m)" },
+{ topic:"Essen & Trinken", ru:"ужин", translit:"UschIn", de:"Abendessen (m)" },
+{ topic:"Essen & Trinken", ru:"ресторан", translit:"riStarAn", de:"Restaurant (m)" },
+{ topic:"Essen & Trinken", ru:"меню", translit:"minJU", de:"Speisekarte (n)", notes:"Unflektierbar." },
+{ topic:"Essen & Trinken", ru:"счёт, пожалуйста", translit:"schtschot paschAlußta", de:"die Rechnung, bitte" },
+{ topic:"Essen & Trinken", ru:"вкусно", translit:"fkUßna", de:"lecker / schmeckt gut" },
+
+// =========================================================
+// 10. EINKAUFEN
+// =========================================================
+{ topic:"Einkaufen", ru:"магазин", translit:"magasIn", de:"Geschäft / Laden (m)" },
+{ topic:"Einkaufen", ru:"супермаркет", translit:"ßupermArkjet", de:"Supermarkt (m)" },
+{ topic:"Einkaufen", ru:"рынок", translit:"rYnak", de:"Markt (m)" },
+{ topic:"Einkaufen", ru:"деньги", translit:"dJENgi", de:"Geld (Plural)", notes:"Existiert nur im Plural." },
+{ topic:"Einkaufen", ru:"рубль", translit:"rUblj", de:"Rubel (m)" },
+{ topic:"Einkaufen", ru:"евро", translit:"jEwra", de:"Euro (m)", notes:"Unflektierbar." },
+{ topic:"Einkaufen", ru:"дорого", translit:"dOraga", de:"teuer" },
+{ topic:"Einkaufen", ru:"дёшево", translit:"djOscheva", de:"billig" },
+{ topic:"Einkaufen", ru:"скидка", translit:"ßkItka", de:"Rabatt (f)" },
+{ topic:"Einkaufen", ru:"касса", translit:"kAßa", de:"Kasse (f)" },
+{ topic:"Einkaufen", ru:"карта", translit:"kArta", de:"Karte (f)", notes:"Bank-, Speise-, Land- — alles 'карта'." },
+{ topic:"Einkaufen", ru:"наличные", translit:"nalItschnyje", de:"Bargeld (Plural)" },
+{ topic:"Einkaufen", ru:"чек", translit:"tschek", de:"Quittung / Beleg (m)" },
+
+// =========================================================
+// 11. ORIENTIERUNG
+// =========================================================
+{ topic:"Orientierung", ru:"здесь", translit:"sdjeß", de:"hier" },
+{ topic:"Orientierung", ru:"там", translit:"tam", de:"dort" },
+{ topic:"Orientierung", ru:"налево", translit:"nalJEwa", de:"nach links" },
+{ topic:"Orientierung", ru:"направо", translit:"naprAwa", de:"nach rechts" },
+{ topic:"Orientierung", ru:"прямо", translit:"prJAma", de:"geradeaus" },
+{ topic:"Orientierung", ru:"далеко", translit:"dalikO", de:"weit" },
+{ topic:"Orientierung", ru:"близко", translit:"blIska", de:"nah" },
+{ topic:"Orientierung", ru:"рядом", translit:"rJAdam", de:"nebenan / in der Nähe" },
+{ topic:"Orientierung", ru:"вход", translit:"fchot", de:"Eingang (m)" },
+{ topic:"Orientierung", ru:"выход", translit:"wYchat", de:"Ausgang (m)" },
+{ topic:"Orientierung", ru:"туалет", translit:"tualJET", de:"Toilette (m)" },
+{ topic:"Orientierung", ru:"улица", translit:"Ulitza", de:"Straße (f)" },
+
+// =========================================================
+// 12. REISEN & VERKEHR
+// =========================================================
+{ topic:"Reisen", ru:"вокзал", translit:"wakSAL", de:"Bahnhof (m)" },
+{ topic:"Reisen", ru:"аэропорт", translit:"aerapOrt", de:"Flughafen (m)" },
+{ topic:"Reisen", ru:"метро", translit:"mitrO", de:"Metro (n)", notes:"Unflektierbar." },
+{ topic:"Reisen", ru:"автобус", translit:"aftObuß", de:"Bus (m)" },
+{ topic:"Reisen", ru:"поезд", translit:"pOjist", de:"Zug (m)" },
+{ topic:"Reisen", ru:"такси", translit:"takßI", de:"Taxi (n)", notes:"Unflektierbar." },
+{ topic:"Reisen", ru:"машина", translit:"maschYna", de:"Auto (f)" },
+{ topic:"Reisen", ru:"билет", translit:"bilJET", de:"Ticket / Fahrkarte (m)" },
+{ topic:"Reisen", ru:"паспорт", translit:"pAßpart", de:"Reisepass (m)" },
+{ topic:"Reisen", ru:"багаж", translit:"bagAsch", de:"Gepäck (m)" },
+{ topic:"Reisen", ru:"гостиница", translit:"gaßtIniza", de:"Hotel (f)" },
+{ topic:"Reisen", ru:"мне нужен билет до …", translit:"mnje nUschin bilJET da", de:"ich brauche ein Ticket nach …",
+  examples:[ { ru:"мне нужен билет до Москвы", translit:"mnje nUschin bilJET da maßkwY", de:"ich brauche ein Ticket nach Moskau" } ]
+},
+
+// =========================================================
+// 13. WOHNEN
+// =========================================================
+{ topic:"Wohnen", ru:"дом", translit:"dom", de:"Haus (m)" },
+{ topic:"Wohnen", ru:"квартира", translit:"kwartIra", de:"Wohnung (f)" },
+{ topic:"Wohnen", ru:"комната", translit:"kOmnata", de:"Zimmer (f)" },
+{ topic:"Wohnen", ru:"кухня", translit:"kUchnja", de:"Küche (f)" },
+{ topic:"Wohnen", ru:"ванная", translit:"wAnnaja", de:"Bad (f)" },
+{ topic:"Wohnen", ru:"дверь", translit:"dwjer", de:"Tür (f)" },
+{ topic:"Wohnen", ru:"окно", translit:"aknO", de:"Fenster (n)" },
+
+// =========================================================
+// 14. NOTFALL & HILFE
+// =========================================================
+{ topic:"Notfall", ru:"помогите!", translit:"pamagItje", de:"Hilfe!", notes:"Eigentlich Imperativ Plural von помочь — 'helfen Sie!'" },
+{ topic:"Notfall", ru:"мне плохо", translit:"mnje plOcha", de:"mir ist schlecht" },
+{ topic:"Notfall", ru:"вызовите врача", translit:"wYsawitje wratschA", de:"rufen Sie einen Arzt" },
+{ topic:"Notfall", ru:"вызовите полицию", translit:"wYsawitje palItzyju", de:"rufen Sie die Polizei" },
+{ topic:"Notfall", ru:"больница", translit:"baljnIza", de:"Krankenhaus (f)" },
+{ topic:"Notfall", ru:"врач", translit:"wratsch", de:"Arzt (m)" },
+{ topic:"Notfall", ru:"полиция", translit:"palItzyja", de:"Polizei (f)" },
+{ topic:"Notfall", ru:"опасно", translit:"apAßna", de:"gefährlich" },
+{ topic:"Notfall", ru:"осторожно!", translit:"aßtarOschna", de:"Vorsicht!" },
+
+// =========================================================
+// 15. VERBEN (mit Präsens-Konjugation als Subkarten)
+// =========================================================
+{ topic:"Verben", ru:"быть", translit:"byt", de:"sein", notes:"Im Präsens meist weggelassen: 'я студент' = ich (bin) Student. Im Russischen sehr ungewöhnlich.",
+  variants: { praesens: [
+    { ru:"я есть",      translit:"ja jeßt",     de:"ich bin",      hint:"ich",       notes:"Wird im Alltag fast nie benutzt — Präsens von 'sein' wird ausgelassen." }
+  ]}
+},
+{ topic:"Verben", ru:"иметь", translit:"imJEt", de:"haben", notes:"WICHTIG: Russen sagen meist NICHT 'я имею', sondern 'у меня есть' — 'bei mir ist'." },
+{ topic:"Verben", ru:"делать", translit:"dJElat", de:"machen / tun (imperfektiv)",
+  variants: { praesens: [
+    { ru:"я делаю",     translit:"ja dJElaju",    de:"ich mache",      hint:"ich" },
+    { ru:"ты делаешь",  translit:"ty dJElajisch", de:"du machst",      hint:"du" },
+    { ru:"он делает",   translit:"on dJElajit",   de:"er macht",       hint:"er/sie/es" },
+    { ru:"мы делаем",   translit:"my dJElajim",   de:"wir machen",     hint:"wir" },
+    { ru:"вы делаете",  translit:"wy dJElajitje", de:"ihr macht / Sie machen", hint:"ihr/Sie" },
+    { ru:"они делают",  translit:"anI dJElajut",  de:"sie machen",     hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"идти", translit:"ittI", de:"gehen (zu Fuß, gerade jetzt)", notes:"Imperfektiv. Nur für jetzt-gerade-unterwegs. Für allgemein: ходить.",
+  variants: { praesens: [
+    { ru:"я иду",       translit:"ja idU",        de:"ich gehe",       hint:"ich" },
+    { ru:"ты идёшь",    translit:"ty idJOsch",    de:"du gehst",       hint:"du" },
+    { ru:"он идёт",     translit:"on idJOt",      de:"er geht",        hint:"er/sie/es" },
+    { ru:"мы идём",     translit:"my idJOm",      de:"wir gehen",      hint:"wir" },
+    { ru:"вы идёте",    translit:"wy idJOtje",    de:"ihr geht / Sie gehen", hint:"ihr/Sie" },
+    { ru:"они идут",    translit:"anI idUt",      de:"sie gehen",      hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"говорить", translit:"gawarIt", de:"sprechen / sagen",
+  variants: { praesens: [
+    { ru:"я говорю",       translit:"ja gawarJU",      de:"ich spreche",    hint:"ich" },
+    { ru:"ты говоришь",    translit:"ty gawarIsch",    de:"du sprichst",    hint:"du" },
+    { ru:"он говорит",     translit:"on gawarIt",      de:"er spricht",     hint:"er/sie/es" },
+    { ru:"мы говорим",     translit:"my gawarIm",      de:"wir sprechen",   hint:"wir" },
+    { ru:"вы говорите",    translit:"wy gawarItje",    de:"ihr sprecht / Sie sprechen", hint:"ihr/Sie" },
+    { ru:"они говорят",    translit:"anI gawarJAt",    de:"sie sprechen",   hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"знать", translit:"snat", de:"wissen / kennen",
+  variants: { praesens: [
+    { ru:"я знаю",      translit:"ja snAju",     de:"ich weiß",       hint:"ich" },
+    { ru:"ты знаешь",   translit:"ty snAjisch",  de:"du weißt",       hint:"du" },
+    { ru:"он знает",    translit:"on snAjit",    de:"er weiß",        hint:"er/sie/es" },
+    { ru:"мы знаем",    translit:"my snAjim",    de:"wir wissen",     hint:"wir" },
+    { ru:"вы знаете",   translit:"wy snAjitje",  de:"ihr wisst / Sie wissen", hint:"ihr/Sie" },
+    { ru:"они знают",   translit:"anI snAjut",   de:"sie wissen",     hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"хотеть", translit:"chatJEt", de:"wollen / möchten", notes:"Unregelmäßig — Stammwechsel.",
+  variants: { praesens: [
+    { ru:"я хочу",      translit:"ja chatschU",    de:"ich will",       hint:"ich" },
+    { ru:"ты хочешь",   translit:"ty chOtschisch", de:"du willst",      hint:"du" },
+    { ru:"он хочет",    translit:"on chOtschit",   de:"er will",        hint:"er/sie/es" },
+    { ru:"мы хотим",    translit:"my chatIm",      de:"wir wollen",     hint:"wir" },
+    { ru:"вы хотите",   translit:"wy chatItje",    de:"ihr wollt / Sie wollen", hint:"ihr/Sie" },
+    { ru:"они хотят",   translit:"anI chatJAt",    de:"sie wollen",     hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"мочь", translit:"motsch", de:"können", notes:"Unregelmäßig.",
+  variants: { praesens: [
+    { ru:"я могу",      translit:"ja magU",      de:"ich kann",       hint:"ich" },
+    { ru:"ты можешь",   translit:"ty mOschisch", de:"du kannst",      hint:"du" },
+    { ru:"он может",    translit:"on mOschit",   de:"er kann",        hint:"er/sie/es" },
+    { ru:"мы можем",    translit:"my mOschim",   de:"wir können",     hint:"wir" },
+    { ru:"вы можете",   translit:"wy mOschitje", de:"ihr könnt / Sie können", hint:"ihr/Sie" },
+    { ru:"они могут",   translit:"anI mOgut",    de:"sie können",     hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"видеть", translit:"wIdjet", de:"sehen",
+  variants: { praesens: [
+    { ru:"я вижу",      translit:"ja wIschu",    de:"ich sehe",       hint:"ich" },
+    { ru:"ты видишь",   translit:"ty wIdisch",   de:"du siehst",      hint:"du" },
+    { ru:"он видит",    translit:"on wIdit",     de:"er sieht",       hint:"er/sie/es" },
+    { ru:"мы видим",    translit:"my wIdim",     de:"wir sehen",      hint:"wir" },
+    { ru:"вы видите",   translit:"wy wIditje",   de:"ihr seht / Sie sehen", hint:"ihr/Sie" },
+    { ru:"они видят",   translit:"anI wIdjat",   de:"sie sehen",      hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"есть", translit:"jeßt", de:"essen", notes:"Auch im Sinn von 'es gibt' verwendet: 'у меня есть' — ich habe.",
+  variants: { praesens: [
+    { ru:"я ем",        translit:"ja jem",       de:"ich esse",       hint:"ich" },
+    { ru:"ты ешь",      translit:"ty jesch",     de:"du isst",        hint:"du" },
+    { ru:"он ест",      translit:"on jeßt",      de:"er isst",        hint:"er/sie/es" },
+    { ru:"мы едим",     translit:"my jidIm",     de:"wir essen",      hint:"wir" },
+    { ru:"вы едите",    translit:"wy jidItje",   de:"ihr esst / Sie essen", hint:"ihr/Sie" },
+    { ru:"они едят",    translit:"anI jidJAt",   de:"sie essen",      hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"пить", translit:"pit", de:"trinken",
+  variants: { praesens: [
+    { ru:"я пью",       translit:"ja pju",       de:"ich trinke",     hint:"ich" },
+    { ru:"ты пьёшь",    translit:"ty pjOsch",    de:"du trinkst",     hint:"du" },
+    { ru:"он пьёт",     translit:"on pjOt",      de:"er trinkt",      hint:"er/sie/es" },
+    { ru:"мы пьём",     translit:"my pjOm",      de:"wir trinken",    hint:"wir" },
+    { ru:"вы пьёте",    translit:"wy pjOtje",    de:"ihr trinkt / Sie trinken", hint:"ihr/Sie" },
+    { ru:"они пьют",    translit:"anI pjut",     de:"sie trinken",    hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"жить", translit:"schyt", de:"leben / wohnen",
+  variants: { praesens: [
+    { ru:"я живу",      translit:"ja schywU",      de:"ich lebe / wohne", hint:"ich" },
+    { ru:"ты живёшь",   translit:"ty schywJOsch",  de:"du lebst / wohnst", hint:"du" },
+    { ru:"он живёт",    translit:"on schywJOt",    de:"er lebt / wohnt",   hint:"er/sie/es" },
+    { ru:"мы живём",    translit:"my schywJOm",    de:"wir leben / wohnen", hint:"wir" },
+    { ru:"вы живёте",   translit:"wy schywJOtje",  de:"ihr lebt / Sie leben", hint:"ihr/Sie" },
+    { ru:"они живут",   translit:"anI schywUt",    de:"sie leben / wohnen", hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"работать", translit:"rabOtat", de:"arbeiten",
+  variants: { praesens: [
+    { ru:"я работаю",     translit:"ja rabOtaju",      de:"ich arbeite",     hint:"ich" },
+    { ru:"ты работаешь",  translit:"ty rabOtajisch",   de:"du arbeitest",    hint:"du" },
+    { ru:"он работает",   translit:"on rabOtajit",     de:"er arbeitet",     hint:"er/sie/es" },
+    { ru:"мы работаем",   translit:"my rabOtajim",     de:"wir arbeiten",    hint:"wir" },
+    { ru:"вы работаете",  translit:"wy rabOtajitje",   de:"ihr arbeitet / Sie arbeiten", hint:"ihr/Sie" },
+    { ru:"они работают",  translit:"anI rabOtajut",    de:"sie arbeiten",    hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"читать", translit:"tschitAt", de:"lesen",
+  variants: { praesens: [
+    { ru:"я читаю",     translit:"ja tschitAju",      de:"ich lese",       hint:"ich" },
+    { ru:"ты читаешь",  translit:"ty tschitAjisch",   de:"du liest",       hint:"du" },
+    { ru:"он читает",   translit:"on tschitAjit",     de:"er liest",       hint:"er/sie/es" },
+    { ru:"мы читаем",   translit:"my tschitAjim",     de:"wir lesen",      hint:"wir" },
+    { ru:"вы читаете",  translit:"wy tschitAjitje",   de:"ihr lest / Sie lesen", hint:"ihr/Sie" },
+    { ru:"они читают",  translit:"anI tschitAjut",    de:"sie lesen",      hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"писать", translit:"pißAt", de:"schreiben",
+  variants: { praesens: [
+    { ru:"я пишу",      translit:"ja pischU",      de:"ich schreibe",   hint:"ich" },
+    { ru:"ты пишешь",   translit:"ty pIschisch",   de:"du schreibst",   hint:"du" },
+    { ru:"он пишет",    translit:"on pIschit",     de:"er schreibt",    hint:"er/sie/es" },
+    { ru:"мы пишем",    translit:"my pIschim",     de:"wir schreiben",  hint:"wir" },
+    { ru:"вы пишете",   translit:"wy pIschitje",   de:"ihr schreibt / Sie schreiben", hint:"ihr/Sie" },
+    { ru:"они пишут",   translit:"anI pIschut",    de:"sie schreiben",  hint:"sie (Pl)" }
+  ]}
+},
+{ topic:"Verben", ru:"любить", translit:"ljubIt", de:"lieben / sehr mögen",
+  variants: { praesens: [
+    { ru:"я люблю",     translit:"ja ljublJU",     de:"ich liebe",      hint:"ich",       notes:"л wird zu 'бл' — 'я люблю'." },
+    { ru:"ты любишь",   translit:"ty ljUbisch",    de:"du liebst",      hint:"du" },
+    { ru:"он любит",    translit:"on ljUbit",      de:"er liebt",       hint:"er/sie/es" },
+    { ru:"мы любим",    translit:"my ljUbim",      de:"wir lieben",     hint:"wir" },
+    { ru:"вы любите",   translit:"wy ljUbitje",    de:"ihr liebt / Sie lieben", hint:"ihr/Sie" },
+    { ru:"они любят",   translit:"anI ljUbjat",    de:"sie lieben",     hint:"sie (Pl)" }
+  ]}
+},
+
+// =========================================================
+// 16. ADJEKTIVE
+// =========================================================
+{ topic:"Adjektive", ru:"большой", translit:"baljschOj", de:"groß", notes:"Maskuline Grundform." },
+{ topic:"Adjektive", ru:"маленький", translit:"mAlinjkij", de:"klein" },
+{ topic:"Adjektive", ru:"хороший", translit:"charOschij", de:"gut" },
+{ topic:"Adjektive", ru:"плохой", translit:"plachOj", de:"schlecht" },
+{ topic:"Adjektive", ru:"новый", translit:"nOwy", de:"neu" },
+{ topic:"Adjektive", ru:"старый", translit:"ßtAry", de:"alt" },
+{ topic:"Adjektive", ru:"молодой", translit:"maladOj", de:"jung" },
+{ topic:"Adjektive", ru:"красивый", translit:"kraßIwy", de:"schön / hübsch" },
+{ topic:"Adjektive", ru:"горячий", translit:"garJAtschij", de:"heiß" },
+{ topic:"Adjektive", ru:"холодный", translit:"chalOdny", de:"kalt" },
+{ topic:"Adjektive", ru:"тёплый", translit:"tjOply", de:"warm" },
+{ topic:"Adjektive", ru:"быстрый", translit:"bYßtry", de:"schnell" },
+{ topic:"Adjektive", ru:"медленный", translit:"mJEdliny", de:"langsam" },
+{ topic:"Adjektive", ru:"вкусный", translit:"fkUßny", de:"lecker" },
+{ topic:"Adjektive", ru:"русский", translit:"rUßkij", de:"russisch" },
+{ topic:"Adjektive", ru:"немецкий", translit:"nimJEzkij", de:"deutsch" }
+
+];
+
+
+/* =========================================================
+   STORAGE & STATE
+   ========================================================= */
+const STORAGE_KEY = 'russian_trainer_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    progress: {},
+    settings: {
+      mode: 'de2ru',           // 'de2ru' | 'ru2de' | 'both'
+      topics: null,            // null = all on first run
+      subkats: { praesens: false }, // welche Subkarten-Kategorien aktiv sind
+    },
+    todayCount: 0,
+    todayDate: new Date().toDateString(),
+  };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+// Initialize topics on first run
+if (!state.settings.topics || !Array.isArray(state.settings.topics)) {
+  state.settings.topics = [...new Set(CARDS.map(c => c.topic))];
+  saveState();
+}
+if (!state.settings.subkats) {
+  state.settings.subkats = { praesens: false };
+  saveState();
+}
+
+// Reset today count on new day
+const todayStr = new Date().toDateString();
+if (state.todayDate !== todayStr) {
+  state.todayDate = todayStr;
+  state.todayCount = 0;
+  saveState();
+}
+
+/* =========================================================
+   CARD ID GENERATION
+   - Hauptkarte: id = "card_<index>"
+   - Subkarte:   id = "card_<index>__<subkat>__<variantIndex>"
+   ========================================================= */
+function mainCardId(idx) {
+  return 'card_' + idx;
+}
+function variantCardId(idx, subkat, vIdx) {
+  return 'card_' + idx + '__' + subkat + '__' + vIdx;
+}
+
+/* =========================================================
+   BUILD ITEMS (Hauptkarten + aktivierte Varianten)
+   Ein "item" hat: { id, topic, ru, translit, de, notes, examples, isVariant, baseCard, subkat, hint }
+   ========================================================= */
+function buildItems() {
+  const items = [];
+  CARDS.forEach((card, idx) => {
+    items.push({
+      id: mainCardId(idx),
+      topic: card.topic,
+      ru: card.ru,
+      translit: card.translit,
+      de: card.de,
+      notes: card.notes,
+      examples: card.examples,
+      isVariant: false,
+    });
+    // Aktive Subkarten dazumischen
+    if (card.variants) {
+      for (const subkat of Object.keys(card.variants)) {
+        if (!state.settings.subkats[subkat]) continue;
+        card.variants[subkat].forEach((v, vIdx) => {
+          items.push({
+            id: variantCardId(idx, subkat, vIdx),
+            topic: card.topic,
+            ru: v.ru,
+            translit: v.translit,
+            de: v.de,
+            notes: v.notes,
+            isVariant: true,
+            baseCard: { ru: card.ru, translit: card.translit, de: card.de },
+            subkat: subkat,
+            hint: v.hint,
+          });
+        });
+      }
+    }
+  });
+  return items;
+}
+
+/* =========================================================
+   SM-2 ALGORITHM (übernommen vom SKP-Trainer)
+   ========================================================= */
+function getProgress(itemId, dir) {
+  const key = itemId + '_' + dir;
+  if (!state.progress[key]) {
+    state.progress[key] = { reps: 0, ease: 2.5, interval: 0, due: 0, lapses: 0 };
+  }
+  return state.progress[key];
+}
+
+function applyRating(itemId, dir, quality) {
+  const p = getProgress(itemId, dir);
+  if (quality < 3) {
+    p.reps = 0;
+    p.interval = 0;
+    p.lapses++;
+  } else {
+    if (p.reps === 0) p.interval = 1;
+    else if (p.reps === 1) p.interval = quality === 5 ? 4 : 3;
+    else {
+      const factor = quality === 5 ? p.ease * 1.3 : (quality === 3 ? 1.2 : p.ease);
+      p.interval = Math.max(p.interval + 1, Math.round(p.interval * factor));
+    }
+    p.reps++;
+  }
+  p.ease = Math.max(1.3, p.ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  p.due = Date.now() + p.interval * 24 * 60 * 60 * 1000;
+  state.todayCount++;
+  saveState();
+}
+
+function intervalHint(itemId, dir, quality) {
+  const p = getProgress(itemId, dir);
+  if (quality < 3) return '<10 min';
+  let interval;
+  if (p.reps === 0) interval = 1;
+  else if (p.reps === 1) interval = quality === 5 ? 4 : 3;
+  else {
+    const factor = quality === 5 ? p.ease * 1.3 : (quality === 3 ? 1.2 : p.ease);
+    interval = Math.max(p.interval + 1, Math.round(p.interval * factor));
+  }
+  if (interval < 30) return interval + ' Tag' + (interval === 1 ? '' : 'e');
+  const months = Math.round(interval / 30);
+  return '~' + months + ' Mon';
+}
+
+/* =========================================================
+   QUEUE
+   ========================================================= */
+function getAllTopics() {
+  return [...new Set(CARDS.map(c => c.topic))];
+}
+
+function getActiveItems() {
+  const items = buildItems();
+  const topics = state.settings.topics;
+  if (!topics || !topics.length) return items;
+  const set = new Set(topics);
+  return items.filter(it => set.has(it.topic));
+}
+
+function buildQueue() {
+  const items = getActiveItems();
+  const now = Date.now();
+  const directions = state.settings.mode === 'both' ? ['de2ru', 'ru2de']
+                   : [state.settings.mode];
+
+  const due = [];
+  const newOnes = [];
+  for (const it of items) {
+    for (const dir of directions) {
+      const p = getProgress(it.id, dir);
+      if (p.due === 0) newOnes.push({ item: it, dir });
+      else if (p.due <= now) due.push({ item: it, dir });
+    }
+  }
+  // Mix: due first, then up to 15 new per session
+  const queue = [...due, ...newOnes.slice(0, Math.max(0, 15 - due.length))];
+  for (let i = queue.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [queue[i], queue[j]] = [queue[j], queue[i]];
+  }
+  return queue;
+}
+
+/* =========================================================
+   FUZZY MATCH
+   - Akzeptiert kyrillisch UND Translit
+   - Translit-Vergleich case-insensitive (Großschreibung = Betonung,
+     kein Unterscheidungsmerkmal beim Tippen)
+   ========================================================= */
+function normalize(s) {
+  return s.toLowerCase()
+    .replace(/[.,;:!?()"„""''…–—-]/g, ' ')
+    .replace(/ё/g, 'е')                 // ё/е toleranter
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = new Array(b.length + 1);
+  let curr = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      curr[j] = Math.min(curr[j-1] + 1, prev[j] + 1, prev[j-1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+function checkAgainst(input, expected) {
+  const a = normalize(input);
+  const b = normalize(expected);
+  if (!a) return 'red';
+  if (a === b) return 'green';
+  if (b.includes(a) && a.length >= b.length * 0.6) return 'green';
+  const dist = levenshtein(a, b);
+  const len = Math.max(a.length, b.length);
+  const ratio = dist / len;
+  if (ratio <= 0.18) return 'green';
+  if (ratio <= 0.35) return 'yellow';
+  return 'red';
+}
+
+// Bei DE→RU: prüfe gegen kyrillisch UND Translit, nimm besseres Ergebnis
+function checkAnswer(input, expectedRu, expectedTranslit) {
+  if (!expectedTranslit) return checkAgainst(input, expectedRu);
+  const v1 = checkAgainst(input, expectedRu);
+  const v2 = checkAgainst(input, expectedTranslit);
+  // Beste (grünste) Bewertung gewinnt
+  const rank = { green: 3, yellow: 2, red: 1 };
+  return rank[v1] >= rank[v2] ? v1 : v2;
+}
+
+/* =========================================================
+   RENDERING
+   ========================================================= */
+const main = document.getElementById('main');
+let currentItem = null;
+let revealed = false;
+let queue = [];
+
+function refreshStats() {
+  const items = getActiveItems();
+  const directions = state.settings.mode === 'both' ? ['de2ru', 'ru2de']
+                   : [state.settings.mode];
+  const now = Date.now();
+  let due = 0, total = 0, newC = 0, learn = 0, mature = 0;
+  for (const it of items) {
+    for (const dir of directions) {
+      total++;
+      const p = getProgress(it.id, dir);
+      if (p.due === 0) newC++;
+      else if (p.due <= now) due++;
+      if (p.due > 0 && p.interval < 21) learn++;
+      else if (p.interval >= 21) mature++;
+    }
+  }
+  document.getElementById('stat-due').textContent = due + newC;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('d-new').textContent = newC;
+  document.getElementById('d-learn').textContent = learn;
+  document.getElementById('d-mature').textContent = mature;
+  document.getElementById('d-today').textContent = state.todayCount;
+}
+
+function renderDone() {
+  main.innerHTML = `
+    <div class="done-state">
+      <h2>Fertig für jetzt.</h2>
+      <p>Alle fälligen Karten durchgelernt. Komm später wieder — die Karten werden automatisch fällig.</p>
+    </div>
+  `;
+}
+
+function renderEmpty(msg) {
+  main.innerHTML = `
+    <div class="done-state">
+      <h2>Keine Karten</h2>
+      <p>${msg}</p>
+    </div>
+  `;
+}
+
+function renderCard() {
+  if (!state.settings.topics || state.settings.topics.length === 0) {
+    renderEmpty('Wähle in den Einstellungen mindestens ein Themenbereich aus.');
+    return;
+  }
+  if (!queue.length) queue = buildQueue();
+  if (!queue.length) { renderDone(); return; }
+
+  currentItem = queue.shift();
+  revealed = false;
+  const { item, dir } = currentItem;
+
+  const isDe2Ru = dir === 'de2ru';
+
+  // QUESTION/ANSWER aufbereiten
+  let questionHtml, expectedRu, expectedTranslit, directionLabel, placeholder;
+
+  if (isDe2Ru) {
+    // Frage in Deutsch, Antwort in Russisch
+    directionLabel = 'DE → RU';
+    expectedRu = item.ru;
+    expectedTranslit = item.translit;
+    placeholder = 'auf Russisch (kyrillisch oder Translit)';
+
+    if (item.isVariant) {
+      // Subkarte: Grundform + Hinweis welche Form
+      questionHtml = `
+        <div class="question-sub">Grundform: ${item.baseCard.de} (${item.baseCard.ru})</div>
+        <div class="question ${item.de.length > 28 ? 'smaller' : ''}">${item.de}</div>
+        <div class="question-hint">Form für: ${item.hint || ''}</div>
+      `;
+    } else {
+      questionHtml = `
+        <div class="question ${item.de.length > 28 ? 'smaller' : ''}">${item.de}</div>
+      `;
+    }
+  } else {
+    // Frage in Russisch, Antwort in Deutsch
+    directionLabel = 'RU → DE';
+    expectedRu = item.de;
+    expectedTranslit = null; // bei RU→DE keine Alternative
+    placeholder = 'auf Deutsch';
+
+    if (item.isVariant) {
+      questionHtml = `
+        <div class="question-sub">Grundform: ${item.baseCard.ru} (${item.baseCard.de})</div>
+        <div class="question cyrillic ${item.ru.length > 20 ? 'smaller' : ''}">${item.ru}</div>
+        <div class="question-sub">${item.translit}</div>
+      `;
+    } else {
+      questionHtml = `
+        <div class="question cyrillic ${item.ru.length > 20 ? 'smaller' : ''}">${item.ru}</div>
+        <div class="question-sub">${item.translit}</div>
+      `;
+    }
+  }
+
+  const subkatTag = item.isVariant
+    ? `<span class="subkat-tag">${subkatLabel(item.subkat)}</span>`
+    : '';
+
+  main.innerHTML = `
+    <div class="deck-tag">${item.topic}</div>
+    <span class="direction-tag">${directionLabel}</span>${subkatTag}
+    ${questionHtml}
+    <div class="input-wrap">
+      <input class="answer-input" id="answer" type="text" autocomplete="off"
+             autocapitalize="off" autocorrect="off" spellcheck="false"
+             placeholder="${placeholder}" />
+    </div>
+    <button class="primary-btn" id="submit-btn">Prüfen</button>
+    <div id="reveal-container"></div>
+  `;
+
+  const input = document.getElementById('answer');
+  const submit = document.getElementById('submit-btn');
+  setTimeout(() => input.focus(), 50);
+
+  function reveal(verdict) {
+    revealed = true;
+    input.disabled = true;
+    input.classList.remove('r-green','r-yellow','r-red');
+    if (verdict) input.classList.add('r-' + verdict);
+    submit.style.display = 'none';
+
+    const autoMapping = { green: 4, yellow: 3, red: 0 };
+    const autoQ = autoMapping[verdict] !== undefined ? autoMapping[verdict] : 4;
+    const labelMap = { 0: 'Nochmal', 3: 'Schwer', 4: 'Gut', 5: 'Einfach' };
+    const autoLabel = labelMap[autoQ];
+    const others = [0, 3, 4, 5].filter(q => q !== autoQ);
+
+    // Reveal-Inhalte je nach Richtung
+    let revealHtml;
+    if (isDe2Ru) {
+      // Antwort: kyrillisch + translit
+      const examples = (item.examples || []).map(ex => `
+        <div class="ex-row"><span class="ex-ru">${ex.ru}</span> · <span style="font-style:italic">${ex.translit}</span> — ${ex.de}</div>
+      `).join('');
+      revealHtml = `
+        <div class="reveal">
+          <div class="reveal-label">Antwort</div>
+          <div class="reveal-term ${verdict === 'green' ? 'green' : ''}">${item.ru}</div>
+          <div class="reveal-translit">${item.translit}</div>
+          ${item.notes ? `<div class="reveal-desc">${item.notes}</div>` : ''}
+          ${examples ? `<div class="reveal-examples"><div class="ex-label">Beispiele</div>${examples}</div>` : ''}
+        </div>
+      `;
+    } else {
+      // Antwort: deutsch
+      const examples = (item.examples || []).map(ex => `
+        <div class="ex-row"><span class="ex-ru">${ex.ru}</span> · <span style="font-style:italic">${ex.translit}</span> — ${ex.de}</div>
+      `).join('');
+      revealHtml = `
+        <div class="reveal">
+          <div class="reveal-label">Antwort</div>
+          <div class="reveal-term ${verdict === 'green' ? 'green' : ''}">${item.de}</div>
+          ${item.notes ? `<div class="reveal-desc">${item.notes}</div>` : ''}
+          ${examples ? `<div class="reveal-examples"><div class="ex-label">Beispiele</div>${examples}</div>` : ''}
+        </div>
+      `;
+    }
+
+    revealHtml += `
+      <button class="primary-btn rate-primary" data-q="${autoQ}" data-verdict="${verdict}">
+        <span class="primary-label">Weiter <span style="opacity:.6">·</span> ${autoLabel}</span>
+        <span class="primary-hint">nächste Wiederholung in ${intervalHint(item.id, dir, autoQ)}</span>
+      </button>
+      <div class="override-label">War's anders?</div>
+      <div class="overrides">
+        ${others.map(q => `
+          <button class="rate-btn-small" data-q="${q}">
+            ${labelMap[q]}<span class="interval-hint">${intervalHint(item.id, dir, q)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    document.getElementById('reveal-container').innerHTML = revealHtml;
+
+    const handleRating = (q) => {
+      document.removeEventListener('keydown', enterHandler);
+      applyRating(item.id, dir, q);
+      if (q < 3) queue.push({ item, dir });
+      refreshStats();
+      renderCard();
+    };
+
+    const enterHandler = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleRating(autoQ);
+      }
+    };
+    document.addEventListener('keydown', enterHandler);
+
+    document.querySelector('.rate-primary').addEventListener('click', () => handleRating(autoQ));
+    document.querySelectorAll('.rate-btn-small').forEach(b => {
+      b.addEventListener('click', () => handleRating(parseInt(b.dataset.q, 10)));
+    });
+  }
+
+  submit.addEventListener('click', () => {
+    if (revealed) return;
+    const value = input.value;
+    const verdict = checkAnswer(value, expectedRu, expectedTranslit);
+    reveal(verdict);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !revealed) {
+      e.preventDefault();
+      submit.click();
+    }
+  });
+}
+
+function subkatLabel(key) {
+  const labels = {
+    praesens: 'Präsens',
+    vergangenheit: 'Vergangenheit',
+    imperativ: 'Imperativ',
+    aspekt: 'Aspekt-Paar',
+    plural: 'Plural',
+    akkusativ: 'Akkusativ',
+    genitiv: 'Genitiv',
+  };
+  return labels[key] || key;
+}
+
+/* =========================================================
+   SETTINGS SHEET
+   ========================================================= */
+const sheet = document.getElementById('sheet');
+const sheetBg = document.getElementById('sheet-bg');
+
+function openSheet() {
+  buildTopicChips();
+  buildSubkatChips();
+  refreshChips();
+  refreshStats();
+  sheet.classList.add('open');
+  sheetBg.classList.add('open');
+}
+function closeSheet() {
+  sheet.classList.remove('open');
+  sheetBg.classList.remove('open');
+}
+
+document.getElementById('open-settings').addEventListener('click', openSheet);
+sheetBg.addEventListener('click', closeSheet);
+
+function buildTopicChips() {
+  const topics = getAllTopics();
+  const container = document.getElementById('topic-chips');
+  const allActive = state.settings.topics.length === topics.length;
+  container.innerHTML =
+    `<button class="chip chip-all" data-action="all">${allActive ? 'Alle abwählen' : 'Alle wählen'}</button>` +
+    topics.map(t => {
+      const count = CARDS.filter(c => c.topic === t).length;
+      return `<button class="chip" data-topic="${t}">${t} <span style="opacity:.5;font-size:10px">${count}</span></button>`;
+    }).join('');
+
+  container.querySelector('[data-action="all"]').addEventListener('click', () => {
+    state.settings.topics = allActive ? [] : [...topics];
+    saveState();
+    buildTopicChips();
+    refreshChips();
+    refreshStats();
+    queue = [];
+    renderCard();
+  });
+
+  container.querySelectorAll('[data-topic]').forEach(c => {
+    c.addEventListener('click', () => {
+      const t = c.dataset.topic;
+      const idx = state.settings.topics.indexOf(t);
+      if (idx >= 0) state.settings.topics.splice(idx, 1);
+      else state.settings.topics.push(t);
+      saveState();
+      buildTopicChips();
+      refreshChips();
+      refreshStats();
+      queue = [];
+      renderCard();
+    });
+  });
+}
+
+function buildSubkatChips() {
+  // Welche Subkat-Keys kommen überhaupt im Datensatz vor?
+  const available = new Set();
+  for (const c of CARDS) {
+    if (c.variants) Object.keys(c.variants).forEach(k => available.add(k));
+  }
+  const container = document.getElementById('subkat-chips');
+  if (!available.size) {
+    container.innerHTML = '<div style="color:var(--text-faint);font-size:11px;font-style:italic">Keine Subkarten verfügbar</div>';
+    return;
+  }
+  const arr = [...available];
+  container.innerHTML = arr.map(k => {
+    // Anzahl der Subkarten in dieser Kategorie zählen
+    let n = 0;
+    for (const c of CARDS) {
+      if (c.variants && c.variants[k]) n += c.variants[k].length;
+    }
+    return `<button class="chip" data-subkat="${k}">${subkatLabel(k)} <span style="opacity:.5;font-size:10px">${n}</span></button>`;
+  }).join('');
+
+  container.querySelectorAll('[data-subkat]').forEach(c => {
+    c.addEventListener('click', () => {
+      const k = c.dataset.subkat;
+      state.settings.subkats[k] = !state.settings.subkats[k];
+      saveState();
+      refreshChips();
+      refreshStats();
+      queue = [];
+      renderCard();
+    });
+  });
+}
+
+function refreshChips() {
+  document.querySelectorAll('#mode-chips .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.mode === state.settings.mode);
+  });
+  const activeTopics = new Set(state.settings.topics);
+  document.querySelectorAll('#topic-chips [data-topic]').forEach(c => {
+    c.classList.toggle('active', activeTopics.has(c.dataset.topic));
+  });
+  document.querySelectorAll('#subkat-chips [data-subkat]').forEach(c => {
+    c.classList.toggle('active', !!state.settings.subkats[c.dataset.subkat]);
+  });
+}
+
+document.querySelectorAll('#mode-chips .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    state.settings.mode = c.dataset.mode;
+    saveState();
+    refreshChips();
+    refreshStats();
+    queue = [];
+    renderCard();
+  });
+});
+
+// Lautschrift-Legende auf-/zuklappen
+document.getElementById('legend-toggle').addEventListener('click', () => {
+  const c = document.getElementById('legend-content');
+  const arrow = document.getElementById('legend-arrow');
+  c.classList.toggle('open');
+  arrow.textContent = c.classList.contains('open') ? '▴' : '▾';
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Wirklich allen Lernfortschritt löschen?')) {
+    state = {
+      progress: {},
+      settings: state.settings,
+      todayCount: 0,
+      todayDate: new Date().toDateString()
+    };
+    saveState();
+    refreshStats();
+    queue = [];
+    closeSheet();
+    renderCard();
+  }
+});
+
+/* =========================================================
+   START
+   ========================================================= */
+buildTopicChips();
+buildSubkatChips();
+refreshChips();
+refreshStats();
+renderCard();
+
+</script>
+</body>
+</html>
