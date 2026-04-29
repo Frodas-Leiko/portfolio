@@ -385,6 +385,12 @@ main {
   color: var(--accent);
 }
 
+.chip.chip-all {
+  border-color: var(--text-faint);
+  color: var(--text-dim);
+  font-style: italic;
+}
+
 .danger-btn {
   width: 100%;
   background: transparent;
@@ -643,11 +649,35 @@ const STORAGE_KEY = 'skp_trainer_v1';
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Migrate old single-filter format to multi-select array
+      if (parsed.settings && typeof parsed.settings.filter === 'string') {
+        const allLaws = [...new Set(RAW.map(row => {
+          const f = row[0];
+          if (f.includes('GewO')) return 'GewO';
+          if (f.includes('BewachV')) return 'BewachV';
+          if (f.includes('GG')) return 'GG';
+          if (f.includes('DSGVO')) return 'DSGVO';
+          if (f.includes('BGB')) return 'BGB';
+          if (f.includes('StGB')) return 'StGB';
+          if (f.includes('StPO')) return 'StPO';
+          if (f.includes('WaffG')) return 'WaffG';
+          if (f.includes('SGB')) return 'SGB VII';
+          if (f.includes('ArbSchG')) return 'ArbSchG';
+          return 'Sonstige';
+        }))];
+        parsed.settings.filters = parsed.settings.filter === 'all'
+          ? allLaws
+          : [parsed.settings.filter];
+        delete parsed.settings.filter;
+      }
+      return parsed;
+    }
   } catch (e) {}
   return {
-    progress: {},        // key "id_dir" -> { reps, ease, interval, due, lapses }
-    settings: { mode: 'forward', filter: 'all' },
+    progress: {},
+    settings: { mode: 'forward', filters: null }, // null = all (resolved later)
     todayCount: 0,
     todayDate: new Date().toDateString(),
   };
@@ -658,6 +688,12 @@ function saveState() {
 }
 
 let state = loadState();
+
+// Initialize filters on first run (or after migration corrupted)
+if (!state.settings.filters || !Array.isArray(state.settings.filters)) {
+  state.settings.filters = [...new Set(CARDS.map(c => c.law))];
+  saveState();
+}
 
 // Reset today count on new day
 const todayStr = new Date().toDateString();
@@ -719,9 +755,16 @@ function intervalHint(cardId, dir, quality) {
 /* =========================================================
    CARD QUEUE
    ========================================================= */
+function getAllLaws() {
+  return [...new Set(CARDS.map(c => c.law))];
+}
+
 function getActiveCards() {
-  if (state.settings.filter === 'all') return CARDS;
-  return CARDS.filter(c => c.law === state.settings.filter);
+  const filters = state.settings.filters;
+  // null or empty array means "all" (defensive default)
+  if (!filters || !filters.length) return CARDS;
+  const set = new Set(filters);
+  return CARDS.filter(c => set.has(c.law));
 }
 
 function buildQueue() {
@@ -782,10 +825,31 @@ function levenshtein(a, b) {
   return prev[b.length];
 }
 
+// Extract numeric tokens (e.g. "34a", "226", "10") in order.
+// Used to enforce EXACT match on paragraph numbers — fuzzy matching
+// must not tolerate "§ 226 BGB" vs "§ 266 BGB" or "§ 34" vs "§ 34a".
+function extractNumbers(s) {
+  const matches = s.toLowerCase().match(/\d+[a-z]?/g);
+  return matches ? matches : [];
+}
+
 function checkAnswer(input, expected) {
   const a = normalize(input);
   const b = normalize(expected);
   if (!a) return 'red';
+
+  // Numbers must match exactly — no fuzzy on digits.
+  const expectedNums = extractNumbers(expected);
+  const inputNums = extractNumbers(input);
+  if (expectedNums.length > 0) {
+    if (inputNums.length !== expectedNums.length) return 'red';
+    for (let i = 0; i < expectedNums.length; i++) {
+      if (inputNums[i] !== expectedNums[i]) return 'red';
+    }
+  } else if (inputNums.length > 0) {
+    return 'red';
+  }
+
   if (a === b) return 'green';
   // Substring tolerance for short answers
   if (b.includes(a) && a.length >= b.length * 0.6) return 'green';
@@ -838,7 +902,20 @@ function renderDone() {
   `;
 }
 
+function renderEmptyFilters() {
+  main.innerHTML = `
+    <div class="done-state">
+      <h2>Keine Gesetzbücher ausgewählt.</h2>
+      <p>Öffne die Einstellungen und wähle mindestens ein Gesetzbuch aus, um zu lernen.</p>
+    </div>
+  `;
+}
+
 function renderCard() {
+  if (!state.settings.filters || state.settings.filters.length === 0) {
+    renderEmptyFilters();
+    return;
+  }
   if (!queue.length) queue = buildQueue();
   if (!queue.length) { renderDone(); return; }
   currentItem = queue.shift();
@@ -962,17 +1039,34 @@ document.getElementById('open-settings').addEventListener('click', openSheet);
 sheetBg.addEventListener('click', closeSheet);
 
 function buildFilterChips() {
-  const laws = ['all', ...new Set(CARDS.map(c => c.law))];
+  const laws = getAllLaws();
   const container = document.getElementById('filter-chips');
-  container.innerHTML = laws.map(l => {
-    const label = l === 'all' ? 'Alle' : l;
-    const count = l === 'all' ? CARDS.length : CARDS.filter(c => c.law === l).length;
-    return `<button class="chip" data-filter="${l}">${label} <span style="opacity:.5;font-size:10px">${count}</span></button>`;
-  }).join('');
-  container.querySelectorAll('.chip').forEach(c => {
+  const allActive = state.settings.filters.length === laws.length;
+  container.innerHTML =
+    `<button class="chip chip-all" data-action="all">${allActive ? 'Alle abwählen' : 'Alle wählen'}</button>` +
+    laws.map(l => {
+      const count = CARDS.filter(c => c.law === l).length;
+      return `<button class="chip" data-filter="${l}">${l} <span style="opacity:.5;font-size:10px">${count}</span></button>`;
+    }).join('');
+
+  container.querySelector('[data-action="all"]').addEventListener('click', () => {
+    state.settings.filters = allActive ? [] : [...laws];
+    saveState();
+    buildFilterChips();
+    refreshChips();
+    refreshStats();
+    queue = [];
+    renderCard();
+  });
+
+  container.querySelectorAll('[data-filter]').forEach(c => {
     c.addEventListener('click', () => {
-      state.settings.filter = c.dataset.filter;
+      const law = c.dataset.filter;
+      const idx = state.settings.filters.indexOf(law);
+      if (idx >= 0) state.settings.filters.splice(idx, 1);
+      else state.settings.filters.push(law);
       saveState();
+      buildFilterChips();
       refreshChips();
       refreshStats();
       queue = [];
@@ -985,8 +1079,9 @@ function refreshChips() {
   document.querySelectorAll('#mode-chips .chip').forEach(c => {
     c.classList.toggle('active', c.dataset.mode === state.settings.mode);
   });
-  document.querySelectorAll('#filter-chips .chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.filter === state.settings.filter);
+  const activeSet = new Set(state.settings.filters);
+  document.querySelectorAll('#filter-chips [data-filter]').forEach(c => {
+    c.classList.toggle('active', activeSet.has(c.dataset.filter));
   });
 }
 
