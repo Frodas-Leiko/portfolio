@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>UZwGBw Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0d0d0c;
+  --bg-card: #161614;
+  --bg-elev: #1f1f1c;
+  --line: #2a2a26;
+  --text: #f0ebe0;
+  --text-dim: #8a8676;
+  --text-faint: #56544a;
+  --accent: #6b9bd4;
+  --green: #7fb069;
+  --yellow: #e8b339;
+  --red: #c95a4f;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --serif: 'Fraunces', Georgia, serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.brand .ampersand { color: var(--accent); font-style: italic; }
+
+.stats {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-num { color: var(--text); font-weight: 700; }
+.stat-num.due { color: var(--accent); }
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+.icon-btn:active { background: var(--bg-elev); color: var(--text); }
+
+/* MAIN AREA */
+main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 22px 22px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.deck-tag {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+}
+
+.direction-tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 3px 8px;
+  border-radius: 3px;
+  margin-bottom: 22px;
+  opacity: 0.85;
+}
+
+.question {
+  font-family: var(--serif);
+  font-size: 38px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+  word-break: break-word;
+}
+
+.question.smaller { font-size: 26px; }
+
+/* INPUT */
+.input-wrap {
+  margin-bottom: 18px;
+}
+
+.answer-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 17px;
+  padding: 16px 18px;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.answer-input:focus { border-color: var(--text-dim); }
+.answer-input.r-green { border-color: var(--green); background: rgba(127, 176, 105, 0.08); }
+.answer-input.r-yellow { border-color: var(--yellow); background: rgba(232, 179, 57, 0.08); }
+.answer-input.r-red { border-color: var(--red); background: rgba(201, 90, 79, 0.08); }
+
+/* PRIMARY BUTTONS */
+.primary-btn {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.primary-btn:active { opacity: 0.8; }
+.primary-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* REVEAL */
+.reveal {
+  margin-top: 8px;
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.reveal-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.reveal-term {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.reveal-term.green { color: var(--green); }
+
+.reveal-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.reveal-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  white-space: pre-line;
+}
+
+.reveal-details strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* RATING BUTTONS */
+.rate-primary {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.rate-primary .primary-label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.rate-primary .primary-hint {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.7;
+}
+
+.rate-primary[data-verdict="green"] { background: var(--green); }
+.rate-primary[data-verdict="yellow"] { background: var(--yellow); }
+.rate-primary[data-verdict="red"] { background: var(--red); color: var(--text); }
+
+.overrides {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rate-btn-small {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 10px 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  transition: all 0.15s;
+}
+.rate-btn-small:active { transform: scale(0.96); border-color: var(--text-dim); color: var(--text); }
+.rate-btn-small .interval-hint {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.override-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 16px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+/* DONE STATE */
+.done-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+}
+.done-state h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.done-state p { color: var(--text-dim); font-size: 14px; line-height: 1.5; }
+
+/* SETTINGS SHEET */
+.sheet-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.sheet-bg.open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  padding: 14px 22px calc(28px + env(safe-area-inset-bottom));
+  z-index: 11;
+  transform: translateY(100%);
+  transition: transform 0.25s ease-out;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 38px; height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+
+.sheet h2 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 22px;
+  letter-spacing: -0.01em;
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 16px 0 8px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.chip:active { transform: scale(0.96); }
+.chip.chip-all {
+  border-color: var(--text-faint);
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.detail-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+
+.detail-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+.detail-stat .label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+.detail-stat .value {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.danger-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.danger-btn:active { background: rgba(201, 90, 79, 0.1); }
+
+@media (min-width: 720px) {
+  main { padding: 48px 64px 32px; max-width: 720px; width: 100%; margin: 0 auto; }
+  .question { font-size: 48px; }
+  .question.smaller { font-size: 32px; }
+  .sheet { max-width: 540px; margin: 0 auto; right: auto; left: 50%; transform: translate(-50%, 100%); border-radius: 16px 16px 0 0; }
+  .sheet.open { transform: translate(-50%, 0); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">UZwGBw <span class="ampersand">·</span> Trainer</div>
+  <div class="stats">
+    <div><span class="stat-num due" id="stat-due">0</span> fällig</div>
+    <div><span class="stat-num" id="stat-total">0</span> gesamt</div>
+  </div>
+  <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⚙</button>
+</header>
+
+<main id="main"></main>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <h2>Einstellungen</h2>
+
+  <div class="section-label">Modus</div>
+  <div class="chip-row" id="mode-chips">
+    <button class="chip" data-mode="forward">Paragraph → Begriff</button>
+    <button class="chip" data-mode="reverse">Begriff → Paragraph</button>
+    <button class="chip" data-mode="both">Beide</button>
+  </div>
+
+  <div class="section-label">Filter Abschnitt</div>
+  <div class="chip-row" id="filter-chips"></div>
+
+  <div class="section-label">Statistik</div>
+  <div class="detail-stats">
+    <div class="detail-stat"><div class="label">Neu</div><div class="value" id="d-new">0</div></div>
+    <div class="detail-stat"><div class="label">Lernend</div><div class="value" id="d-learn">0</div></div>
+    <div class="detail-stat"><div class="label">Gefestigt</div><div class="value" id="d-mature">0</div></div>
+    <div class="detail-stat"><div class="label">Heute gelernt</div><div class="value" id="d-today">0</div></div>
+  </div>
+
+  <div class="section-label">Reset</div>
+  <button class="danger-btn" id="reset-btn">Lernfortschritt zurücksetzen</button>
+</div>
+
+<script>
+/* =========================================================
+   CARDS — UZwGBw, gegliedert in vier Abschnitte
+   Format: [front (Paragraph), term (Begriff/Kurzform), details (Erklärung)]
+   Section ergibt sich aus dem Paragraphen.
+   ========================================================= */
+const RAW = [
+
+/* ---------- 1. ABSCHNITT — Allgemeine Vorschriften (§§ 1–3) ---------- */
+
+["§ 1 UZwGBw","Berechtigte Personen — Soldaten BW, verbündete Soldaten, zivile Wachpersonen","Drei Personengruppen, die die Befugnisse des UZwGBw ausüben dürfen:\n\n• Soldatinnen/Soldaten der Bundeswehr (mit militärischen Wach- oder Sicherheitsaufgaben betraut)\n• Soldatinnen/Soldaten verbündeter Streitkräfte (im Einzelfall mit der Wahrnehmung betraut, unter deutschem militärischen Vorgesetzten)\n• Zivile Wachpersonen (Beauftragung durch BMVg oder eine von ihm bestimmte Stelle)\n\nDrei Befugnisbereiche — für alle gleich:\n1. Personen anhalten, überprüfen, vorläufig festnehmen, durchsuchen\n2. Sachen sicherstellen und beschlagnahmen\n3. Unmittelbarer Zwang gegen Personen und Sachen\n\nWichtig: Befugnisse nur in »rechtmäßiger Erfüllung dieser Aufgaben« — keine Befugnis ohne dienstlichen Bezug.\n\nQuerverbindung: Diese Personenliste taucht in §§ 3, 8a Abs. 3, 15 Abs. 1 Nr. 1c und 17 Abs. 2 wieder auf — überall dort, wo der Schutz von »Berechtigten« geregelt ist."],
+
+["§ 1 Abs. 3 UZwGBw","Zivile Wachpersonen — 4 Voraussetzungen + Altersgrenzen","Vier Eignungsvoraussetzungen für zivile Wachpersonen:\n\n• Persönliche Zuverlässigkeit\n• Körperliche Eignung\n• Ausreichende Vorbildung im Wachdienst\n• Gute Kenntnisse der Befugnisse nach diesem Gesetz\n\nAltersgrenzen:\n• Mindestalter: 18. Lebensjahr vollendet (zwingend)\n• Sollgrenze nach oben: 67. Lebensjahr soll nicht überschritten sein\n\nDie Beauftragung erfolgt durch das BMVg oder eine bestimmte Stelle. Erst mit der Beauftragung sind die Befugnisse aus § 1 Abs. 1 (anhalten/festnehmen/durchsuchen/sicherstellen/Zwang) eröffnet."],
+
+["§ 2 Abs. 1 UZwGBw","Militärischer Bereich — Anlagen, Einrichtungen und Schiffe der BW","Militärische Bereiche sind:\n\n• Anlagen, Einrichtungen und Schiffe der Bundeswehr\n• Anlagen, Einrichtungen und Schiffe der verbündeten Streitkräfte\n• im Geltungsbereich des UZwGBw (Bundesrepublik)\n\nDas ist die weitere Kategorie — bloßes Betreten/Aufenthalt löst Identitätsfeststellung nach § 8a Abs. 1 aus.\n\nAbzugrenzen vom »militärischen Sicherheitsbereich« (Abs. 2) — die engere Kategorie mit schärferen Eingriffsbefugnissen (§§ 4–7)."],
+
+["§ 2 Abs. 2 UZwGBw","Militärischer Sicherheitsbereich — Betreten verboten + sonstige gesperrte Örtlichkeiten","Militärische Sicherheitsbereiche sind:\n\n• Militärische Bereiche, deren Betreten verboten ist, UND\n• sonstige Örtlichkeiten, die das BMVg oder eine bestimmte Stelle vorübergehend gesperrt hat\n\nVoraussetzung für Sperrung sonstiger Örtlichkeiten:\n»Aus Gründen der militärischen Sicherheit zur Erfüllung dienstlicher Aufgaben unerläßlich« — nächste Polizeidienststelle ist unverzüglich zu unterrichten.\n\nKennzeichnungspflicht: Sicherheitsbereiche müssen erkennbar gemacht werden.\n\nDie engere Kategorie — eröffnet die schärferen Befugnisse der §§ 4 (Anhalten), 5 (Bringen), 6 (Festnahme), 7 (Durchsuchung) und 8 (allgemeine Durchsuchungsanordnung).\n\nFolge für Bürger: Entschädigungsanspruch nach § 20 bei Sperrung."],
+
+["§ 2 Abs. 3 UZwGBw","Verhaltensanordnungen — allgemein und einzelfallbezogen","Die zuständigen Dienststellen der Bundeswehr können:\n\n• Allgemeine Verhaltensanordnungen für militärische Bereiche/Sicherheitsbereiche erlassen\n• Berechtigte (§ 1) ermächtigen, Einzelweisungen zu geben\n\nGrundlage für Befehle/Anweisungen, denen Personen im Bereich Folge zu leisten haben — auch ohne konkrete Gefahrenlage. Verstoß kann § 9 Nr. 2 (rechtswidrige Störung) auslösen."],
+
+["§ 3 UZwGBw","Straftaten gegen die Bundeswehr — drei Schutzbereiche","Drei abgrenzbare Schutzbereiche:\n\n1. PERSONEN\n   a) Angehörige der BW, zivile Wachpersonen, Angehörige verbündeter Streitkräfte WÄHREND rechtmäßiger Dienstausübung — wenn die Tat den Dienst stört oder tätlicher Angriff erfolgt\n   b) Dieselben Personen WÄHREND Aufenthalts in militärischen Bereichen/Sicherheitsbereichen — bei tätlichem Angriff\n\n2. SACHEN\n   Militärische Bereiche und Gegenstände der BW/verbündeter Streitkräfte\n\n3. MILITÄRISCHE GEHEIMHALTUNG\n   in BW oder verbündeten Streitkräften\n\nFunktion im Gesetz: Der Begriff »Straftat gegen die Bundeswehr« ist Anknüpfungspunkt für viele Eingriffsbefugnisse — § 5 (Bringen), § 6 (Festnahme), § 7 (Durchsuchung), § 9 Nr. 1 (Zwang), § 15 Abs. 1 (Schusswaffe)."],
+
+["§ 3 Abs. 3 UZwGBw","Verbündete Streitkräfte — Beistandspflicht nach Art. 51 UN-Charta","Verbündete Streitkräfte sind Streitkräfte von Staaten, mit denen Deutschland in einer wechselseitigen Beistandspflicht steht — zur Landes- oder Bündnisverteidigung im Sinne von Art. 51 UN-Charta.\n\nInsbesondere:\n• NATO-Staaten\n• EU-Staaten\n\nDie Definition ist wichtig, weil verbündete Streitkräfte:\n• selbst Befugnisinhaber nach § 1 sein können\n• denselben Schutz nach § 3 genießen wie BW-Angehörige\n• Schutzobjekt bei § 15 Abs. 1 Nr. 1d (Wehrmittel/Anlagen) sind"],
+
+/* ---------- 2. ABSCHNITT — Maßnahmen (§§ 4–9) ---------- */
+
+["§ 4 UZwGBw","Anhalten und Überprüfen im militärischen Sicherheitsbereich — erste Eskalationsstufe","Zweck: Feststellung der Person und der Berechtigung zum Aufenthalt.\n\nEingriff erlaubt gegenüber Personen, die:\n• sich im militärischen Sicherheitsbereich aufhalten\n• ihn betreten oder verlassen wollen\n• ihn gerade verlassen haben oder zu betreten versuchten und verfolgt werden (Nacheile, Abs. 2) — sofern anzunehmen ist, dass keine Aufenthaltsberechtigung besteht\n\nMildester Eingriff — anhalten + befragen + Ausweis verlangen. Wenn das nicht ausreicht: Eskalation zu § 5 (Bringen)."],
+
+["§ 5 UZwGBw","Weitere Personenüberprüfung — Bringen zur Dienststelle","Zweite Eskalationsstufe. Wer nach § 4 überprüft wird, kann zum Wachvorgesetzten oder zur nächsten Dienststelle gebracht werden, wenn:\n\n1. Person oder Aufenthaltsberechtigung nicht sofort feststellbar, ODER\n2. dringender Verdacht einer Straftat gegen die Bundeswehr UND Gefahr im Verzug\n\nPflicht zur sofortigen Überprüfung und sofortigen Freilassung, wenn keine Festnahmevoraussetzungen vorliegen (§ 5 Abs. 2).\n\nÜbergang: Aus § 5 wird § 6 (Festnahme), wenn Haftbefehlsvoraussetzungen + dringender Tatverdacht + GiV zusammenkommen."],
+
+["§ 6 UZwGBw","Vorläufige Festnahme — Haftbefehlsvoraussetzungen + Gefahr im Verzug","Schärfster Schritt im 2. Abschnitt vor Übergabe an Polizei. Voraussetzungen:\n\n• Person wurde nach § 5 gebracht\n• Dringender Tatverdacht einer Straftat gegen die Bundeswehr\n• Gefahr im Verzug\n• Voraussetzungen eines Haftbefehls oder Unterbringungsbefehls nach StPO liegen vor\n\nWer entscheidet:\n• Wachvorgesetzter\n• Leiter der Dienststelle\n• deren Beauftragter\n\nFolge:\n• Unverzügliche Überstellung an die Polizei\n• Direkte Vorführung beim Amtsrichter möglich, wenn Frist nach § 128 Abs. 1 StPO abzulaufen droht oder besondere militärische Geheimhaltung dies erfordert\n\nVerbindung: § 9 Nr. 3 erlaubt Zwang zur Erzwingung einer Festnahme; § 14 erlaubt Fesselung bei Festgenommenen."],
+
+["§ 7 UZwGBw","Durchsuchung und Beschlagnahme bei Personenüberprüfung — 3 Voraussetzungen","Durchsuchung der Person nur bei:\n\n• Gefahr im Verzug UND\n• Verdacht einer Straftat gegen die Bundeswehr UND\n• Vermutung, dass die Durchsuchung Beweismittel zutage fördert\n\nMitgeführte Gegenstände dürfen ebenfalls durchsucht werden. Geschlechtsregel (§ 8a Abs. 5) gilt entsprechend: Personen nur durch Personen gleichen Geschlechts — außer bei Gefahr im Verzug.\n\nBeschlagnahme/Sicherstellung von Gegenständen im Gewahrsam (Abs. 2), wenn diese:\n• durch vorsätzliche Straftat gegen die BW hervorgebracht\n• zur Begehung einer solchen Tat geeignet\n• als Beweismittel von Bedeutung\n\n§§ 96, 97, 110 Abs. 1 und 2 StPO sind anzuwenden (Beschlagnahmeverbote, Durchsicht von Papieren)."],
+
+["§ 7 Abs. 3 UZwGBw","Drei-Tage-Frist — Übergabe an Polizei oder StA","Sichergestellte oder beschlagnahmte Gegenstände sind spätestens BINNEN DREI TAGEN der Polizei oder Staatsanwaltschaft zu übergeben.\n\nEntfällt, wenn:\n• Gegenstand zurückgegeben wird, ODER\n• Bund oder verbündete Streitkräfte zu verfügen haben — dann ist ein Verzeichnis zu übersenden\n\nDiese Frist gilt ENTSPRECHEND auch für:\n• § 8 (allgemeine Durchsuchungsanordnung)\n• § 8a Abs. 5 (Identitätsfeststellung mit Durchsuchung)\n• § 8b (Durchsuchung zum Eigenschutz)\n\nMerke: Die 3-Tage-Frist ist eine zentrale Systemregel im UZwGBw — überall, wo Sachen gesichert werden, gilt sie."],
+
+["§ 8 UZwGBw","Allgemeine Anordnung von Durchsuchungen — Routinekontrolle beim Betreten","BMVg oder bestimmte Stelle kann allgemein anordnen, dass Personen und mitgeführte Sachen beim Betreten/Verlassen bestimmter militärischer Sicherheitsbereiche ROUTINEMÄSSIG durchsucht werden.\n\nNur zur Feststellung von Gegenständen, die:\n• aus einem vorsätzlichen Verbrechen oder Vergehen gegen die BW herrühren\n• zur Begehung solcher Taten geeignet sind\n• als Beweismittel von Bedeutung sind\n\n§ 7 Abs. 2 und 3 gelten entsprechend (Beschlagnahme + 3-Tage-Frist).\n\nUnterschied zu § 7: § 8 braucht KEINEN konkreten Tatverdacht — es ist eine allgemeine, von der Behörde angeordnete Kontrollbefugnis am Zugang."],
+
+["§ 8a Abs. 1 UZwGBw","Identitätsfeststellung im militärischen Bereich — Aufenthalt/Betreten/Verlassen","Im militärischen Bereich (§ 2 Abs. 1) darf die Identität festgestellt werden bei Personen, die:\n\n• sich im Bereich aufhalten\n• ihn betreten wollen\n• ihn verlassen wollen\n\nDas ist der mildeste Fall — der militärische Bereich an sich rechtfertigt die Identitätsfeststellung, ohne dass ein konkretes Verhalten verdächtig sein muss.\n\nMaßnahmen siehe § 8a Abs. 4. Bei Erfordernis kann nach Abs. 5 auch durchsucht werden."],
+
+["§ 8a Abs. 2 UZwGBw","Identitätsfeststellung im nahen Umfeld — Beobachtung / gefährliche Gegenstände","Im NAHEN UMFELD (= Sicht- oder Rufweite) eines militärischen Sicherheitsbereichs nur bei:\n\n• Tatsächlichen Anhaltspunkten dafür, dass durch das Verhalten der Person Einsatzbereitschaft, Schlagkraft oder Sicherheit der Truppe gefährdet werden könnte, UND\n\n• Person:\n  - beobachtet den Bereich oder militärische Aktivitäten (mit oder ohne Hilfsmittel), ODER\n  - geht mit Gegenständen um, die geeignet sind, eine solche Gefahr herbeizuführen — insbesondere:\n    · Waffen und ähnlich gefährliche Gegenstände\n    · Einbruchswerkzeuge\n    · Beobachtungshilfen\n    · unbemannte Luftfahrzeuge und Steuergeräte\n\nMerke: »Nahes Umfeld« ist legaldefiniert als Sicht- oder Rufweite. »Drohnen« sind ausdrücklich erfasst."],
+
+["§ 8a Abs. 3 UZwGBw","Identitätsfeststellung außerhalb militärischer Bereiche — nur durch Soldaten","Außerhalb militärischer Bereiche — und auch außerhalb des nahen Umfelds — gilt:\n\n• Nur Soldatinnen/Soldaten der BW mit Sicherheitsaufgaben (NICHT zivile Wachpersonen)\n• Tatsächliche Anhaltspunkte für mögliche Gefährdung von Einsatzbereitschaft/Schlagkraft/Sicherheit der Truppe\n• Person beobachtet militärische Aktivitäten ODER geht mit gefährdungsgeeigneten Gegenständen um (gleiche Liste wie Abs. 2)\n\n»Militärische Aktivitäten« sind ALLE dienstlichen Tätigkeiten der Streitkräfte im Geltungsbereich des Gesetzes — Übungen im Gelände, Konvois, Manöver, jede dienstliche Aktion.\n\nWichtig: Diese Befugnis steht zivilen Wachpersonen nicht zu — ihre Befugnis endet beim nahen Umfeld."],
+
+["§ 8a Abs. 4 UZwGBw","Maßnahmen zur Identitätsfeststellung — Anhalten, Befragen, Ausweispapiere, Bringen","Mögliche Maßnahmen, gestaffelt nach Erforderlichkeit:\n\n• Anhalten\n• Nach Personalien befragen\n• Aushändigung mitgeführter Ausweispapiere verlangen\n\nWeiter (nur wenn Identität anders nicht oder nur mit erheblichen Schwierigkeiten feststellbar):\n• Festhalten\n• Bringen zur nächsten Wache, Dienststelle oder zum Wachvorgesetzten\n\nFür dieses Bringen gelten ENTSPRECHEND:\n• § 5 Abs. 2 (sofortige Überprüfung + Freilassung)\n• § 6 (vorläufige Festnahme, wenn dann Voraussetzungen vorliegen)"],
+
+["§ 8a Abs. 5 UZwGBw","Durchsuchung bei Identitätsfeststellung — Geschlecht, Gefahr im Verzug, Anwesenheitsrecht","Wenn unter den Voraussetzungen von § 8a Abs. 4 S. 3 (Festhalten/Bringen) erforderlich:\n\n• Person darf durchsucht werden\n• Mitgeführte Sachen ebenfalls\n\nZentrale Schutzregeln:\n• Personen nur durch Personen GLEICHEN GESCHLECHTS oder Ärzte\n• AUSNAHME: Gefahr im Verzug — wenn nötig zum Schutz gegen Gefahr für Leib oder Leben (auch durch Person anderen Geschlechts)\n\nBei Durchsuchung von SACHEN:\n• Inhaber der tatsächlichen Gewalt hat Recht auf Anwesenheit\n\n§ 7 Abs. 2 und 3 gelten entsprechend (Beschlagnahme + 3-Tage-Frist)."],
+
+["§ 8b UZwGBw","Durchsuchung zum Eigenschutz — kein Tatverdacht erforderlich","Eigenständige, niederschwellige Durchsuchungsbefugnis — UNABHÄNGIG vom Tatverdacht.\n\nVoraussetzung:\n• Person unterliegt nach UZwGBw oder anderen Gesetzen der Personenüberprüfung/Identitätsfeststellung\n• Durchsuchung erforderlich zum Schutz vor Gefahr für Leib oder Leben\n\nGeschützt werden:\n• BW-Angehörige\n• Zivile Wachpersonen\n• Angehörige verbündeter Streitkräfte\n• Die betroffene Person selbst\n• Dritte\n\nGesucht wird nach:\n• Waffen\n• Explosivmitteln\n• gefährlichen Gegenständen\n\nMitgeführte Gegenstände ebenfalls. § 7 Abs. 2 und 3 entsprechend.\n\nAbgrenzung zu § 7: § 7 braucht Verdacht einer Straftat + GiV + Beweismittelvermutung. § 8b braucht nur die Eigenschutz-Erforderlichkeit. Daher viel breiter anwendbar."],
+
+["§ 9 UZwGBw","Voraussetzungen des unmittelbaren Zwanges — drei abschließende Zwecke","Drei abschließende Zwecke für die Anwendung von Zwang:\n\n1. Verhinderung der UNMITTELBAR BEVORSTEHENDEN Ausführung oder Fortsetzung einer Straftat gegen die Bundeswehr\n\n2. Beseitigung SONSTIGER rechtswidriger Störungen der dienstlichen Tätigkeit der Bundeswehr, wenn sie Einsatzbereitschaft, Schlagkraft oder Sicherheit der Truppe gefährden\n\n3. ERZWINGUNG einer zulässigen Maßnahme nach diesem Gesetz oder einer vorläufigen Festnahme nach § 127 Abs. 1 StPO wegen einer Straftat gegen die BW\n\nZwang muss ERFORDERLICH sein — koppelt direkt an § 12 (Verhältnismäßigkeit).\n\nMerke: § 9 ist die Eingangsschwelle. Ohne einen der drei Zwecke kein Zwang. § 10 sagt dann, WIE der Zwang aussehen darf, § 12 sagt, in welchen Grenzen."],
+
+/* ---------- 3. ABSCHNITT — Anwendung des unmittelbaren Zwanges (§§ 10–18) ---------- */
+
+["§ 10 UZwGBw","Einzelmaßnahmen — körperliche Gewalt, Hilfsmittel, Waffen","Unmittelbarer Zwang = Einwirkung auf Personen oder Sachen durch:\n\n• KÖRPERLICHE GEWALT — jede unmittelbare körperliche Einwirkung\n\n• HILFSMITTEL der körperlichen Gewalt — insbesondere:\n  - Fesseln\n  - technische Sperren\n  - Dienstfahrzeuge\n\n• WAFFEN — dienstlich zugelassen:\n  - Hieb- und Schusswaffen\n  - Distanz-Elektroimpulsgeräte (Taser)\n  - Reizstoffe\n  - Explosivmittel\n\nDas ist die Auswahl-Palette. WANN überhaupt: § 9. WIE: §§ 11–17. WOMIT konkret: § 10. Grenze: § 12.\n\nReihenfolge nicht zwingend, aber Verhältnismäßigkeit (§ 12) verlangt die mildeste geeignete Form."],
+
+["§ 11 UZwGBw","Androhung des unmittelbaren Zwanges — Grundsatz","Die Anwendung unmittelbaren Zwanges ist ANZUDROHEN, außer wenn die Lage dies nicht zulässt.\n\nFunktion:\n• Warnung gibt dem Betroffenen die Chance, das Verhalten zu ändern\n• Eskalation wird transparent\n• Verhältnismäßigkeit wird gewahrt (mildestes Mittel zuerst)\n\nAusnahme bei Schusswaffe: § 17 mit eigener, schärferer Regelung — Warnschuss zählt als Androhung; ohne Androhung nur unter engen Voraussetzungen (§ 17 Abs. 2)."],
+
+["§ 12 UZwGBw","Verhältnismäßigkeit — Erforderlichkeit + Übermaßverbot","Zentralprinzip in zwei Absätzen:\n\nAbs. 1 — ERFORDERLICHKEIT:\nVon mehreren möglichen und geeigneten Maßnahmen ist diejenige zu treffen, die den einzelnen und die Allgemeinheit am wenigsten beeinträchtigt.\n→ Mildestes Mittel.\n\nAbs. 2 — ÜBERMASSVERBOT:\n• Maßnahme ist nicht zulässig, wenn der erwartete Schaden erkennbar außer Verhältnis zum beabsichtigten Erfolg steht.\n• Maßnahme nur so lange und so weit durchführen, wie der Zweck es erfordert.\n\n→ Zwei Schichten: erst Auswahl der Mittel (Abs. 1), dann Abbruch sobald Zweck erreicht (Abs. 2).\n\nQuerverbindungen: § 9 (Erforderlichkeit als Eingangsschwelle), § 16 Abs. 1 (Subsidiarität der Schusswaffe), § 16 Abs. 2 (Begrenzung auf angriffs-/fluchtunfähig)."],
+
+["§ 13 UZwGBw","Hilfeleistung für Verletzte — Beistand und ärztliche Hilfe","Bei der Anwendung unmittelbaren Zwanges:\n\n• Verletzten ist BEIZUSTEHEN\n• und ÄRZTLICHE HILFE zu verschaffen,\n• soweit es NÖTIG ist\n• und die LAGE es zulässt\n\nGilt unabhängig davon, ob der Verletzte der Adressat des Zwanges war oder ein Dritter. Ergänzt die Verhältnismäßigkeit um eine konkrete Nachsorgepflicht."],
+
+["§ 14 UZwGBw","Fesselung von Personen — 3 Gründe (Angriff, Flucht, Selbstmord)","Fesselung ist zulässig bei Personen, die nach § 5 Abs. 1 weiter überprüft werden oder vorläufig festgenommen sind — bei einem von drei Gründen:\n\n1. Gefahr eines ANGRIFFS auf Personen oder Widerstand\n\n2. FLUCHTVERSUCH ODER begründete Befürchtung der Flucht (nach Würdigung aller Tatsachen, insbesondere der persönlichen Verhältnisse)\n\n3. SELBSTMORDGEFAHR\n\nMerkhilfe: 3 As — Aggression, Abhauen, Autoaggression.\n\nFesseln sind nach § 10 ausdrücklich »Hilfsmittel der körperlichen Gewalt« — keine Waffe."],
+
+["§ 15 Abs. 1 UZwGBw","Schusswaffengebrauch gegen Einzelne — 4 Gründe","Vier Gründe für Schusswaffengebrauch gegen einzelne Personen:\n\nNr. 1 — Verhinderung einer unmittelbar bevorstehenden Ausführung/Fortsetzung einer Straftat gegen die BW, die sich darstellt als:\n  a) Verbrechen\n  b) Vergehen unter Anwendung/Mitführung von Schusswaffen oder Explosivmitteln\n  c) Tätlicher Angriff auf Leib/Leben von BW-Angehörigen, zivilen Wachpersonen, Angehörigen verbündeter Streitkräfte\n  d) Vorsätzliche Sabotage an Wehrmitteln/Anlagen/Einrichtungen/Schiffen — wenn dadurch BRD-Sicherheit, Schlagkraft der Truppe oder Menschenleben gefährdet\n\nNr. 2 — Anhalten einer Person, die sich der Personenüberprüfung trotz wiederholter Weisung durch Flucht entzieht\n\nNr. 3 — Anhalten einer fluchtversuchenden Person bei vorläufiger Festnahme, wenn sie bei einer Straftat im Sinne Nr. 1 auf frischer Tat getroffen oder verfolgt wird\n\nNr. 4 — Verhinderung der Flucht / sofortiges Wiederergreifen einer Person in Gewahrsam wegen Überprüfung (§ 5) oder dringenden Verdachts auf Nr.-1-Tat\n\nMerke: Nr. 1 ist die Tatverhinderung, Nrn. 2–4 sind alle Flucht-Konstellationen mit absteigender Verdachtsschwere."],
+
+["§ 15 Abs. 1 Nr. 1 UZwGBw","Verbrechensverhinderung mit Schusswaffe — Buchstaben a bis d","Die vier Fallgruppen, in denen das Verhindern einer unmittelbar bevorstehenden oder fortgesetzten Straftat gegen die BW den Schusswaffengebrauch rechtfertigen kann:\n\na) VERBRECHEN — Tat mit Mindestfreiheitsstrafe von einem Jahr (§ 12 StGB)\n\nb) VERGEHEN unter ANWENDUNG ODER MITFÜHRUNG von Schusswaffen oder Explosivmitteln — die Bewaffnung qualifiziert das Vergehen\n\nc) TÄTLICHER ANGRIFF auf Leib oder Leben von:\n   - BW-Angehörigen\n   - Zivilen Wachpersonen\n   - Angehörigen verbündeter Streitkräfte\n   während rechtmäßiger Dienstausübung oder Aufenthalt in militärischen Bereichen/Sicherheitsbereichen\n\nd) VORSÄTZLICHE UNBEFUGTE Zerstörung/Beschädigung/Veränderung/Unbrauchbarmachung/Beseitigung eines Wehrmittels oder einer Anlage/Einrichtung/eines Schiffes der BW/verbündeter Streitkräfte —\n   nur, wenn dadurch BRD-Sicherheit, Sicherheit eines Entsendestaates, Schlagkraft der Truppe oder Menschenleben gefährdet werden\n\nQuerverbindung: a–c sind die Fälle, in denen § 17 Abs. 2 sogar den Schuss OHNE Androhung erlaubt — d hingegen nicht."],
+
+["§ 15 Abs. 2 UZwGBw","Schusswaffengebrauch gegen Menschenmenge — Subsidiarität","Schusswaffe gegen eine Menschenmenge nur, wenn:\n\n• aus oder von der Menge heraus Straftaten gegen die BW UNTER GEWALTANWENDUNG begangen werden oder unmittelbar bevorstehen, UND\n\n• Maßnahmen gegen Einzelne zwecklos sind oder offensichtlich nicht erfolgreich\n\nKopplungen:\n• § 17 Abs. 1: Androhung muss wiederholt werden\n• § 16 Abs. 2: Schutz Unbeteiligter — Ausnahme nur, wenn beim Einschreiten gegen Menschenmenge unvermeidbar\n\nDie Hürde ist deutlich höher als gegen Einzelne — die Menge enthält stets Unbeteiligte."],
+
+["§ 16 Abs. 1 UZwGBw","Subsidiarität der Schusswaffe — Sachen vor Personen","Zwei Subsidiaritätsschichten:\n\n1. Schusswaffen NUR, wenn andere Zwangsmaßnahmen ERFOLGLOS waren oder offensichtlich aussichtslos sind\n   → Innerhalb der Zwangsmittel ist Schuss das letzte Mittel\n\n2. Schusswaffen gegen Personen NUR, wenn die Waffenwirkung gegen SACHEN nicht zum Zweck führt\n   → Schuss auf Reifen, Türschloss, Schaltkasten vor Schuss auf Mensch\n\nKombination mit § 12: erst andere Zwangsmittel, dann Sachschuss, dann Personenschuss. Klassische Eskalationsleiter."],
+
+["§ 16 Abs. 2 UZwGBw","Zweck Schuss + Schutz Unbeteiligter — angriffs-/fluchtunfähig machen","Zwei Inhalte in Abs. 2:\n\nZWECK des Schusses:\n• Nur, um angriffs- oder fluchtunfähig zu machen\n• Nicht: töten als Selbstzweck (der Tod kann Folge sein, ist aber nicht Ziel)\n\nSCHUTZ UNBETEILIGTER:\n• Schuss verboten, wenn Unbeteiligte erkennbar mit hoher Wahrscheinlichkeit gefährdet werden\n• AUSNAHME: beim Einschreiten gegen Menschenmenge nach § 15 Abs. 2, wenn unvermeidbar\n\n→ Der Drittschutz weicht hier ausnahmsweise zurück, weil die Menge selbst die Gefahr für die Allgemeinheit darstellt."],
+
+["§ 16 Abs. 3 UZwGBw","Schießverbot gegen Kinder — absolut","Gegen Personen, die dem äußeren Eindruck nach im Kindesalter sind, dürfen Schusswaffen NICHT gebraucht werden.\n\nAbsolute Regel — kein Abwägen, keine Ausnahme.\n\nAnknüpfung an den »äußeren Eindruck«: Schütze muss nach Wahrnehmung im Moment urteilen. Wenn die Person aussieht wie ein Kind, ist Schuss verboten — unabhängig vom tatsächlichen Alter.\n\nMerke: Es gibt drei Schießverbote/Beschränkungen — Kinder absolut (Abs. 3), Unbeteiligte mit Ausnahme (Abs. 2), und das Subsidiaritätsgebot (Abs. 1)."],
+
+["§ 17 Abs. 1 UZwGBw","Androhung Schusswaffe — Warnschuss zählt, Menge: wiederholen","Drei Inhalte:\n\n• Schusswaffengebrauch ist anzudrohen\n• Warnschuss gilt als Androhung\n• Gegen Menschenmenge ist die Androhung zu WIEDERHOLEN\n\nFunktion: Die Androhung gibt der Person/Menge die Möglichkeit, das Verhalten zu ändern — und damit den Schuss überflüssig zu machen. Sie ist die letzte Eskalationsstufe vor dem Schuss.\n\nWarnschuss ≠ »Erstschuss«: Der Warnschuss soll NICHT treffen, er ist Drohgebärde. Wenn er trifft, war es eine Verletzung — dann § 13 (Hilfeleistung)."],
+
+["§ 17 Abs. 2 UZwGBw","Schuss ohne Androhung — nur a/b/c + einziges Mittel","Schuss ohne Androhung ist NUR zulässig:\n\n• in den Fällen § 15 Abs. 1 Nr. 1 Buchstaben a–c (Verbrechen / bewaffnetes Vergehen / tätlicher Angriff auf Leib/Leben)\n• UND nur, wenn der sofortige Schuss ohne Androhung das EINZIGE MITTEL ist, um abzuwenden:\n  - Gefahr für Leib oder Leben eines Menschen, ODER\n  - Gefahr eines besonders schweren Nachteils für Anlagen/Einrichtungen/Schiffe/Wehrmittel von bedeutendem Wert, ODER\n  - Gefahr für die Sicherheit der BRD\n\nMerke: Buchstabe d (Sabotage) ist HIER NICHT dabei — bei Sabotage ist Androhung immer Pflicht. Logik: § 17 Abs. 2 setzt akute Gefahr für Leben/Sicherheit voraus, nicht reine Sachgefahr."],
+
+["§ 18 UZwGBw","Explosivmittel — Schusswaffenrecht gilt entsprechend","§§ 15 bis 17 gelten ENTSPRECHEND für den Gebrauch von Explosivmitteln.\n\nKonsequenz: Für Explosivmittel gelten exakt dieselben Voraussetzungen wie für Schusswaffen:\n• Vier Gründe Einzelpersonen (§ 15 Abs. 1)\n• Verschärfte Voraussetzungen gegen Menge (§ 15 Abs. 2)\n• Subsidiarität (§ 16 Abs. 1)\n• Angriffs-/fluchtunfähig + Drittschutz (§ 16 Abs. 2)\n• Kinderschutz (§ 16 Abs. 3)\n• Androhung (§ 17 Abs. 1)\n• Ausnahmen vom Androhungserfordernis (§ 17 Abs. 2)\n\nIn der Praxis selten — aber das Gesetz behandelt Explosivmittel wie eine besonders schwere Schusswaffe."],
+
+/* ---------- 4. ABSCHNITT — Schlussvorschriften (§§ 19–21) ---------- */
+
+["§ 19 UZwGBw","Einschränkung von Grundrechten — Art. 2 II GG (Zitiergebot)","Eingeschränkt werden nach Maßgabe dieses Gesetzes:\n\n• Recht auf LEBEN (Art. 2 Abs. 2 S. 1 GG)\n• Recht auf KÖRPERLICHE UNVERSEHRTHEIT (Art. 2 Abs. 2 S. 1 GG)\n• Freiheit der PERSON (Art. 2 Abs. 2 S. 2 GG)\n\nVerfassungsrechtlicher Hintergrund: Zitiergebot aus Art. 19 Abs. 1 S. 2 GG — wenn ein Gesetz ein Grundrecht einschränkt, muss es das Grundrecht unter Angabe des Artikels nennen. § 19 erfüllt diese Pflicht für das UZwGBw.\n\nMerke: Genau die Rechtsgüter, gegen die die Schusswaffenregelung (§ 15) eingreifen kann, sind hier zitiert — Leben + Unversehrtheit + Freiheit. Das ist kein Zufall, sondern die verfassungsrechtliche Voraussetzung dafür, dass das Gesetz die scharfen Befugnisse überhaupt anordnen darf."],
+
+["§ 20 UZwGBw","Entschädigung bei Sperrung sonstiger Örtlichkeiten — Bundesleistungsgesetz analog","Wenn durch eine vorübergehende Sperrung einer sonstigen Örtlichkeit nach § 2 Abs. 2 S. 2 die gewöhnliche Nutzung des Grundstücks so beeinträchtigt wird, dass eine Ertragsminderung oder ein Nutzungsausfall entsteht: Entschädigung in Geld zur angemessenen Ausgleichung.\n\nEntsprechende Anwendung von §§ 23 Abs. 4, 29, 32 Abs. 2, 34, 49, 58, 62, 64, 65 Bundesleistungsgesetz.\n\nZuständige Stelle: An Stelle der Anforderungsbehörde tritt das Bundesamt für Infrastruktur, Umweltschutz und Dienstleistungen der Bundeswehr (BAIUDBw).\n\nLogik: Wer durch militärische Sperrung enteignungsähnlich beeinträchtigt wird, soll nicht das Sonderopfer allein tragen — der Bund kompensiert."],
+
+["§ 20a UZwGBw","Datenverarbeitung — offen, bei der betroffenen Person, erforderlich","Verarbeitung personenbezogener Daten ist nur zulässig:\n\n• OFFEN (nicht verdeckt)\n• bei der BETROFFENEN PERSON (keine Drittquellen, kein heimliches Erheben)\n• durch den in § 1 benannten Personenkreis (BW-Soldaten / verbündete Soldaten / zivile Wachpersonen)\n• soweit zur Erfüllung der durch dieses Gesetz übertragenen Befugnisse ERFORDERLICH\n\nVier Schranken, die zusammenwirken — schon eine reicht aus, um die Verarbeitung unzulässig zu machen.\n\nBezug zum allgemeinen Datenschutzrecht: § 20a ist die spezialgesetzliche Erlaubnisnorm — er konkretisiert, was im UZwGBw-Kontext mit personenbezogenen Daten geschehen darf, ohne die DSGVO/BDSG-Systematik im Übrigen aufzuheben."],
+
+["§ 21 UZwGBw","Inkrafttreten — drei Monate nach Verkündung","Das Gesetz tritt drei Monate nach Verkündung in Kraft.\n\nKurze, technische Schlussnorm — typisch für klassische Bundesgesetze. Die Drei-Monats-Frist sollte den betroffenen Stellen Zeit zur Umstellung geben."],
+
+];
+
+const CARDS = RAW.map((row, i) => {
+  const [front, back, details] = row;
+  const id = 'c' + i;
+
+  // Split term/desc bei " — ": term = Kurzbegriff, desc = Untertitel
+  const splitTerm = back.split(' — ');
+  const term = splitTerm[0];
+  const desc = splitTerm.slice(1).join(' — ');
+
+  // Section bestimmt sich aus Paragraphennummer
+  let section = 'Sonstige';
+  const m = front.match(/§\s*(\d+)([a-z]?)/i);
+  if (m) {
+    const num = parseInt(m[1], 10);
+    if (num >= 1 && num <= 3) section = '1 · Allgemeines';
+    else if (num >= 4 && num <= 9) section = '2 · Maßnahmen';
+    else if (num >= 10 && num <= 18) section = '3 · Zwang';
+    else if (num >= 19 && num <= 21) section = '4 · Schluss';
+  }
+  return { id, front, back, term, desc, details, law: section };
+});
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
+const STORAGE_KEY = 'uzwgbw_trainer_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed;
+    }
+  } catch (e) {}
+  return {
+    progress: {},
+    settings: { mode: 'forward', filters: null },
+    todayCount: 0,
+    todayDate: new Date().toDateString(),
+  };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+if (!state.settings.filters || !Array.isArray(state.settings.filters)) {
+  state.settings.filters = [...new Set(CARDS.map(c => c.law))];
+  saveState();
+}
+
+const todayStr = new Date().toDateString();
+if (state.todayDate !== todayStr) {
+  state.todayDate = todayStr;
+  state.todayCount = 0;
+  saveState();
+}
+
+/* =========================================================
+   SM-2 ALGORITHM
+   ========================================================= */
+function getProgress(cardId, dir) {
+  const key = cardId + '_' + dir;
+  if (!state.progress[key]) {
+    state.progress[key] = { reps: 0, ease: 2.5, interval: 0, due: 0, lapses: 0 };
+  }
+  return state.progress[key];
+}
+
+function applyRating(cardId, dir, quality) {
+  const p = getProgress(cardId, dir);
+  if (quality < 3) {
+    p.reps = 0;
+    p.interval = 0;
+    p.lapses++;
+  } else {
+    if (p.reps === 0) p.interval = 1;
+    else if (p.reps === 1) p.interval = quality === 5 ? 4 : 3;
+    else {
+      const factor = quality === 5 ? p.ease * 1.3 : (quality === 3 ? 1.2 : p.ease);
+      p.interval = Math.max(p.interval + 1, Math.round(p.interval * factor));
+    }
+    p.reps++;
+  }
+  p.ease = Math.max(1.3, p.ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  p.due = Date.now() + p.interval * 24 * 60 * 60 * 1000;
+  state.todayCount++;
+  saveState();
+}
+
+function intervalHint(cardId, dir, quality) {
+  const p = getProgress(cardId, dir);
+  if (quality < 3) return '<10 min';
+  let interval;
+  if (p.reps === 0) interval = 1;
+  else if (p.reps === 1) interval = quality === 5 ? 4 : 3;
+  else {
+    const factor = quality === 5 ? p.ease * 1.3 : (quality === 3 ? 1.2 : p.ease);
+    interval = Math.max(p.interval + 1, Math.round(p.interval * factor));
+  }
+  if (interval < 30) return interval + ' Tag' + (interval === 1 ? '' : 'e');
+  const months = Math.round(interval / 30);
+  return '~' + months + ' Mon';
+}
+
+/* =========================================================
+   CARD QUEUE
+   ========================================================= */
+function getAllLaws() {
+  // Sortierte Reihenfolge der Abschnitte
+  const desired = ['1 · Allgemeines', '2 · Maßnahmen', '3 · Zwang', '4 · Schluss'];
+  const present = new Set(CARDS.map(c => c.law));
+  return desired.filter(d => present.has(d));
+}
+
+function getActiveCards() {
+  const filters = state.settings.filters;
+  if (!filters || !filters.length) return CARDS;
+  const set = new Set(filters);
+  return CARDS.filter(c => set.has(c.law));
+}
+
+function buildQueue() {
+  const cards = getActiveCards();
+  const now = Date.now();
+  const directions = state.settings.mode === 'both' ? ['forward', 'reverse']
+                   : [state.settings.mode];
+
+  const due = [];
+  const newOnes = [];
+  for (const card of cards) {
+    for (const dir of directions) {
+      const p = getProgress(card.id, dir);
+      if (p.due === 0) {
+        newOnes.push({ card, dir });
+      } else if (p.due <= now) {
+        due.push({ card, dir });
+      }
+    }
+  }
+  const queue = [...due, ...newOnes.slice(0, Math.max(0, 15 - due.length))];
+  for (let i = queue.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [queue[i], queue[j]] = [queue[j], queue[i]];
+  }
+  return queue;
+}
+
+/* =========================================================
+   FUZZY MATCH
+   ========================================================= */
+function normalize(s) {
+  return s.toLowerCase()
+    .replace(/§/g, '')
+    .replace(/[.,;:!?()"„""''–—-]/g, ' ')
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = new Array(b.length + 1);
+  let curr = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      curr[j] = Math.min(curr[j-1] + 1, prev[j] + 1, prev[j-1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+function extractNumbers(s) {
+  const matches = s.toLowerCase().match(/\d+[a-z]?/g);
+  return matches ? matches : [];
+}
+
+function checkAnswer(input, expected) {
+  const a = normalize(input);
+  const b = normalize(expected);
+  if (!a) return 'red';
+
+  // Numbers must match exactly — no fuzzy on digits.
+  const expectedNums = extractNumbers(expected);
+  const inputNums = extractNumbers(input);
+  if (expectedNums.length > 0) {
+    if (inputNums.length !== expectedNums.length) return 'red';
+    for (let i = 0; i < expectedNums.length; i++) {
+      if (inputNums[i] !== expectedNums[i]) return 'red';
+    }
+  } else if (inputNums.length > 0) {
+    return 'red';
+  }
+
+  if (a === b) return 'green';
+  if (b.includes(a) && a.length >= b.length * 0.6) return 'green';
+  const dist = levenshtein(a, b);
+  const len = Math.max(a.length, b.length);
+  const ratio = dist / len;
+  if (ratio <= 0.2) return 'green';
+  if (ratio <= 0.4) return 'yellow';
+  return 'red';
+}
+
+/* =========================================================
+   RENDERING
+   ========================================================= */
+const main = document.getElementById('main');
+let currentItem = null;
+let revealed = false;
+let queue = [];
+
+function refreshStats() {
+  const cards = getActiveCards();
+  const directions = state.settings.mode === 'both' ? ['forward', 'reverse']
+                   : [state.settings.mode];
+  const now = Date.now();
+  let due = 0, total = 0, newC = 0, learn = 0, mature = 0;
+  for (const card of cards) {
+    for (const dir of directions) {
+      total++;
+      const p = getProgress(card.id, dir);
+      if (p.due === 0) newC++;
+      else if (p.due <= now) due++;
+      if (p.due > 0 && p.interval < 21) learn++;
+      else if (p.interval >= 21) mature++;
+    }
+  }
+  document.getElementById('stat-due').textContent = due + newC;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('d-new').textContent = newC;
+  document.getElementById('d-learn').textContent = learn;
+  document.getElementById('d-mature').textContent = mature;
+  document.getElementById('d-today').textContent = state.todayCount;
+}
+
+function renderDone() {
+  main.innerHTML = `
+    <div class="done-state">
+      <h2>Alles fällig durchgelernt.</h2>
+      <p>Öffne die Einstellungen, wenn du Modus oder Abschnittsfilter ändern willst — oder komm später wieder. Die Karten werden automatisch fällig.</p>
+    </div>
+  `;
+}
+
+function renderEmptyFilters() {
+  main.innerHTML = `
+    <div class="done-state">
+      <h2>Kein Abschnitt ausgewählt.</h2>
+      <p>Öffne die Einstellungen und wähle mindestens einen Abschnitt aus, um zu lernen.</p>
+    </div>
+  `;
+}
+
+function renderCard() {
+  if (!state.settings.filters || state.settings.filters.length === 0) {
+    renderEmptyFilters();
+    return;
+  }
+  if (!queue.length) queue = buildQueue();
+  if (!queue.length) { renderDone(); return; }
+  currentItem = queue.shift();
+  revealed = false;
+  const { card, dir } = currentItem;
+
+  const isForward = dir === 'forward';
+  const question = isForward ? card.front : card.term;
+  const expected = isForward ? card.back : card.front;
+  const directionLabel = isForward ? 'Paragraph → Begriff' : 'Begriff → Paragraph';
+
+  main.innerHTML = `
+    <div class="deck-tag">Abschnitt ${card.law}</div>
+    <span class="direction-tag">${directionLabel}</span>
+    <div class="question ${question.length > 28 ? 'smaller' : ''}">${question}</div>
+    <div class="input-wrap">
+      <input class="answer-input" id="answer" type="text" autocomplete="off"
+             autocapitalize="off" autocorrect="off" spellcheck="false"
+             placeholder="${isForward ? 'Begriff eintippen…' : 'z.B. § 15 UZwGBw …'}" />
+    </div>
+    <button class="primary-btn" id="submit-btn">Prüfen</button>
+    <div id="reveal-container"></div>
+  `;
+
+  const input = document.getElementById('answer');
+  const submit = document.getElementById('submit-btn');
+  setTimeout(() => input.focus(), 50);
+
+  function reveal(verdict) {
+    revealed = true;
+    input.disabled = true;
+    input.classList.remove('r-green','r-yellow','r-red');
+    if (verdict) input.classList.add('r-' + verdict);
+    submit.style.display = 'none';
+
+    const autoMapping = { green: 4, yellow: 3, red: 0 };
+    const autoQ = autoMapping[verdict] !== undefined ? autoMapping[verdict] : 4;
+    const labelMap = { 0: 'Nochmal', 3: 'Schwer', 4: 'Gut', 5: 'Einfach' };
+    const autoLabel = labelMap[autoQ];
+    const others = [0, 3, 4, 5].filter(q => q !== autoQ);
+
+    const revealHtml = `
+      <div class="reveal">
+        <div class="reveal-label">Antwort</div>
+        <div class="reveal-term ${verdict === 'green' ? 'green' : ''}">${isForward ? card.term : card.front}</div>
+        ${(isForward && card.desc) ? `<div class="reveal-desc">${card.desc}</div>` : ''}
+        ${(!isForward && card.desc) ? `<div class="reveal-desc">${card.term} — ${card.desc}</div>` : ''}
+        ${card.details ? `<div class="reveal-details">${card.details}</div>` : ''}
+      </div>
+      <button class="primary-btn rate-primary" data-q="${autoQ}" data-verdict="${verdict}">
+        <span class="primary-label">Weiter <span style="opacity:.6">·</span> ${autoLabel}</span>
+        <span class="primary-hint">nächste Wiederholung in ${intervalHint(card.id, dir, autoQ)}</span>
+      </button>
+      <div class="override-label">War's anders?</div>
+      <div class="overrides">
+        ${others.map(q => `
+          <button class="rate-btn-small" data-q="${q}">
+            ${labelMap[q]}<span class="interval-hint">${intervalHint(card.id, dir, q)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    document.getElementById('reveal-container').innerHTML = revealHtml;
+
+    const handleRating = (q) => {
+      document.removeEventListener('keydown', enterHandler);
+      applyRating(card.id, dir, q);
+      if (q < 3) queue.push({ card, dir });
+      refreshStats();
+      renderCard();
+    };
+
+    const enterHandler = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleRating(autoQ);
+      }
+    };
+    document.addEventListener('keydown', enterHandler);
+
+    document.querySelector('.rate-primary').addEventListener('click', () => handleRating(autoQ));
+    document.querySelectorAll('.rate-btn-small').forEach(b => {
+      b.addEventListener('click', () => handleRating(parseInt(b.dataset.q, 10)));
+    });
+  }
+
+  submit.addEventListener('click', () => {
+    if (revealed) return;
+    const value = input.value;
+    const verdict = checkAnswer(value, expected);
+    reveal(verdict);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !revealed) {
+      e.preventDefault();
+      submit.click();
+    }
+  });
+}
+
+/* =========================================================
+   SETTINGS SHEET
+   ========================================================= */
+const sheet = document.getElementById('sheet');
+const sheetBg = document.getElementById('sheet-bg');
+
+function openSheet() {
+  buildFilterChips();
+  refreshChips();
+  refreshStats();
+  sheet.classList.add('open');
+  sheetBg.classList.add('open');
+}
+function closeSheet() {
+  sheet.classList.remove('open');
+  sheetBg.classList.remove('open');
+}
+
+document.getElementById('open-settings').addEventListener('click', openSheet);
+sheetBg.addEventListener('click', closeSheet);
+
+function buildFilterChips() {
+  const laws = getAllLaws();
+  const container = document.getElementById('filter-chips');
+  const allActive = state.settings.filters.length === laws.length;
+  container.innerHTML =
+    `<button class="chip chip-all" data-action="all">${allActive ? 'Alle abwählen' : 'Alle wählen'}</button>` +
+    laws.map(l => {
+      const count = CARDS.filter(c => c.law === l).length;
+      return `<button class="chip" data-filter="${l}">${l} <span style="opacity:.5;font-size:10px">${count}</span></button>`;
+    }).join('');
+
+  container.querySelector('[data-action="all"]').addEventListener('click', () => {
+    state.settings.filters = allActive ? [] : [...laws];
+    saveState();
+    buildFilterChips();
+    refreshChips();
+    refreshStats();
+    queue = [];
+    renderCard();
+  });
+
+  container.querySelectorAll('[data-filter]').forEach(c => {
+    c.addEventListener('click', () => {
+      const law = c.dataset.filter;
+      const idx = state.settings.filters.indexOf(law);
+      if (idx >= 0) state.settings.filters.splice(idx, 1);
+      else state.settings.filters.push(law);
+      saveState();
+      buildFilterChips();
+      refreshChips();
+      refreshStats();
+      queue = [];
+      renderCard();
+    });
+  });
+}
+
+function refreshChips() {
+  document.querySelectorAll('#mode-chips .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.mode === state.settings.mode);
+  });
+  const activeSet = new Set(state.settings.filters);
+  document.querySelectorAll('#filter-chips [data-filter]').forEach(c => {
+    c.classList.toggle('active', activeSet.has(c.dataset.filter));
+  });
+}
+
+document.querySelectorAll('#mode-chips .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    state.settings.mode = c.dataset.mode;
+    saveState();
+    refreshChips();
+    refreshStats();
+    queue = [];
+    renderCard();
+  });
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Wirklich allen Lernfortschritt löschen?')) {
+    state = { progress: {}, settings: state.settings, todayCount: 0, todayDate: new Date().toDateString() };
+    saveState();
+    refreshStats();
+    queue = [];
+    closeSheet();
+    renderCard();
+  }
+});
+
+/* =========================================================
+   START
+   ========================================================= */
+buildFilterChips();
+refreshChips();
+refreshStats();
+renderCard();
+</script>
+</body>
+</html>
