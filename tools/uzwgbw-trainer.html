@@ -596,7 +596,103 @@ const RAW = [
 
 ];
 
-const CARDS = RAW.map((row, i) => {
+/* =========================================================
+   QUIZ — Frage / Kurzantwort / Beschreibung
+   ========================================================= */
+const QUIZ_RAW = [
+
+/* — Aus 1. Abschnitt — */
+["Wie viele Personengruppen sind Befugnisinhaber nach UZwGBw?","3","Genau, drei Personengruppen sind in § 1 als Befugnisinhaber benannt: (1) Soldatinnen/Soldaten der Bundeswehr mit Wach- oder Sicherheitsaufgaben, (2) Soldatinnen/Soldaten verbündeter Streitkräfte (im Einzelfall mit der Wahrnehmung betraut), (3) zivile Wachpersonen (vom BMVg beauftragt). Diese Personenliste taucht im ganzen Gesetz wieder auf — bei § 3 (Schutzobjekte), § 8a Abs. 3 (Befugnisbeschränkung auf Soldaten) und § 15 Abs. 1 Nr. 1 Buchst. c (Schutz vor tätlichem Angriff)."],
+
+["Wie viele Befugnisbereiche stehen den berechtigten Personen offen?","3","Richtig — § 1 Abs. 1 nennt drei Befugnisbereiche: (1) Personen anhalten/überprüfen/festnehmen/durchsuchen, (2) Sachen sicherstellen/beschlagnahmen, (3) unmittelbarer Zwang gegen Personen und Sachen. Die Befugnisse dürfen nur »in rechtmäßiger Erfüllung dieser Aufgaben« ausgeübt werden — ohne dienstlichen Bezug keine Befugnis."],
+
+["Welches Mindestalter gilt für zivile Wachpersonen?","18","Korrekt. § 1 Abs. 3 Satz 3 — das 18. Lebensjahr muss vollendet sein (zwingend). Daneben Sollgrenze nach oben: das 67. Lebensjahr soll nicht überschritten werden. Wichtig: das ist nur eine Soll-, keine Muss-Vorschrift. Zivile Wachpersonen müssen außerdem 4 Eignungsvoraussetzungen erfüllen."],
+
+["Welche Sollgrenze nach oben gilt für zivile Wachpersonen?","67","Genau. § 1 Abs. 3 Satz 3 — das 67. Lebensjahr soll nicht überschritten sein. Achte auf das Wort »soll« — kein absoluter Ausschluss, sondern eine Sollvorschrift. Das Mindestalter 18 ist hingegen zwingend (»müssen«)."],
+
+["Wie viele Eignungsvoraussetzungen muss eine zivile Wachperson erfüllen?","4","Richtig — § 1 Abs. 3 Satz 2 listet vier Voraussetzungen: (1) persönliche Zuverlässigkeit, (2) körperliche Eignung, (3) ausreichende Vorbildung im Wachdienst, (4) gute Kenntnisse der Befugnisse nach diesem Gesetz. Plus die Altersgrenzen aus Satz 3 (18 Pflicht, 67 Soll). Erst die Beauftragung durch das BMVg eröffnet die Befugnisse aus Abs. 1."],
+
+["Welche Stelle beauftragt zivile Wachpersonen?","BMVg","Genau. § 1 Abs. 3 Satz 1 — das Bundesministerium der Verteidigung oder eine von ihm bestimmte Stelle. Erst die Beauftragung eröffnet die Befugnisse nach § 1 Abs. 1. Ohne Beauftragung keine Befugnisinhaberschaft."],
+
+["Wie viele Kategorien militärischer Bereiche unterscheidet § 2?","2","Korrekt. § 2 kennt zwei Kategorien: (1) »militärische Bereiche« (Abs. 1) = Anlagen, Einrichtungen, Schiffe der BW und verbündeter Streitkräfte — die weite Kategorie. (2) »militärische Sicherheitsbereiche« (Abs. 2) = die engere Kategorie mit Betretungsverbot oder Sperrung. Die engere Kategorie eröffnet die schärferen Befugnisse (§§ 4–7); die weitere Kategorie genügt für § 8a Abs. 1 (Identitätsfeststellung)."],
+
+["Welche Stelle ist bei Sperrung sonstiger Örtlichkeiten unverzüglich zu unterrichten?","Polizei","Richtig. § 2 Abs. 2 Satz 2 — die nächst erreichbare Polizeidienststelle. Sonstige Örtlichkeiten dürfen nur vorübergehend gesperrt werden, wenn dies aus Gründen militärischer Sicherheit zur Erfüllung dienstlicher Aufgaben unerlässlich ist. Konsequenz für den Bürger: Entschädigungsanspruch nach § 20."],
+
+["Wie viele Schutzbereiche umfasst der Begriff »Straftat gegen die Bundeswehr«?","3","Genau. § 3 Abs. 1 kennt drei Schutzbereiche: (1) Personen (BW-Angehörige, zivile Wachpersonen, Angehörige verbündeter Streitkräfte), (2) Sachen (militärische Bereiche, Gegenstände der BW/verbündeter Streitkräfte), (3) militärische Geheimhaltung. Der Begriff ist Anknüpfungspunkt für viele Eingriffsbefugnisse — §§ 5, 6, 7, 9 Nr. 1 und 15 Abs. 1 Nr. 1."],
+
+["Welche zwei Bündnisse werden in § 3 Abs. 3 ausdrücklich genannt?","EU + NATO","Richtig. § 3 Abs. 3 nennt insbesondere die Mitgliedstaaten der EU und die Vertragsstaaten des Nordatlantikvertrages. Verbündete Streitkräfte sind solche, mit denen Deutschland zur Landes- und Bündnisverteidigung — im Einklang mit Art. 51 UN-Charta — eine wechselseitige Beistandspflicht eingegangen ist."],
+
+/* — Aus 2. Abschnitt — */
+["In wie vielen räumlichen Konstellationen darf nach § 4 Abs. 1 angehalten werden?","3","Genau. § 4 Abs. 1 nennt drei Konstellationen: (1) Aufenthalt im militärischen Sicherheitsbereich, (2) Betreten-Wollen, (3) Verlassen-Wollen. Plus die Nacheile-Konstellation in Abs. 2 (verfolgt nach Verlassen oder versuchtem Betreten). Zweck: Feststellung von Person und Aufenthaltsberechtigung. Mildeste Eingriffsstufe — Eskalation zu § 5 (Bringen), wenn das nicht ausreicht."],
+
+["Wie viele Voraussetzungen kennt § 5 Abs. 1 für das Bringen zur Dienststelle?","2","Korrekt. § 5 Abs. 1 — zwei alternative Voraussetzungen: (1) Person oder Aufenthaltsberechtigung kann nicht sofort festgestellt werden, oder (2) dringender Verdacht einer Straftat gegen die BW UND Gefahr im Verzug. Nach dem Bringen: sofortige Überprüfung (Abs. 2), sofortige Freilassung wenn die Festnahmevoraussetzungen fehlen."],
+
+["Wie viele Voraussetzungen muss die vorläufige Festnahme nach § 6 Abs. 1 erfüllen?","4","Genau. § 6 Abs. 1 — vier kumulative Voraussetzungen: (1) Person wurde nach § 5 zum Wachvorgesetzten/zur Dienststelle gebracht, (2) dringender Tatverdacht einer Straftat gegen die BW, (3) Gefahr im Verzug, (4) Voraussetzungen eines Haftbefehls oder Unterbringungsbefehls nach StPO. Entscheidung durch Wachvorgesetzten, Leiter der Dienststelle oder dessen Beauftragten. Bezugsnormen: § 112 StPO (Haftbefehl), § 126a StPO (Unterbringungsbefehl)."],
+
+["Welche Frist gilt für die Übergabe beschlagnahmter Gegenstände an Polizei/StA?","3 Tage","Richtig. § 7 Abs. 3 — unverzüglich, spätestens binnen drei Tagen. Diese Frist gilt entsprechend für § 8 Abs. 3 (allgemeine Durchsuchungsanordnung), § 8a Abs. 5 (Durchsuchung bei ID-Feststellung) und § 8b Abs. 2 (Durchsuchung zum Eigenschutz). Damit ist sie die zentrale Systemregel für jede Sicherstellung im UZwGBw. Pflicht entfällt bei Rückgabe vor Fristablauf oder wenn Bund/verbündete Streitkräfte selbst verfügen."],
+
+["Wie viele Voraussetzungen muss die Personendurchsuchung nach § 7 Abs. 1 erfüllen?","3","Genau. § 7 Abs. 1 — drei kumulative Voraussetzungen: (1) Gefahr im Verzug, (2) Verdacht einer Straftat gegen die BW, (3) Vermutung, dass die Durchsuchung Beweismittel zutage fördert. Bei Beschlagnahme (Abs. 2) gelten §§ 96, 97 und 110 Abs. 1 und 2 StPO. Geschlechterregel aus § 8a Abs. 5 gilt entsprechend."],
+
+["Wie viele StPO-Paragraphen werden in § 7 Abs. 2 zitiert?","3","Richtig — §§ 96, 97 und 110 Abs. 1 und 2 StPO. § 96 = amtlich verwahrte Schriftstücke (Sperrerklärung der obersten Dienstbehörde); § 97 = Beschlagnahmeverbot (Zeugnisverweigerungsrechte); § 110 Abs. 1+2 = Durchsicht von Papieren (StA-Vorbehalt + Versiegelungspflicht). Diese Verweise schützen Berufsgeheimnisträger und sensible Verwaltungsakten auch vor militärischer Beschlagnahme."],
+
+["Wie viele räumliche Kategorien kennt § 8a für die Identitätsfeststellung?","3","Genau. § 8a — drei räumliche Kategorien mit ansteigenden Eingriffsschwellen: (1) Abs. 1: im militärischen Bereich nach § 2 Abs. 1 — bloßer Aufenthalt genügt; (2) Abs. 2: im nahen Umfeld eines militärischen Sicherheitsbereichs — Verhalten + tatsächliche Anhaltspunkte; (3) Abs. 3: außerhalb militärischer Bereiche — nur durch Soldaten + tatsächliche Anhaltspunkte."],
+
+["Was bedeutet »nahes Umfeld« legaldefiniert?","Sicht- oder Rufweite","Richtig. § 8a Abs. 2 Satz 2 — im nahen Umfeld eines militärischen Sicherheitsbereichs befindet sich, wer sich in Sicht- oder Rufweite dieses Bereichs aufhält. Wichtige räumliche Grenze: in dieser Zone gelten engere Voraussetzungen (Verhalten + Anhaltspunkte für Gefährdung); außerhalb davon nur Soldaten mit Sicherheitsaufgaben nach Abs. 3."],
+
+["Wer darf außerhalb militärischer Bereiche eine Identitätsfeststellung durchführen?","Nur Soldaten","Korrekt. § 8a Abs. 3 — nur Soldatinnen und Soldaten der BW mit Sicherheitsaufgaben. Zivile Wachpersonen NICHT — ihre Befugnis endet beim nahen Umfeld (Abs. 2). Zusätzliche Voraussetzung: tatsächliche Anhaltspunkte für Gefährdung von Einsatzbereitschaft, Schlagkraft oder Sicherheit der Truppe + Beobachten militärischer Aktivitäten oder Umgang mit gefährdungsgeeigneten Gegenständen."],
+
+["Wie viele Beispielgegenstände nennt § 8a Abs. 2 für gefährdungsgeeignete Gegenstände?","4","Genau. § 8a Abs. 2 Nr. 2 nennt insbesondere: (a) Waffen und ähnlich gefährliche Gegenstände, (b) Einbruchswerkzeuge, (c) Beobachtungshilfen, (d) unbemannte Luftfahrzeuge und Steuergeräte. Drohnen sind also ausdrücklich erfasst. Gleiche Liste in Abs. 3."],
+
+["Welche Geschlechterregel gilt bei der Durchsuchung nach § 8a Abs. 5?","Gleiches Geschlecht","Richtig. § 8a Abs. 5 Satz 2 — Personen dürfen nur von Personen gleichen Geschlechts oder Ärzten durchsucht werden. Ausnahme: Gefahr im Verzug, insbesondere wenn die sofortige Durchsuchung zum Schutz gegen Gefahr für Leib oder Leben erforderlich ist. Bei Durchsuchung von Sachen: Inhaber der tatsächlichen Gewalt hat Anwesenheitsrecht. Gilt nach § 7 Abs. 1 Satz 3 entsprechend für § 7-Durchsuchungen."],
+
+["Wie viele Personenkreise schützt die Durchsuchung zum Eigenschutz nach § 8b?","5","Genau. § 8b Abs. 1 — fünf Schutzkreise: (1) BW-Angehörige, (2) zivile Wachpersonen, (3) Angehörige verbündeter Streitkräfte, (4) die Person selbst, (5) Dritte. Gesucht wird nach Waffen, Explosionsmitteln und anderen gefährlichen Gegenständen. Kein Tatverdacht erforderlich — Abgrenzung zu § 7, der Verdacht + GiV + Beweismittelvermutung verlangt."],
+
+["Wie viele Zwecke rechtfertigen den unmittelbaren Zwang nach § 9?","3","Korrekt. § 9 nennt drei abschließende Zwecke: (1) Verhinderung der unmittelbar bevorstehenden Ausführung/Fortsetzung einer Straftat gegen die BW, (2) Beseitigung sonstiger rechtswidriger Störungen der dienstlichen Tätigkeit (wenn Einsatzbereitschaft/Schlagkraft/Sicherheit gefährdet), (3) Erzwingung einer zulässigen Maßnahme oder einer vorläufigen Festnahme nach § 127 Abs. 1 StPO. Der Zwang muss »erforderlich« sein — direkte Kopplung an § 12 (Verhältnismäßigkeit)."],
+
+/* — Aus 3. Abschnitt — */
+["Wie viele Kategorien dienstlich zugelassener Waffen nennt § 10 Abs. 4?","4","Genau. § 10 Abs. 4 — vier Kategorien: (1) Hieb- und Schusswaffen, (2) Distanz-Elektroimpulsgeräte (Taser), (3) Reizstoffe, (4) Explosivmittel. Daneben Hilfsmittel der körperlichen Gewalt nach Abs. 3 (Fesseln, technische Sperren, Dienstfahrzeuge) — das sind ausdrücklich KEINE Waffen."],
+
+["Wie viele Hilfsmittel der körperlichen Gewalt nennt § 10 Abs. 3 ausdrücklich?","3","Richtig. § 10 Abs. 3 nennt drei Beispiele (»insbesondere«): Fesseln, technische Sperren, Dienstfahrzeuge. Die Liste ist nicht abschließend (»insbesondere«). Hilfsmittel sind keine Waffen (Abs. 4). § 14 (Fesselung) bezieht sich auf das Hilfsmittel »Fesseln«."],
+
+["Wie viele Fesselungsgründe nennt § 14?","3","Genau. § 14 — drei Fesselungsgründe: (1) Gefahr eines Angriffs auf Personen oder Widerstand, (2) Fluchtversuch oder begründete Befürchtung der Flucht (nach Würdigung aller Tatsachen, insbesondere persönlicher Verhältnisse), (3) Selbstmordgefahr. Merkhilfe: 3 As — Aggression, Abhauen, Autoaggression. Anwendungsbereich: nach § 5 Abs. 1 weiter Überprüfte oder vorläufig Festgenommene."],
+
+["Wie viele Gründe nennt § 15 Abs. 1 für den Schusswaffengebrauch gegen Einzelne?","4","Richtig. § 15 Abs. 1 — vier Gründe: (1) Verhinderung einer Straftat iSd Buchstaben a–d, (2) Anhalten einer Person, die sich der Personenüberprüfung trotz wiederholter Weisung durch Flucht entzieht, (3) Anhalten einer fluchtversuchenden Person bei vorläufiger Festnahme (Nr.-1-Tat auf frischer Tat), (4) Verhinderung der Flucht/Wiederergreifen bei Gewahrsam. Nr. 1 = Tatverhinderung, Nrn. 2–4 = Fluchtkonstellationen mit absteigender Verdachtsschwere."],
+
+["Wie viele Fallgruppen kennt § 15 Abs. 1 Nr. 1 in Buchstaben?","4","Korrekt. § 15 Abs. 1 Nr. 1 Buchst. a–d: (a) Verbrechen, (b) Vergehen unter Anwendung/Mitführung von Schusswaffen oder Explosivmitteln, (c) tätlicher Angriff auf Leib/Leben von Schutzpersonen während Dienstausübung/Aufenthalt in militärischen Bereichen, (d) vorsätzliche Sabotage an Wehrmitteln/Anlagen — wenn dadurch BRD-Sicherheit, Schlagkraft oder Menschenleben gefährdet. Wichtig: Buchstaben a–c eröffnen § 17 Abs. 2 (Schuss ohne Androhung), d hingegen NICHT."],
+
+["Welche Buchstaben aus § 15 Abs. 1 Nr. 1 berechtigen zum Schuss ohne Androhung?","a–c","Genau. § 17 Abs. 2 — Schuss ohne Androhung nur in den Fällen § 15 Abs. 1 Nr. 1 Buchstaben a bis c (Verbrechen / bewaffnetes Vergehen / tätlicher Angriff auf Leib oder Leben). Buchstabe d (Sabotage) ist NICHT dabei — bei Sabotage immer Androhungspflicht. Logik: § 17 Abs. 2 verlangt akute Gefahr für Leben oder Sicherheit, nicht reine Sachgefahr. Zusätzlich muss der sofortige Schuss das »einzige Mittel« sein."],
+
+["Wie viele Voraussetzungen muss der Schusswaffengebrauch gegen eine Menschenmenge erfüllen?","2","Richtig. § 15 Abs. 2 — zwei kumulative Voraussetzungen: (1) aus oder von der Menge heraus werden Straftaten gegen die BW unter Gewaltanwendung begangen oder stehen unmittelbar bevor, (2) Zwangsmaßnahmen gegen einzelne führen nicht zum Ziel oder versprechen offensichtlich keinen Erfolg. Kopplungen: § 17 Abs. 1 Satz 3 (Androhung muss wiederholt werden), § 16 Abs. 2 (Drittschutz weicht ausnahmsweise zurück, weil die Menge selbst die Gefahr darstellt)."],
+
+["Wie viele Schießverbote/Beschränkungen kennt § 16?","3","Genau. § 16 — drei Schichten: (1) Abs. 1 Subsidiarität (andere Maßnahmen → Schuss auf Sachen → Schuss auf Personen — Eskalationsleiter), (2) Abs. 2 Schutz Unbeteiligter (Verbot bei hoher Wahrscheinlichkeit der Gefährdung — Ausnahme: Einschreiten gegen Menschenmenge), (3) Abs. 3 absolutes Verbot gegen Personen, die dem äußeren Eindruck nach im Kindesalter sind."],
+
+["Gilt das Schießverbot gegen Kinder absolut?","Ja","Richtig. § 16 Abs. 3 — gegen Personen, die sich dem äußeren Eindruck nach im Kindesalter befinden, dürfen Schusswaffen nicht gebraucht werden. Keine Abwägung, keine Ausnahme. Maßstab: äußerer Eindruck im Moment der Wahrnehmung, nicht das tatsächliche Alter. Unterschied zu Abs. 2 (Schutz Unbeteiligter), wo es eine Ausnahme bei Menschenmengen gibt."],
+
+["Was gilt nach § 17 Abs. 1 außerdem als Androhung des Schusswaffengebrauchs?","Warnschuss","Genau. § 17 Abs. 1 Satz 2 — als Androhung gilt auch die Abgabe eines Warnschusses. Funktion: letzte Eskalationsstufe vor dem treffenden Schuss. Warnschuss ≠ Erstschuss — er soll NICHT treffen. Wenn er trifft, war es eine Verletzung — dann gilt § 13 (Hilfeleistung). Gegenüber einer Menschenmenge ist die Androhung zu wiederholen (Satz 3)."],
+
+["Wie viele Schutzgüter werden in § 17 Abs. 2 als Abwehrziele genannt?","3","Korrekt. § 17 Abs. 2 nennt drei abzuwehrende Gefahren: (1) Gefahr für Leib oder Leben eines Menschen, (2) Gefahr eines besonders schweren Nachteils für Anlagen/Einrichtungen/Schiffe/Wehrmittel von bedeutendem Wert, (3) Gefahr für die Sicherheit der BRD. Zusätzlich gelten kumulativ die Buchstaben a–c aus § 15 Abs. 1 Nr. 1, und der Schuss muss »das einzige Mittel« sein."],
+
+["Für welche Mittel gelten §§ 15 bis 17 nach § 18 entsprechend?","Explosivmittel","Richtig. § 18 — die Vorschriften der §§ 15 bis 17 gelten entsprechend für den Gebrauch von Explosivmitteln. Konsequenz: alle Schusswaffenregeln (vier Gründe, Subsidiarität, Drittschutz, Kinderschutz, Androhung, Ausnahmen vom Androhungserfordernis) gelten auch für Explosivmittel."],
+
+/* — Aus 4. Abschnitt — */
+["Wie viele Grundrechte werden nach § 19 eingeschränkt?","3","Genau. § 19 — drei Grundrechte: (1) Recht auf Leben, (2) Recht auf körperliche Unversehrtheit (beide Art. 2 Abs. 2 Satz 1 GG), (3) Freiheit der Person (Art. 2 Abs. 2 Satz 2 GG). Erfüllung des Zitiergebots aus Art. 19 Abs. 1 Satz 2 GG — Voraussetzung dafür, dass das Gesetz die scharfen Befugnisse überhaupt anordnen darf."],
+
+["Welche Behörde tritt nach § 20 Abs. 2 an die Stelle der Anforderungsbehörde?","BAIUDBw","Richtig. § 20 Abs. 2 — das Bundesamt für Infrastruktur, Umweltschutz und Dienstleistungen der Bundeswehr (BAIUDBw). Entschädigung in Geld bei Sperrung sonstiger Örtlichkeiten nach § 2 Abs. 2 Satz 2, wenn Ertragsminderung oder Nutzungsausfall entsteht. Entsprechende Anwendung der §§ 23 Abs. 4, 29, 32 Abs. 2, 34, 49, 58, 62, 64 und 65 Bundesleistungsgesetz."],
+
+["Welches Gesetz gilt nach § 20 Abs. 2 entsprechend?","Bundesleistungsgesetz","Genau. § 20 Abs. 2 — entsprechende Anwendung von §§ 23 Abs. 4, 29, 32 Abs. 2, 34, 49, 58, 62, 64 und 65 des Bundesleistungsgesetzes. Mit der Maßgabe, dass das BAIUDBw an die Stelle der Anforderungsbehörde tritt. Logik: wer durch eine militärische Sperrung enteignungsähnlich beeinträchtigt wird, soll das Sonderopfer nicht allein tragen — der Bund kompensiert."],
+
+["Wie viele Voraussetzungen muss die Datenverarbeitung nach § 20a erfüllen?","4","Richtig. § 20a — vier kumulative Schranken: (1) offen (nicht verdeckt), (2) bei der betroffenen Person (keine Drittquellen, kein heimliches Erheben), (3) durch den in § 1 benannten Personenkreis, (4) zur Erfüllung der durch dieses Gesetz übertragenen Befugnisse erforderlich. Schon eine fehlende Schranke macht die Verarbeitung unzulässig."],
+
+["Wie viele Monate nach Verkündung tritt das Gesetz in Kraft?","3","Genau. § 21 — drei Monate nach Verkündung. Klassische technische Schlussnorm, die den betroffenen Stellen Zeit zur Umstellung gibt. Spiegelt sich symbolisch in anderen »3er«-Strukturen des Gesetzes: 3 Personengruppen (§ 1), 3 Schutzbereiche (§ 3), 3 Zwecke des Zwangs (§ 9), 3 Fesselungsgründe (§ 14), 3 Schießverbote (§ 16), 3-Tage-Frist (§ 7 Abs. 3), 3 Grundrechtsschranken (§ 19)."],
+
+/* — StPO-Bezugsfragen (aus UZwGBw zitiert) — */
+["Welcher StPO-Paragraph wird in § 9 Nr. 3 UZwGBw zitiert?","§ 127 Abs. 1 StPO","Richtig. § 9 Nr. 3 UZwGBw — unmittelbarer Zwang darf eingesetzt werden, um eine vorläufige Festnahme nach § 127 Abs. 1 StPO wegen einer Straftat gegen die BW zu erzwingen. § 127 Abs. 1 StPO ist das »Jedermannsrecht«: wer auf frischer Tat betroffen/verfolgt wird und der Flucht verdächtig ist oder dessen Identität nicht sofort feststellbar ist, darf von jedermann ohne richterliche Anordnung vorläufig festgenommen werden. § 6 UZwGBw ist demgegenüber die spezielle militärische Festnahmegrundlage mit Haftbefehlsvoraussetzungen + GiV."],
+
+["Welcher StPO-Paragraph wird in § 6 Abs. 2 UZwGBw zitiert?","§ 128 Abs. 1 StPO","Genau. § 6 Abs. 2 UZwGBw verweist auf die Frist des § 128 Abs. 1 StPO. Diese besagt: der Festgenommene ist unverzüglich, spätestens am Tage nach der Festnahme, dem Richter beim Amtsgericht des Festnahmebezirks vorzuführen. Wenn die Frist abzulaufen droht (oder bei besonderer militärischer Geheimhaltung), darf direkt zum Amtsrichter vorgeführt werden, statt nur an die Polizei zu überstellen. Fundamentale Habeas-Corpus-Frist — gilt auch für UZwGBw-Festnahmen."],
+
+];
+
+const CARDS_NORMAL = RAW.map((row, i) => {
   const [front, back, details] = row;
   const id = 'c' + i;
 
@@ -619,8 +715,24 @@ const CARDS = RAW.map((row, i) => {
       else if (num >= 19 && num <= 21) section = '4 · Schluss';
     }
   }
-  return { id, front, back, term, desc, details, law: section };
+  return { id, front, back, term, desc, details, law: section, type: 'normal' };
 });
+
+const CARDS_QUIZ = QUIZ_RAW.map((row, i) => {
+  const [front, back, details] = row;
+  return {
+    id: 'q' + i,
+    front,          // Frage
+    back,           // kurze Antwort (wird gegen Eingabe geprüft)
+    term: back,     // Antwort für Reveal-Anzeige
+    desc: '',       // kein Untertitel
+    details,        // ausführliche Beschreibung mit Querverweisen
+    law: '6 · Quiz',
+    type: 'quiz'
+  };
+});
+
+const CARDS = [...CARDS_NORMAL, ...CARDS_QUIZ];
 
 /* =========================================================
    STORAGE
@@ -713,7 +825,7 @@ function intervalHint(cardId, dir, quality) {
    ========================================================= */
 function getAllLaws() {
   // Sortierte Reihenfolge der Abschnitte
-  const desired = ['1 · Allgemeines', '2 · Maßnahmen', '3 · Zwang', '4 · Schluss', '5 · StPO'];
+  const desired = ['1 · Allgemeines', '2 · Maßnahmen', '3 · Zwang', '4 · Schluss', '5 · StPO', '6 · Quiz'];
   const present = new Set(CARDS.map(c => c.law));
   return desired.filter(d => present.has(d));
 }
@@ -734,12 +846,24 @@ function buildQueue() {
   const due = [];
   const newOnes = [];
   for (const card of cards) {
-    for (const dir of directions) {
-      const p = getProgress(card.id, dir);
+    if (card.type === 'quiz') {
+      // Quiz-Karten haben nur eine Richtung (Frage → Antwort).
+      // Sie erscheinen nur, wenn 'forward' aktiv ist (also bei Mode 'forward' oder 'both').
+      if (!directions.includes('forward')) continue;
+      const p = getProgress(card.id, 'quiz');
       if (p.due === 0) {
-        newOnes.push({ card, dir });
+        newOnes.push({ card, dir: 'quiz' });
       } else if (p.due <= now) {
-        due.push({ card, dir });
+        due.push({ card, dir: 'quiz' });
+      }
+    } else {
+      for (const dir of directions) {
+        const p = getProgress(card.id, dir);
+        if (p.due === 0) {
+          newOnes.push({ card, dir });
+        } else if (p.due <= now) {
+          due.push({ card, dir });
+        }
       }
     }
   }
@@ -757,7 +881,7 @@ function buildQueue() {
 function normalize(s) {
   return s.toLowerCase()
     .replace(/§/g, '')
-    .replace(/[.,;:!?()"„""''–—-]/g, ' ')
+    .replace(/[.,;:!?()"„""''–—+\-]/g, ' ')
     .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
     .replace(/\s+/g, ' ')
     .trim();
@@ -828,13 +952,23 @@ function refreshStats() {
   const now = Date.now();
   let due = 0, total = 0, newC = 0, learn = 0, mature = 0;
   for (const card of cards) {
-    for (const dir of directions) {
+    if (card.type === 'quiz') {
+      if (!directions.includes('forward')) continue;
       total++;
-      const p = getProgress(card.id, dir);
+      const p = getProgress(card.id, 'quiz');
       if (p.due === 0) newC++;
       else if (p.due <= now) due++;
       if (p.due > 0 && p.interval < 21) learn++;
       else if (p.interval >= 21) mature++;
+    } else {
+      for (const dir of directions) {
+        total++;
+        const p = getProgress(card.id, dir);
+        if (p.due === 0) newC++;
+        else if (p.due <= now) due++;
+        if (p.due > 0 && p.interval < 21) learn++;
+        else if (p.interval >= 21) mature++;
+      }
     }
   }
   document.getElementById('stat-due').textContent = due + newC;
@@ -874,10 +1008,14 @@ function renderCard() {
   revealed = false;
   const { card, dir } = currentItem;
 
-  const isForward = dir === 'forward';
+  const isQuiz = card.type === 'quiz';
+  const isForward = isQuiz || dir === 'forward';
   const question = isForward ? card.front : card.term;
   const expected = isForward ? card.back : card.front;
-  const directionLabel = isForward ? 'Paragraph → Begriff' : 'Begriff → Paragraph';
+  const directionLabel = isQuiz ? 'Quiz'
+                        : (dir === 'forward' ? 'Paragraph → Begriff' : 'Begriff → Paragraph');
+  const placeholder = isQuiz ? 'Antwort eintippen…'
+                     : (dir === 'forward' ? 'Begriff eintippen…' : 'z.B. § 15 UZwGBw …');
 
   main.innerHTML = `
     <div class="deck-tag">Abschnitt ${card.law}</div>
@@ -886,7 +1024,7 @@ function renderCard() {
     <div class="input-wrap">
       <input class="answer-input" id="answer" type="text" autocomplete="off"
              autocapitalize="off" autocorrect="off" spellcheck="false"
-             placeholder="${isForward ? 'Begriff eintippen…' : 'z.B. § 15 UZwGBw …'}" />
+             placeholder="${placeholder}" />
     </div>
     <button class="primary-btn" id="submit-btn">Prüfen</button>
     <div id="reveal-container"></div>
