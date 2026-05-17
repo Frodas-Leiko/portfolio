@@ -31,17 +31,3 @@ Alle Design-Entscheidungen leben in `assets/css/main.css`:
 - **Komponenten**: `.card`, `.card-link`, `.btn`, `.chip`, `.input`, `.tag`, `.label`
 
 Neue Seiten verwenden das vorhandene Vokabular — keine Stile erfinden.
-
-## Lokal entwickeln
-
-Einfach `index.html` im Browser öffnen, oder im Projektverzeichnis:
-
-```bash
-python -m http.server 8000
-```
-
-Dann auf dem Handy `http://localhost:8000` aufrufen.
-
-## Deploy
-
-GitHub Pages: in den Repo-Settings unter "Pages" den `main`-Branch und Root-Verzeichnis auswählen.
