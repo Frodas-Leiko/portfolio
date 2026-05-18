@@ -777,6 +777,100 @@ main {
 }
 .icon-btn-sm:active { background: var(--bg-elev); color: var(--red); }
 
+/* MINI-TIMER (für zeitbasierte Übungen) */
+.mini-timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  gap: 10px;
+}
+.mini-timer-display {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.mini-timer-display.idle { color: var(--text-dim); }
+.mini-timer-display.running { color: var(--accent); }
+.mini-timer-display.warning { color: var(--yellow); }
+.mini-timer-display.ended { color: var(--green); }
+
+.mini-timer-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 8px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mini-timer-btn:active { background: var(--bg-elev); color: var(--text); }
+.mini-timer-btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.mini-timer-btn.primary:active { opacity: 0.8; }
+
+/* LIBRARY */
+.lib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.lib-row {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.lib-row:active { background: var(--bg-elev); border-color: var(--text-faint); }
+
+.lib-row-name {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+.lib-row-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+select.text-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238a8676' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
 .hidden { display: none !important; }
 
 @media (min-width: 600px) {
@@ -802,6 +896,9 @@ main {
   <div class="screen" id="screen-workout-active">
     <div class="workout-progress-bar"><div class="workout-progress-bar-fill" id="workout-progress-fill" style="width:0%"></div></div>
     <div id="workout-active-body" style="flex:1; display:flex; flex-direction:column;"></div>
+  </div>
+  <div class="screen" id="screen-library">
+    <div class="screen-body" id="library-body"></div>
   </div>
 </main>
 
@@ -839,12 +936,21 @@ main {
   <div id="jump-list" class="exercise-list"></div>
 </div>
 
+<!-- Library Select Sheet (im Workout-Editor) -->
+<div class="sheet-bg" id="library-sheet-bg"></div>
+<div class="sheet" id="library-sheet"></div>
+
+<!-- Library Item Edit Sheet (im Library-Screen) -->
+<div class="sheet-bg" id="library-edit-sheet-bg"></div>
+<div class="sheet" id="library-edit-sheet"></div>
+
 <script>
 /* =========================================================
    STATE
    ========================================================= */
 const STORAGE_PRESETS = 'multi_timer_presets_v1';
 const STORAGE_WORKOUTS = 'multi_timer_workouts_v1';
+const STORAGE_LIBRARY = 'multi_timer_library_v1';
 
 let screen = 'home';
 let activeTab = 'timer';
@@ -857,6 +963,63 @@ let workouts = [];
 let selectedWorkoutId = null;
 let editingWorkout = null;
 let session = null;
+
+// Übungsbibliothek
+let library = [];
+let editingLibraryItem = null;
+let libraryReturnTo = 'home'; // wohin "← Zurück" im Library-Screen geht
+
+const MUSCLE_GROUPS = [
+  { id: 'pull',   label: 'Pull · Rücken · Bizeps' },
+  { id: 'push',   label: 'Push · Brust · Schulter · Trizeps' },
+  { id: 'legs',   label: 'Beine · Glutes' },
+  { id: 'core',   label: 'Core' },
+  { id: 'grip',   label: 'Griff · Isometrisch' },
+  { id: 'cardio', label: 'Cardio · Konditioning' },
+  { id: 'other',  label: 'Sonstige' }
+];
+
+const DEFAULT_LIBRARY_DATA = [
+  // Pull · Rücken · Bizeps
+  { name: 'Klimmzüge / Latzug',       group: 'pull', sets: 3, reps: '8–12',  restSec: 120 },
+  { name: 'Rudern',                    group: 'pull', sets: 3, reps: '8–12',  restSec: 120 },
+  { name: 'Australian Pull-ups',       group: 'pull', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Face Pulls',                group: 'pull', sets: 3, reps: '12–15', restSec: 60  },
+  { name: 'Bizeps-Curls',              group: 'pull', sets: 3, reps: '10–12', restSec: 60  },
+  { name: 'Hammer-Curls',              group: 'pull', sets: 3, reps: '10–12', restSec: 60  },
+  // Push · Brust · Schulter · Trizeps
+  { name: 'Liegestütze / Bankdrücken', group: 'push', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Schulterdrücken',           group: 'push', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Dips',                      group: 'push', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Pike Push-ups',             group: 'push', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Trizeps-Extensions',        group: 'push', sets: 3, reps: '10–12', restSec: 60  },
+  { name: 'Seitheben',                 group: 'push', sets: 3, reps: '12–15', restSec: 60  },
+  // Beine · Glutes
+  { name: 'Kniebeugen',                  group: 'legs', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Ausfallschritte',             group: 'legs', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Bulgarian Split Squats',      group: 'legs', sets: 3, reps: '8–12',  restSec: 90  },
+  { name: 'Rumänisches Kreuzheben',      group: 'legs', sets: 3, reps: '8–10',  restSec: 120 },
+  { name: 'Glute Bridges / Hip Thrusts', group: 'legs', sets: 3, reps: '10–12', restSec: 90  },
+  { name: 'Wadenheben',                  group: 'legs', sets: 3, reps: '12–15', restSec: 60  },
+  // Core
+  { name: 'Hollow Hold',    group: 'core', sets: 2, reps: 'halten (30–60s)',           restSec: 60 },
+  { name: 'Superman',       group: 'core', sets: 2, reps: 'halten (30–60s)',           restSec: 60 },
+  { name: 'Crunches',       group: 'core', sets: 3, reps: '8–12',                       restSec: 60 },
+  { name: 'Plank',          group: 'core', sets: 2, reps: 'halten (30–60s)',           restSec: 60 },
+  { name: 'Side Plank',     group: 'core', sets: 2, reps: 'halten (20–45s) pro Seite', restSec: 45 },
+  { name: 'Russian Twists', group: 'core', sets: 3, reps: '15–20',                      restSec: 45 },
+  { name: 'Leg Raises',     group: 'core', sets: 3, reps: '8–12',                       restSec: 60 },
+  { name: 'Dead Bug',       group: 'core', sets: 3, reps: '10–12 pro Seite',           restSec: 45 },
+  { name: 'L-Sit',          group: 'core', sets: 3, reps: 'halten (10–30s)',           restSec: 90 },
+  // Griff · Isometrisch
+  { name: 'Deadhangs',      group: 'grip', sets: 3, reps: '30–60s halten', restSec: 90 },
+  { name: "Farmer's Walk",  group: 'grip', sets: 3, reps: '30–60s',        restSec: 90 },
+  // Cardio · Konditioning
+  { name: 'Burpees',           group: 'cardio', sets: 3, reps: '10–15',  restSec: 60 },
+  { name: 'Mountain Climbers', group: 'cardio', sets: 3, reps: '30s',    restSec: 45 },
+  { name: 'Jumping Jacks',     group: 'cardio', sets: 3, reps: '30s',    restSec: 45 },
+  { name: 'Rudermaschine',     group: 'cardio', sets: 1, reps: '5–10 min', restSec: 60 }
+];
 
 /* =========================================================
    DEFAULT WORKOUTS (aus Plan v6, Abschnitt 7)
@@ -924,6 +1087,23 @@ function saveWorkouts() {
   try { localStorage.setItem(STORAGE_WORKOUTS, JSON.stringify(workouts)); } catch (e) {}
 }
 
+function loadLibrary() {
+  try {
+    const raw = localStorage.getItem(STORAGE_LIBRARY);
+    if (raw === null) {
+      library = DEFAULT_LIBRARY_DATA.map(d => ({ ...d, id: newId('lib') }));
+      saveLibrary();
+    } else {
+      library = JSON.parse(raw) || [];
+    }
+  } catch (e) {
+    library = DEFAULT_LIBRARY_DATA.map(d => ({ ...d, id: newId('lib') }));
+  }
+}
+function saveLibrary() {
+  try { localStorage.setItem(STORAGE_LIBRARY, JSON.stringify(library)); } catch (e) {}
+}
+
 /* =========================================================
    HELPERS
    ========================================================= */
@@ -942,6 +1122,123 @@ function newId(prefix) {
   return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
 }
 function getWorkout(id) { return workouts.find(w => w.id === id); }
+
+function libraryByGroup() {
+  const result = {};
+  for (const g of MUSCLE_GROUPS) result[g.id] = [];
+  for (const item of library) {
+    if (result[item.group]) result[item.group].push(item);
+    else result['other'].push(item);
+  }
+  // Innerhalb jeder Gruppe alphabetisch sortieren
+  for (const g of MUSCLE_GROUPS) {
+    result[g.id].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  }
+  return result;
+}
+
+function getMuscleGroupLabel(id) {
+  const g = MUSCLE_GROUPS.find(g => g.id === id);
+  return g ? g.label : 'Sonstige';
+}
+
+function syncWorkoutToLibrary(workout) {
+  // Übungen aus dem Workout, die noch nicht in der Library sind (case-insensitive
+  // Namensvergleich), werden automatisch hinzugefügt – mit Muskelgruppe "Sonstige".
+  // Bestehende Library-Einträge werden NICHT überschrieben.
+  let changed = false;
+  for (const ex of workout.exercises) {
+    const name = (ex.name || '').trim();
+    if (!name) continue;
+    const exists = library.some(l => l.name.trim().toLowerCase() === name.toLowerCase());
+    if (!exists) {
+      library.push({
+        id: newId('lib'),
+        name,
+        group: 'other',
+        sets: ex.sets,
+        reps: ex.reps,
+        restSec: ex.restSec
+      });
+      changed = true;
+    }
+  }
+  if (changed) saveLibrary();
+}
+
+/* =========================================================
+   ZEIT-PARSER aus reps-String
+   "30s", "30–60s halten", "halten (30–60s)" → Sekunden
+   "1:30" → 90, "1min" → 60
+   "8–12" → null (reine Wdh, kein Timer)
+   Bei Bereichen wird die untere Grenze genommen.
+   ========================================================= */
+function parseTimeFromReps(reps) {
+  if (!reps) return null;
+  const s = String(reps).toLowerCase();
+  let m;
+  // 1) Bereich mit Sekunden- oder Minuten-Marker: "30-60s", "30–60s", "1-2min"
+  m = s.match(/(\d+)\s*[-–—]\s*(\d+)\s*(s(?:ec|ek)?|min)\b/);
+  if (m) {
+    const val = parseInt(m[1], 10);
+    return m[3].startsWith('m') ? val * 60 : val;
+  }
+  // 2) "X:YY" → Minuten:Sekunden
+  m = s.match(/(\d+):(\d{2})/);
+  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  // 3) Einzelne Minutenangabe: "1min", "2 minuten"
+  m = s.match(/(\d+)\s*min/);
+  if (m) return parseInt(m[1], 10) * 60;
+  // 4) Einzelne Sekundenangabe: "30s", "30 sec", "30 sek"
+  m = s.match(/(\d+)\s*s(?:ec|ek|ekunden)?\b/);
+  if (m) return parseInt(m[1], 10);
+  return null;
+}
+
+/* =========================================================
+   SIGNALTON (Web Audio API, kein externes File)
+   AudioContext wird beim ersten User-Tap erzeugt/resumed
+   damit Mobile-Browser Audio später erlauben.
+   ========================================================= */
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playBeep() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    // Beep 1
+    const o1 = ctx.createOscillator();
+    const g1 = ctx.createGain();
+    o1.type = 'sine';
+    o1.frequency.value = 880;
+    g1.gain.setValueAtTime(0.0001, now);
+    g1.gain.exponentialRampToValueAtTime(0.4, now + 0.01);
+    g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+    o1.connect(g1).connect(ctx.destination);
+    o1.start(now);
+    o1.stop(now + 0.25);
+    // Beep 2 (höher)
+    const o2 = ctx.createOscillator();
+    const g2 = ctx.createGain();
+    o2.type = 'sine';
+    o2.frequency.value = 1320;
+    g2.gain.setValueAtTime(0.0001, now + 0.25);
+    g2.gain.exponentialRampToValueAtTime(0.4, now + 0.26);
+    g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    o2.connect(g2).connect(ctx.destination);
+    o2.start(now + 0.25);
+    o2.stop(now + 0.55);
+  } catch (e) {}
+}
 
 /* =========================================================
    HEADER
@@ -991,6 +1288,14 @@ function renderHeader() {
     `;
     document.getElementById('header-back').addEventListener('click', confirmEndWorkout);
     document.getElementById('header-jump').addEventListener('click', openJumpSheet);
+  } else if (screen === 'library') {
+    headerEl.innerHTML = `
+      <button class="icon-btn" id="header-back" aria-label="Zurück">←</button>
+      <div class="header-title">Übungsbibliothek</div>
+      <button class="icon-btn" id="header-add-lib" aria-label="Neue Übung">+</button>
+    `;
+    document.getElementById('header-back').addEventListener('click', leaveLibraryScreen);
+    document.getElementById('header-add-lib').addEventListener('click', () => openLibraryEditSheet(null));
   }
 }
 
@@ -1194,22 +1499,29 @@ function renderWorkoutsList() {
     empty.className = 'empty-state';
     empty.innerHTML = `<h2>Noch keine Workouts</h2><p>Tippe oben rechts auf „+", um dein erstes Workout anzulegen.</p>`;
     container.appendChild(empty);
-    return;
+  } else {
+    for (const w of workouts) {
+      const card = document.createElement('button');
+      card.className = 'workout-card';
+      const exCount = w.exercises.length;
+      const totalSets = w.exercises.reduce((sum, e) => sum + (e.sets || 0), 0);
+      card.innerHTML = `
+        <div class="workout-card-title">${escapeHtml(w.name)}</div>
+        ${w.description ? `<div class="workout-card-desc">${escapeHtml(w.description)}</div>` : ''}
+        <div class="workout-card-meta">${exCount} Übung${exCount === 1 ? '' : 'en'} · ${totalSets} Sätze gesamt</div>
+      `;
+      card.addEventListener('click', () => navigateToWorkoutDetail(w.id));
+      container.appendChild(card);
+    }
   }
 
-  for (const w of workouts) {
-    const card = document.createElement('button');
-    card.className = 'workout-card';
-    const exCount = w.exercises.length;
-    const totalSets = w.exercises.reduce((sum, e) => sum + (e.sets || 0), 0);
-    card.innerHTML = `
-      <div class="workout-card-title">${escapeHtml(w.name)}</div>
-      ${w.description ? `<div class="workout-card-desc">${escapeHtml(w.description)}</div>` : ''}
-      <div class="workout-card-meta">${exCount} Übung${exCount === 1 ? '' : 'en'} · ${totalSets} Sätze gesamt</div>
-    `;
-    card.addEventListener('click', () => navigateToWorkoutDetail(w.id));
-    container.appendChild(card);
-  }
+  // Bibliothek-Verwalten-Button immer anzeigen
+  const libBtn = document.createElement('button');
+  libBtn.className = 'secondary-btn';
+  libBtn.style.marginTop = '12px';
+  libBtn.textContent = '⚙ Übungsbibliothek verwalten';
+  libBtn.addEventListener('click', navigateToLibraryFromHome);
+  container.appendChild(libBtn);
 }
 
 /* =========================================================
@@ -1302,10 +1614,7 @@ function renderWorkoutEdit() {
   document.getElementById('edit-name').addEventListener('input', e => editingWorkout.name = e.target.value);
   document.getElementById('edit-desc').addEventListener('input', e => editingWorkout.description = e.target.value);
 
-  document.getElementById('add-exercise-btn').addEventListener('click', () => {
-    editingWorkout.exercises.push({ name: '', sets: 3, reps: '8–12', restSec: 90 });
-    renderWorkoutEdit();
-  });
+  document.getElementById('add-exercise-btn').addEventListener('click', openLibrarySelectSheet);
 
   document.querySelectorAll('.exercise-edit-card').forEach(card => {
     const idx = parseInt(card.dataset.idx, 10);
@@ -1360,11 +1669,254 @@ function saveEdit() {
     editingWorkout.id = newId('w');
     workouts.push(editingWorkout);
   }
+  // Auto-Sync: unbekannte Übungsnamen in die Library aufnehmen
+  syncWorkoutToLibrary(editingWorkout);
   saveWorkouts();
   const savedId = editingWorkout.id;
   editingWorkout = null;
   navigateToWorkoutDetail(savedId);
 }
+
+/* =========================================================
+   LIBRARY: AUSWAHL-SHEET (im Workout-Editor)
+   ========================================================= */
+function openLibrarySelectSheet() {
+  renderLibrarySelectSheet();
+  document.getElementById('library-sheet').classList.add('open');
+  document.getElementById('library-sheet-bg').classList.add('open');
+}
+function closeLibrarySelectSheet() {
+  document.getElementById('library-sheet').classList.remove('open');
+  document.getElementById('library-sheet-bg').classList.remove('open');
+}
+
+function renderLibrarySelectSheet() {
+  const grouped = libraryByGroup();
+  let html = '<div class="sheet-handle"></div><h2>Übung wählen</h2>';
+  html += `<button class="secondary-btn" id="add-custom-exercise-btn" style="margin-bottom:18px">+ Eigene Übung (nicht in Bibliothek)</button>`;
+
+  let hasAny = false;
+  for (const g of MUSCLE_GROUPS) {
+    const items = grouped[g.id];
+    if (items.length === 0) continue;
+    hasAny = true;
+    html += `<div class="section-label">${escapeHtml(g.label)}</div>`;
+    html += '<div class="lib-list">';
+    for (const item of items) {
+      html += `
+        <button class="lib-row" data-lib-id="${item.id}">
+          <div class="lib-row-name">${escapeHtml(item.name)}</div>
+          <div class="lib-row-meta">${item.sets}× ${escapeHtml(item.reps)} · Pause ${formatTime(item.restSec)}</div>
+        </button>
+      `;
+    }
+    html += '</div>';
+  }
+  if (!hasAny) {
+    html += `<div class="preset-empty">Die Bibliothek ist leer. Über „⚙ Bibliothek verwalten" kannst du Übungen anlegen.</div>`;
+  }
+  html += `<button class="secondary-btn" id="manage-library-btn" style="margin-top:18px">⚙ Bibliothek verwalten</button>`;
+
+  const sheet = document.getElementById('library-sheet');
+  sheet.innerHTML = html;
+
+  document.getElementById('add-custom-exercise-btn').addEventListener('click', () => {
+    closeLibrarySelectSheet();
+    editingWorkout.exercises.push({ name: '', sets: 3, reps: '8–12', restSec: 90 });
+    renderWorkoutEdit();
+  });
+  sheet.querySelectorAll('[data-lib-id]').forEach(btn => {
+    btn.addEventListener('click', () => addLibraryItemToWorkout(btn.dataset.libId));
+  });
+  document.getElementById('manage-library-btn').addEventListener('click', () => {
+    closeLibrarySelectSheet();
+    libraryReturnTo = 'workout-edit';
+    showScreen('library');
+    renderLibraryScreen();
+  });
+}
+
+function addLibraryItemToWorkout(libId) {
+  const item = library.find(l => l.id === libId);
+  if (!item) return;
+  editingWorkout.exercises.push({
+    name: item.name,
+    sets: item.sets,
+    reps: item.reps,
+    restSec: item.restSec
+  });
+  closeLibrarySelectSheet();
+  renderWorkoutEdit();
+}
+
+/* =========================================================
+   LIBRARY: VERWALTUNGS-SCREEN
+   ========================================================= */
+function navigateToLibraryFromHome() {
+  libraryReturnTo = 'home';
+  showScreen('library');
+  renderLibraryScreen();
+}
+
+function leaveLibraryScreen() {
+  if (libraryReturnTo === 'workout-edit' && editingWorkout) {
+    showScreen('workout-edit');
+    renderWorkoutEdit();
+  } else {
+    navigateHome();
+  }
+}
+
+function renderLibraryScreen() {
+  const grouped = libraryByGroup();
+  const body = document.getElementById('library-body');
+  let html = `<p style="font-size:12px; color:var(--text-dim); margin-bottom:14px; line-height:1.5;">
+    Diese Übungen kannst du beim Erstellen oder Bearbeiten von Workouts schnell auswählen.
+    Werte hier sind nur Vorlagen – Änderungen pro Workout ändern die Bibliothek nicht.
+  </p>`;
+
+  let hasAny = false;
+  for (const g of MUSCLE_GROUPS) {
+    const items = grouped[g.id];
+    if (items.length === 0) continue;
+    hasAny = true;
+    html += `<div class="section-label">${escapeHtml(g.label)} <span style="color:var(--text-faint); font-weight:normal;">· ${items.length}</span></div>`;
+    html += '<div class="lib-list">';
+    for (const item of items) {
+      html += `
+        <button class="lib-row" data-lib-id="${item.id}">
+          <div class="lib-row-name">${escapeHtml(item.name)}</div>
+          <div class="lib-row-meta">${item.sets}× ${escapeHtml(item.reps)} · Pause ${formatTime(item.restSec)}</div>
+        </button>
+      `;
+    }
+    html += '</div>';
+  }
+  if (!hasAny) {
+    html += `<div class="empty-state"><h2>Bibliothek ist leer</h2><p>Tippe oben rechts auf „+" um die erste Übung anzulegen.</p></div>`;
+  }
+
+  body.innerHTML = html;
+  body.querySelectorAll('[data-lib-id]').forEach(btn => {
+    btn.addEventListener('click', () => openLibraryEditSheet(btn.dataset.libId));
+  });
+}
+
+/* =========================================================
+   LIBRARY: ITEM-EDIT-SHEET
+   ========================================================= */
+function openLibraryEditSheet(libId) {
+  if (libId) {
+    const item = library.find(l => l.id === libId);
+    if (!item) return;
+    editingLibraryItem = { ...item };
+  } else {
+    editingLibraryItem = {
+      id: null,
+      name: '',
+      group: 'other',
+      sets: 3,
+      reps: '8–12',
+      restSec: 90
+    };
+  }
+  renderLibraryEditSheet();
+  document.getElementById('library-edit-sheet').classList.add('open');
+  document.getElementById('library-edit-sheet-bg').classList.add('open');
+}
+
+function closeLibraryEditSheet() {
+  document.getElementById('library-edit-sheet').classList.remove('open');
+  document.getElementById('library-edit-sheet-bg').classList.remove('open');
+  editingLibraryItem = null;
+}
+
+function renderLibraryEditSheet() {
+  const it = editingLibraryItem;
+  const isNew = !it.id;
+  const groupOptions = MUSCLE_GROUPS.map(g =>
+    `<option value="${g.id}" ${g.id === it.group ? 'selected' : ''}>${escapeHtml(g.label)}</option>`
+  ).join('');
+
+  const sheet = document.getElementById('library-edit-sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <h2>${isNew ? 'Neue Übung zur Bibliothek' : 'Übung bearbeiten'}</h2>
+
+    <div class="form-group">
+      <div class="form-label">Name</div>
+      <input type="text" id="lib-edit-name" class="text-input" value="${escapeHtml(it.name)}" maxlength="60" placeholder="z.B. Klimmzüge" />
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Muskelgruppe</div>
+      <select id="lib-edit-group" class="text-input">${groupOptions}</select>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Wdh / Zeit (Vorlage)</div>
+      <input type="text" id="lib-edit-reps" class="text-input" value="${escapeHtml(it.reps)}" placeholder="z.B. 8–12 oder 30s halten" />
+    </div>
+
+    <div class="three-col-inputs">
+      <div class="form-group">
+        <div class="form-label">Sätze</div>
+        <input type="number" id="lib-edit-sets" class="text-input" min="1" max="20" value="${it.sets}" inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">Pause Min</div>
+        <input type="number" id="lib-edit-rest-min" class="text-input" min="0" max="59" value="${Math.floor(it.restSec/60)}" inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">Pause Sek</div>
+        <input type="number" id="lib-edit-rest-sec" class="text-input" min="0" max="59" value="${it.restSec % 60}" inputmode="numeric" />
+      </div>
+    </div>
+
+    <button class="primary-btn" id="lib-edit-save" style="margin-bottom:8px">${isNew ? 'Hinzufügen' : 'Speichern'}</button>
+    ${!isNew ? `<button class="danger-btn" id="lib-edit-delete" style="margin-bottom:8px">Aus Bibliothek löschen</button>` : ''}
+    <button class="secondary-btn" id="lib-edit-cancel">Abbrechen</button>
+  `;
+
+  document.getElementById('lib-edit-save').addEventListener('click', saveLibraryItem);
+  document.getElementById('lib-edit-cancel').addEventListener('click', closeLibraryEditSheet);
+  if (!isNew) {
+    document.getElementById('lib-edit-delete').addEventListener('click', () => {
+      if (confirm(`Übung „${editingLibraryItem.name}" aus der Bibliothek löschen?`)) {
+        library = library.filter(l => l.id !== editingLibraryItem.id);
+        saveLibrary();
+        closeLibraryEditSheet();
+        renderLibraryScreen();
+      }
+    });
+  }
+}
+
+function saveLibraryItem() {
+  const name = document.getElementById('lib-edit-name').value.trim();
+  if (!name) { alert('Bitte gib der Übung einen Namen.'); return; }
+  const group = document.getElementById('lib-edit-group').value;
+  const reps = document.getElementById('lib-edit-reps').value.trim() || '8–12';
+  const sets = Math.max(1, parseInt(document.getElementById('lib-edit-sets').value, 10) || 1);
+  const restMin = parseInt(document.getElementById('lib-edit-rest-min').value, 10) || 0;
+  const restSecPart = parseInt(document.getElementById('lib-edit-rest-sec').value, 10) || 0;
+  const totalRestSec = Math.max(0, restMin * 60 + restSecPart);
+
+  if (editingLibraryItem.id) {
+    const idx = library.findIndex(l => l.id === editingLibraryItem.id);
+    if (idx >= 0) {
+      library[idx] = { ...library[idx], name, group, reps, sets, restSec: totalRestSec };
+    }
+  } else {
+    library.push({ id: newId('lib'), name, group, reps, sets, restSec: totalRestSec });
+  }
+  saveLibrary();
+  closeLibraryEditSheet();
+  renderLibraryScreen();
+}
+
+document.getElementById('library-sheet-bg').addEventListener('click', closeLibrarySelectSheet);
+document.getElementById('library-edit-sheet-bg').addEventListener('click', closeLibraryEditSheet);
 
 /* =========================================================
    WORKOUT SESSION
@@ -1377,7 +1929,11 @@ function startSession(workoutId) {
     exerciseIndex: 0,
     completedSets: w.exercises.map(() => 0),
     restEndTime: null,
-    restTotalSec: 0
+    restTotalSec: 0,
+    // Mini-Timer State (für zeitbasierte Übungen)
+    exTimerState: 'idle',     // 'idle' | 'running' | 'ended'
+    exTimerEndTime: null,
+    exTimerTotalSec: 0
   };
   showScreen('workout-active');
   renderActiveScreen();
@@ -1385,10 +1941,36 @@ function startSession(workoutId) {
 
 function isInRest() { return session && session.restEndTime !== null; }
 
+function resetExerciseTimer() {
+  if (!session) return;
+  session.exTimerState = 'idle';
+  session.exTimerEndTime = null;
+  session.exTimerTotalSec = 0;
+}
+
+function startExerciseTimer() {
+  if (!session) return;
+  const w = getWorkout(session.workoutId);
+  const ex = w.exercises[session.exerciseIndex];
+  const timeSec = parseTimeFromReps(ex.reps);
+  if (!timeSec) return;
+  getAudioCtx(); // AudioContext priming für späteren Beep
+  session.exTimerState = 'running';
+  session.exTimerTotalSec = timeSec;
+  session.exTimerEndTime = Date.now() + timeSec * 1000;
+  renderActiveScreen();
+}
+
+function stopExerciseTimer() {
+  resetExerciseTimer();
+  renderActiveScreen();
+}
+
 function startRest() {
   const w = getWorkout(session.workoutId);
   const ex = w.exercises[session.exerciseIndex];
   if (!ex) return;
+  resetExerciseTimer();
   session.restTotalSec = ex.restSec;
   session.restEndTime = Date.now() + ex.restSec * 1000;
   renderActiveScreen();
@@ -1399,6 +1981,7 @@ function finishRest(countSet = true) {
   if (countSet) session.completedSets[session.exerciseIndex]++;
   session.restEndTime = null;
   session.restTotalSec = 0;
+  resetExerciseTimer();
   renderActiveScreen();
 }
 
@@ -1408,6 +1991,7 @@ function jumpToExercise(idx) {
   if (idx < 0 || idx >= w.exercises.length) return;
   session.exerciseIndex = idx;
   session.restEndTime = null;
+  resetExerciseTimer();
   closeJumpSheet();
   renderActiveScreen();
 }
@@ -1417,6 +2001,7 @@ function nextExercise() {
   if (session.exerciseIndex < w.exercises.length - 1) {
     session.exerciseIndex++;
     session.restEndTime = null;
+    resetExerciseTimer();
     renderActiveScreen();
   }
 }
@@ -1424,6 +2009,7 @@ function prevExercise() {
   if (session.exerciseIndex > 0) {
     session.exerciseIndex--;
     session.restEndTime = null;
+    resetExerciseTimer();
     renderActiveScreen();
   }
 }
@@ -1470,6 +2056,37 @@ function renderActiveScreen() {
     const isComplete = done >= ex.sets;
     const isFirst = idx === 0;
     const isLast = idx === w.exercises.length - 1;
+
+    // Zeitbasierte Übung erkennen
+    const exTimeSec = parseTimeFromReps(ex.reps);
+    let miniTimerHtml = '';
+    if (exTimeSec) {
+      const st = session.exTimerState;
+      let displayText, btnLabel, btnClass = '', displayClass = '';
+      if (st === 'running') {
+        const remaining = Math.max(0, Math.ceil((session.exTimerEndTime - Date.now()) / 1000));
+        displayText = formatTime(remaining);
+        displayClass = remaining <= 3 && remaining > 0 ? 'warning' : 'running';
+        btnLabel = '⏹ Stopp';
+      } else if (st === 'ended') {
+        displayText = '0:00';
+        displayClass = 'ended';
+        btnLabel = '↻ Neu starten';
+        btnClass = 'primary';
+      } else {
+        displayText = formatTime(exTimeSec);
+        displayClass = 'idle';
+        btnLabel = '▶ Start';
+        btnClass = 'primary';
+      }
+      miniTimerHtml = `
+        <div class="mini-timer">
+          <div class="mini-timer-display ${displayClass}" id="mini-timer-display">${displayText}</div>
+          <button class="mini-timer-btn ${btnClass}" id="mini-timer-btn">${btnLabel}</button>
+        </div>
+      `;
+    }
+
     body.innerHTML = `
       <div class="exercise-view">
         <div class="exercise-meta-top">Übung ${idx+1} / ${w.exercises.length} · ${escapeHtml(w.name)}</div>
@@ -1489,6 +2106,7 @@ function renderActiveScreen() {
         <div class="exercise-stat" style="margin-bottom:18px">
           <div class="exercise-stat-label">Pro Satz</div>
           <div class="exercise-stat-value sub">${escapeHtml(ex.reps)}</div>
+          ${miniTimerHtml}
         </div>
 
         <div class="exercise-actions">
@@ -1505,6 +2123,30 @@ function renderActiveScreen() {
     document.getElementById('prev-btn').addEventListener('click', prevExercise);
     document.getElementById('next-btn').addEventListener('click', nextExercise);
     document.getElementById('jump-btn').addEventListener('click', openJumpSheet);
+
+    const miniBtn = document.getElementById('mini-timer-btn');
+    if (miniBtn) {
+      miniBtn.addEventListener('click', () => {
+        const st = session.exTimerState;
+        if (st === 'running') stopExerciseTimer();
+        else startExerciseTimer(); // idle oder ended → neu starten
+      });
+    }
+  }
+}
+
+function updateExerciseTimerDisplay() {
+  if (!session || session.exTimerState !== 'running') return;
+  const remaining = Math.max(0, Math.ceil((session.exTimerEndTime - Date.now()) / 1000));
+  const el = document.getElementById('mini-timer-display');
+  if (el) {
+    el.textContent = formatTime(remaining);
+    el.classList.toggle('warning', remaining <= 3 && remaining > 0);
+  }
+  if (remaining === 0) {
+    session.exTimerState = 'ended';
+    playBeep();
+    renderActiveScreen();
   }
 }
 
@@ -1618,8 +2260,9 @@ document.getElementById('save-preset-btn').addEventListener('click', () => {
 setInterval(() => {
   if (screen === 'home' && activeTab === 'timer') {
     updateTimerDisplays();
-  } else if (screen === 'workout-active' && isInRest()) {
-    updateRestDisplay();
+  } else if (screen === 'workout-active') {
+    if (isInRest()) updateRestDisplay();
+    else if (session && session.exTimerState === 'running') updateExerciseTimerDisplay();
   }
 }, 250);
 
@@ -1628,6 +2271,7 @@ setInterval(() => {
    ========================================================= */
 loadPresets();
 loadWorkouts();
+loadLibrary();
 showScreen('home');
 renderHomeTab();
 </script>
