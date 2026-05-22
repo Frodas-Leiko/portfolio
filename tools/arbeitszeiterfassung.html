@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbeitszeiterfassung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #0f3a3a;
+    --teal: #1a5e5b;
+    --teal-light: #3a8884;
+    --cream: #f8f3e8;
+    --cream-warm: #f1ead9;
+    --paper: #fefcf7;
+    --ink: #14201f;
+    --ink-soft: #4a5755;
+    --muted: #8a8e89;
+    --line: #d8cfb8;
+    --line-soft: #e8e0cd;
+    --gold: #a67232;
+    --gold-soft: #d4a960;
+    --red: #a33b2a;
+    --green: #3a6b3f;
+    --shadow: 0 1px 2px rgba(20,32,31,0.04), 0 4px 16px rgba(20,32,31,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 0 0 4rem;
+    font-feature-settings: 'ss01', 'ss02';
+  }
+
+  /* Decorative grain */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: radial-gradient(circle at 20% 30%, rgba(166,114,50,0.03) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 70%, rgba(26,94,91,0.04) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  main, header, .modal { position: relative; z-index: 1; }
+
+  /* Typography */
+  h1, h2, h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-variation-settings: 'opsz' 96;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  h1 { font-size: 1.75rem; line-height: 1; }
+  h2 { font-size: 1.4rem; margin-bottom: 1rem; }
+  h3 { font-size: 1.05rem; margin-bottom: .5rem; font-weight: 600; font-variation-settings: 'opsz' 14; }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-feature-settings: 'zero', 'ss01'; }
+
+  /* Topbar */
+  .topbar {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: baseline; gap: .6rem; }
+  .brand-mark {
+    width: 28px; height: 28px;
+    background: var(--teal-deep);
+    border-radius: 4px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .brand-mark::after {
+    content: ''; position: absolute;
+    inset: 6px;
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 2px;
+  }
+  .brand h1 { font-size: 1.4rem; font-style: italic; font-weight: 300; }
+  .brand .sub { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .15em; }
+
+  .month-nav {
+    display: flex; align-items: center; gap: .5rem;
+    margin-left: auto;
+    background: var(--cream-warm);
+    border-radius: 999px;
+    padding: .25rem;
+  }
+  .month-nav button {
+    background: transparent; border: 0;
+    width: 32px; height: 32px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--teal-deep);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .month-nav button:hover { background: var(--paper); }
+  .month-nav .month-label {
+    padding: 0 .8rem;
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--teal-deep);
+    min-width: 8em; text-align: center;
+    cursor: pointer;
+  }
+  .month-nav .today-btn {
+    padding: 0 .8rem;
+    width: auto;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+  }
+
+  .topbar-actions { display: flex; gap: .5rem; }
+
+  /* Buttons */
+  .btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: .85rem; font-weight: 500;
+    padding: .55rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: .4rem;
+    line-height: 1;
+  }
+  .btn:hover { border-color: var(--teal); }
+  .btn-primary {
+    background: var(--teal-deep); color: var(--paper);
+    border-color: var(--teal-deep);
+  }
+  .btn-primary:hover { background: var(--teal); border-color: var(--teal); }
+  .btn-ghost { background: transparent; border-color: transparent; }
+  .btn-ghost:hover { background: var(--cream-warm); }
+  .btn-danger { color: var(--red); border-color: transparent; background: transparent; }
+  .btn-danger:hover { background: rgba(163,59,42,0.08); }
+  .btn-small { padding: .3rem .6rem; font-size: .75rem; }
+  .btn-icon { padding: .4rem; min-width: 32px; justify-content: center; }
+
+  /* Main */
+  main {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .warning {
+    background: #fdf2d4;
+    border: 1px solid var(--gold-soft);
+    color: #6b4a18;
+    padding: .8rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    font-size: .85rem;
+  }
+
+  .employee-strip {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 1rem 1.25rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; gap: 2rem;
+    box-shadow: var(--shadow);
+  }
+  .employee-strip .field { display: flex; flex-direction: column; gap: .1rem; }
+  .employee-strip .label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    color: var(--muted);
+  }
+  .employee-strip .value {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .employee-strip .value.empty { color: var(--muted); font-style: normal; font-family: 'IBM Plex Sans'; font-size: .9rem; }
+
+  /* Summary grid */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .summary-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-card.position {
+    border-left: 3px solid var(--teal-deep);
+  }
+  .summary-card.position.pauschale { border-left-color: var(--gold); }
+  .summary-card.total {
+    background: var(--teal-deep);
+    color: var(--paper);
+    border-color: var(--teal-deep);
+  }
+  .summary-card.total .label { color: rgba(248,243,232,0.7); }
+  .summary-card.total .detail { color: rgba(248,243,232,0.6); }
+  .summary-card.info { background: var(--cream-warm); border-color: var(--line-soft); }
+
+  .summary-card .label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    color: var(--muted);
+    margin-bottom: .4rem;
+    display: block;
+  }
+  .summary-card .amount {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.65rem;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    display: block;
+    line-height: 1.1;
+  }
+  .summary-card.total .amount { color: var(--paper); font-size: 1.85rem; }
+  .summary-card .detail {
+    font-size: .8rem;
+    color: var(--ink-soft);
+    margin-top: .3rem;
+    display: block;
+  }
+  .summary-card .position-tag {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: .8rem;
+    color: var(--teal-light);
+    position: absolute;
+    top: .8rem; right: 1rem;
+  }
+  .summary-card.position.pauschale .position-tag { color: var(--gold); }
+
+  /* Action bar */
+  .action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+    align-items: center;
+  }
+  .action-bar .spacer { flex: 1; }
+  .action-bar .exports { display: flex; gap: .3rem; flex-wrap: wrap; }
+
+  /* Table */
+  .entries-wrap {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .entries-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+  }
+  .entries-table thead th {
+    background: var(--cream-warm);
+    color: var(--ink-soft);
+    font-weight: 500;
+    text-align: left;
+    padding: .7rem .8rem;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .entries-table tbody td {
+    padding: .65rem .8rem;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: middle;
+  }
+  .entries-table tbody tr:last-child td { border-bottom: 0; }
+  .entries-table tbody tr:hover { background: var(--cream-warm); }
+  .entries-table .num { font-family: 'IBM Plex Mono', monospace; text-align: right; font-variant-numeric: tabular-nums; }
+  .entries-table .num.pauschale-yes { color: var(--gold); font-weight: 500; }
+  .entries-table .num.pauschale-no { color: var(--muted); }
+  .entries-table .date-cell { font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .entries-table .date-cell .weekday { color: var(--muted); font-size: .72rem; display: block; }
+  .entries-table .site-cell { font-weight: 500; }
+  .entries-table .address-cell, .entries-table .type-cell { color: var(--ink-soft); font-size: .8rem; }
+  .entries-table .actions-cell { text-align: right; white-space: nowrap; }
+  .entries-table tfoot td {
+    background: var(--paper);
+    padding: .8rem;
+    border-top: 2px solid var(--ink);
+    font-weight: 600;
+  }
+  .entries-table tfoot .num { font-family: 'IBM Plex Mono', monospace; font-size: .95rem; }
+  .empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-state h3 { color: var(--ink); margin-bottom: .5rem; font-style: italic; font-family: 'Fraunces', serif; font-weight: 300; }
+
+  /* Future/today markers */
+  .entries-table tr.future td.date-cell::before {
+    content: '↗'; color: var(--gold); margin-right: .3rem;
+  }
+  .entries-table tr.today td.date-cell::before {
+    content: '●'; color: var(--green); margin-right: .3rem; font-size: .7em;
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(20,32,31,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-start; justify-content: center;
+    z-index: 100;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+  }
+  .modal.open { display: flex; }
+  .modal-content {
+    background: var(--paper);
+    border-radius: 6px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(20,32,31,0.25);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .modal-content.wide { max-width: 720px; }
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--cream-warm);
+  }
+  .modal-header h2 { margin: 0; font-style: italic; font-weight: 300; }
+  .modal-body { padding: 1.5rem; }
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: flex-end; gap: .5rem;
+    background: var(--cream);
+  }
+
+  /* Form */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .form-grid .span-2 { grid-column: span 2; }
+  .form-group { display: flex; flex-direction: column; gap: .3rem; }
+  .form-group label {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: .95rem;
+    padding: .55rem .7rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+    width: 100%;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: 0;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(26,94,91,0.12);
+  }
+  .form-group input.mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .form-section { margin-bottom: 2rem; }
+  .form-section:last-child { margin-bottom: 0; }
+  .form-section-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: var(--teal-deep);
+    margin-bottom: .8rem;
+    padding-bottom: .4rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .help-text { font-size: .75rem; color: var(--muted); }
+  .help-text.calc { color: var(--teal); font-weight: 500; }
+
+  /* Sub-list (sites / types) */
+  .sub-list {
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    background: var(--cream);
+    padding: .5rem;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .sub-list-item {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .4rem .5rem;
+    border-radius: 3px;
+  }
+  .sub-list-item:hover { background: var(--paper); }
+  .sub-list-item input { flex: 1; background: transparent; border: 0; padding: .2rem 0; font-size: .9rem; }
+  .sub-list-item input:focus { background: var(--paper); border-bottom: 1px solid var(--teal); outline: 0; }
+  .sub-list-add { display: flex; gap: .4rem; margin-top: .5rem; }
+  .sub-list-add input { flex: 1; }
+  .sub-list-empty { padding: 1rem; text-align: center; color: var(--muted); font-size: .8rem; font-style: italic; }
+
+  /* Settings nav */
+  .settings-tabs {
+    display: flex; gap: .25rem;
+    border-bottom: 1px solid var(--line);
+    padding: 0 1.5rem;
+    background: var(--cream-warm);
+  }
+  .settings-tab {
+    padding: .8rem 1rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: .85rem;
+    color: var(--ink-soft);
+    font-family: inherit;
+    margin-bottom: -1px;
+  }
+  .settings-tab.active {
+    color: var(--teal-deep);
+    border-bottom-color: var(--teal-deep);
+    font-weight: 500;
+  }
+  .settings-panel { display: none; }
+  .settings-panel.active { display: block; }
+
+  /* Print header (hidden onscreen, shown in print) */
+  .print-only { display: none; }
+
+  /* Mobile */
+  @media (max-width: 760px) {
+    .topbar { padding: .8rem 1rem; }
+    main { padding: 1rem; }
+    .month-nav { width: 100%; justify-content: space-between; margin-left: 0; }
+    .month-nav .month-label { flex: 1; }
+    .entries-wrap { overflow-x: auto; }
+    .entries-table { min-width: 900px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .span-2 { grid-column: span 1; }
+    .summary-card .amount { font-size: 1.35rem; }
+    .employee-strip { gap: 1rem; }
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: white; padding: 0; font-size: 11pt; color: black; }
+    body::before { display: none; }
+    .topbar, .action-bar, .modal, .actions-cell, .btn, .summary-card.info, .topbar-actions {
+      display: none !important;
+    }
+    main { max-width: none; padding: 0; }
+    .print-only { display: block; }
+    .print-header {
+      border-bottom: 2px solid black;
+      padding-bottom: .8rem;
+      margin-bottom: 1.2rem;
+    }
+    .print-header h1 {
+      font-size: 18pt;
+      font-family: 'Fraunces', serif;
+      margin-bottom: .3rem;
+    }
+    .print-header .meta {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .4rem;
+      font-size: 9.5pt;
+      margin-top: .5rem;
+    }
+    .print-header .meta .label { color: #555; text-transform: uppercase; font-size: 7.5pt; letter-spacing: .1em; }
+
+    .employee-strip { display: none; }
+    .summary-grid {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    .summary-card { box-shadow: none; border: 1px solid #999; padding: .5rem .7rem; }
+    .summary-card.total { background: white !important; color: black !important; border: 2px solid black; }
+    .summary-card.total .label, .summary-card.total .amount, .summary-card.total .detail { color: black !important; }
+    .summary-card .amount { font-size: 13pt; }
+    .summary-card .position-tag { display: none; }
+
+    .entries-wrap { box-shadow: none; border: 1px solid #555; border-radius: 0; }
+    .entries-table { font-size: 9.5pt; }
+    .entries-table thead th { background: #eee; color: black; border-bottom: 1px solid black; padding: .35rem .4rem; }
+    .entries-table tbody td { padding: .3rem .4rem; }
+    .entries-table tr.future td.date-cell::before, .entries-table tr.today td.date-cell::before { display: none; }
+    .entries-table tfoot td { background: white; border-top: 1.5px solid black; }
+    .entries-table .actions-cell { display: none; }
+    .entries-table thead th:last-child { display: none; }
+
+    .print-footer {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      font-size: 9.5pt;
+    }
+    .print-footer .sig {
+      border-top: 1px solid black;
+      padding-top: .3rem;
+      margin-top: 3rem;
+      font-style: italic;
+      color: #555;
+    }
+    @page { margin: 1.5cm; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <h1>Arbeitszeit</h1>
+      <div class="sub">Erfassung &amp; Abrechnung</div>
+    </div>
+  </div>
+
+  <nav class="month-nav">
+    <button id="prev-month" title="Vorheriger Monat">‹</button>
+    <span class="month-label" id="month-label">—</span>
+    <button id="next-month" title="Nächster Monat">›</button>
+    <button class="today-btn" id="today-btn">Heute</button>
+  </nav>
+
+  <div class="topbar-actions">
+    <button class="btn btn-ghost" id="open-settings">⚙ Einstellungen</button>
+  </div>
+</header>
+
+<main>
+  <div class="warning" id="storage-warning" hidden>
+    ⚠ Browser-Speicher nicht verfügbar — Daten gehen beim Neuladen verloren. Bitte „JSON sichern" verwenden.
+  </div>
+
+  <section class="employee-strip" id="employee-strip"></section>
+
+  <section class="summary-grid" id="summary-grid"></section>
+
+  <section class="action-bar">
+    <button class="btn btn-primary" id="add-entry">＋ Eintrag hinzufügen</button>
+    <div class="spacer"></div>
+    <div class="exports">
+      <button class="btn" id="print-btn">🖨 Drucken / PDF</button>
+      <button class="btn" id="export-csv">CSV</button>
+      <button class="btn" id="export-json">JSON sichern</button>
+      <button class="btn" id="import-json">JSON laden</button>
+      <input type="file" id="import-file" accept="application/json" hidden>
+    </div>
+  </section>
+
+  <div class="print-only print-header">
+    <h1>Stunden- und Reisekostenabrechnung</h1>
+    <div class="meta" id="print-meta"></div>
+  </div>
+
+  <section class="entries-wrap">
+    <table class="entries-table" id="entries-table">
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Einsatzort</th>
+          <th>Adresse</th>
+          <th>Art</th>
+          <th>Von</th>
+          <th>Bis</th>
+          <th class="num">Außer Haus</th>
+          <th class="num">Arbeitsstd.</th>
+          <th class="num">km</th>
+          <th class="num">Pauschale</th>
+          <th class="num">Bruttolohn</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="entries-tbody"></tbody>
+      <tfoot id="entries-tfoot"></tfoot>
+    </table>
+  </section>
+
+  <div class="print-only print-footer">
+    <div>
+      <div class="sig">Datum, Unterschrift Arbeitnehmer</div>
+    </div>
+    <div>
+      <div class="sig">Datum, Unterschrift Arbeitgeber</div>
+    </div>
+  </div>
+</main>
+
+<!-- ENTRY MODAL -->
+<div class="modal" id="entry-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="entry-modal-title">Neuer Eintrag</h2>
+      <button class="btn btn-ghost btn-icon" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="entry-form">
+        <input type="hidden" id="entry-id">
+
+        <div class="form-section">
+          <div class="form-section-title">Einsatz</div>
+          <div class="form-grid">
+            <div class="form-group span-2">
+              <label for="entry-date">Datum</label>
+              <input type="date" id="entry-date" required>
+            </div>
+            <div class="form-group">
+              <label for="entry-site">Einsatzort</label>
+              <select id="entry-site">
+                <option value="">— wählen —</option>
+                <option value="__new__">＋ Neuer Einsatzort…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="entry-site-new">Neuer Einsatzort (Name)</label>
+              <input type="text" id="entry-site-new" placeholder="z.B. Westfield Überseequartier">
+            </div>
+            <div class="form-group span-2">
+              <label for="entry-address">Adresse</label>
+              <input type="text" id="entry-address" placeholder="Straße, PLZ Ort">
+            </div>
+            <div class="form-group">
+              <label for="entry-type">Art des Einsatzes</label>
+              <select id="entry-type">
+                <option value="">— wählen —</option>
+                <option value="__new__">＋ Neue Art…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="entry-type-new">Neue Art (Name)</label>
+              <input type="text" id="entry-type-new" placeholder="z.B. Objektschutz">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Zeiten &amp; Strecke</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="entry-start">Abwesenheit von</label>
+              <input type="time" id="entry-start" class="mono">
+            </div>
+            <div class="form-group">
+              <label for="entry-end">Abwesenheit bis</label>
+              <input type="time" id="entry-end" class="mono">
+            </div>
+            <div class="form-group span-2">
+              <span class="help-text calc" id="calc-away">Außer Haus: —</span>
+            </div>
+            <div class="form-group">
+              <label for="entry-hours">Reine Arbeitszeit (Std., dezimal)</label>
+              <input type="number" id="entry-hours" class="mono" step="0.25" min="0" placeholder="7.5">
+            </div>
+            <div class="form-group">
+              <label for="entry-km">Kilometer (gesamt)</label>
+              <input type="number" id="entry-km" class="mono" step="1" min="0" placeholder="0">
+            </div>
+            <div class="form-group span-2">
+              <span class="help-text calc" id="calc-pay">Bruttolohn (Tag): —</span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="entry-delete" hidden>Löschen</button>
+      <div style="flex:1"></div>
+      <button class="btn" data-close-modal>Abbrechen</button>
+      <button class="btn btn-primary" id="entry-save">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal" id="settings-modal">
+  <div class="modal-content wide">
+    <div class="modal-header">
+      <h2>Einstellungen</h2>
+      <button class="btn btn-ghost btn-icon" data-close-modal>✕</button>
+    </div>
+    <div class="settings-tabs">
+      <button class="settings-tab active" data-tab="personal">Personalien</button>
+      <button class="settings-tab" data-tab="rates">Lohn &amp; Pauschale</button>
+      <button class="settings-tab" data-tab="sites">Einsatzorte</button>
+      <button class="settings-tab" data-tab="types">Einsatzarten</button>
+      <button class="settings-tab" data-tab="data">Daten</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-panel active" data-panel="personal">
+        <div class="form-grid">
+          <div class="form-group span-2">
+            <label for="set-name">Name</label>
+            <input type="text" id="set-name">
+          </div>
+          <div class="form-group">
+            <label for="set-personalnr">Personalnummer / Bewacher-ID</label>
+            <input type="text" id="set-personalnr">
+          </div>
+          <div class="form-group">
+            <label for="set-home">Wohnort</label>
+            <input type="text" id="set-home">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" data-panel="rates">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="set-wage">Stundenlohn (€)</label>
+            <input type="number" id="set-wage" class="mono" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label for="set-pauschale">VMA-Pauschale (€/Tag)</label>
+            <input type="number" id="set-pauschale" class="mono" step="0.01" min="0">
+          </div>
+          <div class="form-group span-2">
+            <label for="set-threshold">Pauschale gilt ab (Std. außer Haus)</label>
+            <input type="number" id="set-threshold" class="mono" step="0.5" min="0">
+            <span class="help-text">Aktuell laut Steuerrecht: 8 Std. für die kleine VMA-Pauschale.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" data-panel="sites">
+        <div class="form-section">
+          <span class="help-text">Diese Liste erscheint im Dropdown beim Eintrag. Pro Eintrag kann eine Standard-Adresse hinterlegt werden, die dann automatisch vorausgefüllt wird.</span>
+          <div class="sub-list" id="sites-list" style="margin-top:.8rem"></div>
+          <div class="sub-list-add">
+            <input type="text" id="new-site-name" placeholder="Name des Einsatzorts">
+            <input type="text" id="new-site-address" placeholder="Adresse (optional)">
+            <button class="btn btn-primary btn-small" id="add-site">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" data-panel="types">
+        <div class="form-section">
+          <span class="help-text">Z.B. Objektschutz, Revierdienst, Veranstaltungsschutz, Empfangsdienst…</span>
+          <div class="sub-list" id="types-list" style="margin-top:.8rem"></div>
+          <div class="sub-list-add">
+            <input type="text" id="new-type-name" placeholder="Art des Einsatzes">
+            <button class="btn btn-primary btn-small" id="add-type">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" data-panel="data">
+        <div class="form-section">
+          <div class="form-section-title">Sicherung</div>
+          <span class="help-text">Alle Daten werden im Browser dieses Geräts gespeichert. Regelmäßige JSON-Backups sind dringend empfohlen.</span>
+          <div style="display:flex; gap:.5rem; margin-top:.8rem; flex-wrap:wrap">
+            <button class="btn" id="settings-export-json">JSON-Backup herunterladen</button>
+            <button class="btn" id="settings-import-json">JSON-Backup laden</button>
+            <button class="btn btn-danger" id="reset-all">Alle Daten löschen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="flex:1"></div>
+      <button class="btn" data-close-modal>Schließen</button>
+      <button class="btn btn-primary" id="settings-save">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ============== STATE ==============
+const STORAGE_KEY = 'arbeitszeit_v1';
+let storageAvailable = true;
+
+const DEFAULT_STATE = {
+  settings: {
+    employeeName: '',
+    personalNumber: '',
+    homeLocation: '',
+    hourlyWage: 0,
+    pauschaleAmount: 14,
+    pauschaleThresholdHours: 8,
+    sites: [],          // [{name, address}]
+    assignmentTypes: [] // [name]
+  },
+  entries: []           // [{id, date, siteName, address, assignmentType, startTime, endTime, workHours, kilometers}]
+};
+
+let state = loadState();
+let viewYear, viewMonth;  // 1..12
+{
+  const now = new Date();
+  viewYear = now.getFullYear();
+  viewMonth = now.getMonth() + 1;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(DEFAULT_STATE);
+    const parsed = JSON.parse(raw);
+    // Merge with defaults so new fields don't break
+    return {
+      settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
+      entries: Array.isArray(parsed.entries) ? parsed.entries : []
+    };
+  } catch (e) {
+    storageAvailable = false;
+    return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    storageAvailable = false;
+    document.getElementById('storage-warning').hidden = false;
+  }
+}
+
+if (!storageAvailable) {
+  document.getElementById('storage-warning').hidden = false;
+}
+
+// ============== UTILITIES ==============
+const fmtEur = n => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(n || 0);
+const fmtNum = (n, d=2) => new Intl.NumberFormat('de-DE', { minimumFractionDigits:d, maximumFractionDigits:d }).format(n || 0);
+const fmtInt = n => new Intl.NumberFormat('de-DE').format(Math.round(n || 0));
+const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WEEKDAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+function uuid() {
+  return 'e_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+function hoursBetween(start, end) {
+  if (!start || !end) return 0;
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let diff = (eh + em/60) - (sh + sm/60);
+  if (diff < 0) diff += 24;
+  return diff;
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function calcEntry(e) {
+  const hoursAway = hoursBetween(e.startTime, e.endTime);
+  const workHours = +e.workHours || 0;
+  const eligible = hoursAway >= (+state.settings.pauschaleThresholdHours || 8);
+  const pauschale = eligible ? (+state.settings.pauschaleAmount || 0) : 0;
+  const gross = workHours * (+state.settings.hourlyWage || 0);
+  return { hoursAway, workHours, pauschale, gross, eligible };
+}
+
+function entriesForView() {
+  const prefix = viewYear + '-' + String(viewMonth).padStart(2,'0');
+  return state.entries
+    .filter(e => e.date && e.date.startsWith(prefix))
+    .sort((a,b) => a.date.localeCompare(b.date));
+}
+
+// ============== RENDERING ==============
+function render() {
+  renderMonthLabel();
+  renderEmployeeStrip();
+  renderSummary();
+  renderEntries();
+  renderPrintMeta();
+}
+
+function renderMonthLabel() {
+  document.getElementById('month-label').textContent = MONTH_NAMES[viewMonth-1] + ' ' + viewYear;
+}
+
+function renderEmployeeStrip() {
+  const s = state.settings;
+  const el = document.getElementById('employee-strip');
+  const items = [
+    ['Mitarbeiter', s.employeeName],
+    ['Personalnr.', s.personalNumber],
+    ['Wohnort', s.homeLocation],
+    ['Stundenlohn', s.hourlyWage ? fmtEur(s.hourlyWage) : null],
+    ['VMA-Pauschale', `${fmtEur(s.pauschaleAmount)} ab ${fmtNum(s.pauschaleThresholdHours,0)} Std`]
+  ];
+  el.innerHTML = items.map(([label, val]) => `
+    <div class="field">
+      <span class="label">${label}</span>
+      <span class="value ${val ? '' : 'empty'}">${val || 'nicht gesetzt'}</span>
+    </div>
+  `).join('');
+}
+
+function renderSummary() {
+  const entries = entriesForView();
+  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalKm = 0, totalAway = 0, pauschaleDays = 0;
+  for (const e of entries) {
+    const c = calcEntry(e);
+    totalWorkHours += c.workHours;
+    totalGross += c.gross;
+    totalPauschale += c.pauschale;
+    if (c.eligible) pauschaleDays++;
+    totalKm += (+e.kilometers || 0);
+    totalAway += c.hoursAway;
+  }
+  const sum = totalGross + totalPauschale;
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="summary-card position">
+      <span class="position-tag">Position 1</span>
+      <span class="label">Bruttolohn</span>
+      <span class="amount">${fmtEur(totalGross)}</span>
+      <span class="detail">${fmtNum(totalWorkHours,2)} Std × ${fmtEur(state.settings.hourlyWage)}</span>
+    </div>
+    <div class="summary-card position pauschale">
+      <span class="position-tag">Position 2</span>
+      <span class="label">VMA-Pauschalen</span>
+      <span class="amount">${fmtEur(totalPauschale)}</span>
+      <span class="detail">${pauschaleDays} ${pauschaleDays === 1 ? 'Tag' : 'Tage'} × ${fmtEur(state.settings.pauschaleAmount)}</span>
+    </div>
+    <div class="summary-card total">
+      <span class="label">Summe (Position 1 + 2)</span>
+      <span class="amount">${fmtEur(sum)}</span>
+      <span class="detail">${entries.length} ${entries.length === 1 ? 'Einsatztag' : 'Einsatztage'}</span>
+    </div>
+    <div class="summary-card info">
+      <span class="label">Nur Steuer-Info</span>
+      <span class="amount" style="font-size:1rem; line-height:1.4">
+        ${fmtNum(totalAway,1)} Std außer Haus<br>
+        ${fmtInt(totalKm)} km gesamt
+      </span>
+      <span class="detail">Nicht Bestandteil der Abrechnung</span>
+    </div>
+  `;
+}
+
+function renderEntries() {
+  const entries = entriesForView();
+  const tbody = document.getElementById('entries-tbody');
+  const tfoot = document.getElementById('entries-tfoot');
+  const today = todayISO();
+
+  if (entries.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="12" class="empty-state">
+      <h3>Keine Einträge für ${MONTH_NAMES[viewMonth-1]} ${viewYear}</h3>
+      <p>Über „＋ Eintrag hinzufügen" einen ersten Tag erfassen.</p>
+    </td></tr>`;
+    tfoot.innerHTML = '';
+    return;
+  }
+
+  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalKm = 0, totalAway = 0;
+  tbody.innerHTML = entries.map(e => {
+    const c = calcEntry(e);
+    totalWorkHours += c.workHours;
+    totalGross += c.gross;
+    totalPauschale += c.pauschale;
+    totalKm += (+e.kilometers || 0);
+    totalAway += c.hoursAway;
+
+    const d = parseDate(e.date);
+    const wd = WEEKDAYS[d.getDay()];
+    const dateStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+    const cls = e.date > today ? 'future' : (e.date === today ? 'today' : '');
+
+    return `<tr class="${cls}" data-id="${e.id}">
+      <td class="date-cell">${dateStr}<span class="weekday">${wd}</span></td>
+      <td class="site-cell">${escapeHtml(e.siteName || '—')}</td>
+      <td class="address-cell">${escapeHtml(e.address || '')}</td>
+      <td class="type-cell">${escapeHtml(e.assignmentType || '')}</td>
+      <td class="num">${e.startTime || ''}</td>
+      <td class="num">${e.endTime || ''}</td>
+      <td class="num">${c.hoursAway ? fmtNum(c.hoursAway,1) + ' h' : ''}</td>
+      <td class="num">${c.workHours ? fmtNum(c.workHours,2) : ''}</td>
+      <td class="num">${e.kilometers ? fmtInt(e.kilometers) : ''}</td>
+      <td class="num ${c.eligible ? 'pauschale-yes' : 'pauschale-no'}">${c.pauschale ? fmtEur(c.pauschale) : '—'}</td>
+      <td class="num">${fmtEur(c.gross)}</td>
+      <td class="actions-cell">
+        <button class="btn btn-ghost btn-small" data-edit="${e.id}">Bearb.</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  tfoot.innerHTML = `<tr>
+    <td colspan="6" style="text-align:right">Summen</td>
+    <td class="num">${fmtNum(totalAway,1)} h</td>
+    <td class="num">${fmtNum(totalWorkHours,2)}</td>
+    <td class="num">${fmtInt(totalKm)}</td>
+    <td class="num">${fmtEur(totalPauschale)}</td>
+    <td class="num">${fmtEur(totalGross)}</td>
+    <td></td>
+  </tr>`;
+
+  // wire edit buttons
+  tbody.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => openEntryModal(btn.dataset.edit));
+  });
+}
+
+function renderPrintMeta() {
+  const s = state.settings;
+  const fields = [
+    ['Mitarbeiter', s.employeeName || '—'],
+    ['Personalnr.', s.personalNumber || '—'],
+    ['Wohnort', s.homeLocation || '—'],
+    ['Zeitraum', MONTH_NAMES[viewMonth-1] + ' ' + viewYear]
+  ];
+  document.getElementById('print-meta').innerHTML = fields.map(([l,v]) => `
+    <div><div class="label">${l}</div><div>${escapeHtml(v)}</div></div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============== MONTH NAVIGATION ==============
+document.getElementById('prev-month').addEventListener('click', () => {
+  viewMonth--; if (viewMonth < 1) { viewMonth = 12; viewYear--; }
+  render();
+});
+document.getElementById('next-month').addEventListener('click', () => {
+  viewMonth++; if (viewMonth > 12) { viewMonth = 1; viewYear++; }
+  render();
+});
+document.getElementById('today-btn').addEventListener('click', () => {
+  const now = new Date();
+  viewYear = now.getFullYear(); viewMonth = now.getMonth()+1;
+  render();
+});
+document.getElementById('month-label').addEventListener('click', () => {
+  const input = prompt('Monat (JJJJ-MM):', viewYear + '-' + String(viewMonth).padStart(2,'0'));
+  if (!input) return;
+  const m = input.match(/^(\d{4})-(\d{1,2})$/);
+  if (!m) { alert('Format: JJJJ-MM'); return; }
+  viewYear = +m[1]; viewMonth = Math.max(1, Math.min(12, +m[2]));
+  render();
+});
+
+// ============== ENTRY MODAL ==============
+const entryModal = document.getElementById('entry-modal');
+
+function openEntryModal(id) {
+  const form = document.getElementById('entry-form');
+  form.reset();
+  populateSiteDropdown();
+  populateTypeDropdown();
+
+  document.getElementById('entry-site-new').parentElement.style.display = 'none';
+  document.getElementById('entry-type-new').parentElement.style.display = 'none';
+
+  if (id) {
+    const e = state.entries.find(x => x.id === id);
+    if (!e) return;
+    document.getElementById('entry-modal-title').textContent = 'Eintrag bearbeiten';
+    document.getElementById('entry-id').value = e.id;
+    document.getElementById('entry-date').value = e.date || '';
+    setSelectOrCustom('entry-site', e.siteName);
+    document.getElementById('entry-address').value = e.address || '';
+    setSelectOrCustom('entry-type', e.assignmentType);
+    document.getElementById('entry-start').value = e.startTime || '';
+    document.getElementById('entry-end').value = e.endTime || '';
+    document.getElementById('entry-hours').value = e.workHours || '';
+    document.getElementById('entry-km').value = e.kilometers || '';
+    document.getElementById('entry-delete').hidden = false;
+  } else {
+    document.getElementById('entry-modal-title').textContent = 'Neuer Eintrag';
+    document.getElementById('entry-id').value = '';
+    // prefill from last entry where possible
+    const last = [...state.entries].sort((a,b) => b.date.localeCompare(a.date))[0];
+    document.getElementById('entry-date').value = todayISO();
+    if (last) {
+      setSelectOrCustom('entry-site', last.siteName);
+      document.getElementById('entry-address').value = last.address || '';
+      setSelectOrCustom('entry-type', last.assignmentType);
+      document.getElementById('entry-start').value = last.startTime || '';
+      document.getElementById('entry-end').value = last.endTime || '';
+    }
+    document.getElementById('entry-delete').hidden = true;
+  }
+  updateLiveCalc();
+  entryModal.classList.add('open');
+}
+
+function setSelectOrCustom(selectId, value) {
+  const sel = document.getElementById(selectId);
+  if (!value) { sel.value = ''; return; }
+  const has = [...sel.options].some(o => o.value === value);
+  if (has) {
+    sel.value = value;
+  } else {
+    sel.value = '__new__';
+    const newInput = document.getElementById(selectId + '-new');
+    newInput.value = value;
+    newInput.parentElement.style.display = '';
+  }
+}
+
+function populateSiteDropdown() {
+  const sel = document.getElementById('entry-site');
+  sel.innerHTML = '<option value="">— wählen —</option>' +
+    state.settings.sites.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('') +
+    '<option value="__new__">＋ Neuer Einsatzort…</option>';
+}
+function populateTypeDropdown() {
+  const sel = document.getElementById('entry-type');
+  sel.innerHTML = '<option value="">— wählen —</option>' +
+    state.settings.assignmentTypes.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('') +
+    '<option value="__new__">＋ Neue Art…</option>';
+}
+
+document.getElementById('entry-site').addEventListener('change', e => {
+  const newGroup = document.getElementById('entry-site-new').parentElement;
+  if (e.target.value === '__new__') {
+    newGroup.style.display = '';
+    document.getElementById('entry-site-new').focus();
+  } else {
+    newGroup.style.display = 'none';
+    // autofill address from known site
+    const site = state.settings.sites.find(s => s.name === e.target.value);
+    if (site && site.address) document.getElementById('entry-address').value = site.address;
+  }
+});
+document.getElementById('entry-type').addEventListener('change', e => {
+  const newGroup = document.getElementById('entry-type-new').parentElement;
+  if (e.target.value === '__new__') {
+    newGroup.style.display = '';
+    document.getElementById('entry-type-new').focus();
+  } else {
+    newGroup.style.display = 'none';
+  }
+});
+
+['entry-start','entry-end','entry-hours'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateLiveCalc);
+});
+
+function updateLiveCalc() {
+  const start = document.getElementById('entry-start').value;
+  const end = document.getElementById('entry-end').value;
+  const hours = +document.getElementById('entry-hours').value || 0;
+  const away = hoursBetween(start, end);
+  const threshold = +state.settings.pauschaleThresholdHours || 8;
+  const pauschale = away >= threshold ? (+state.settings.pauschaleAmount || 0) : 0;
+  const gross = hours * (+state.settings.hourlyWage || 0);
+
+  document.getElementById('calc-away').textContent =
+    `Außer Haus: ${away ? fmtNum(away,2) + ' Std' : '—'}` +
+    (away ? `  •  Pauschale: ${pauschale ? fmtEur(pauschale) + ' ✓' : 'nein (< ' + fmtNum(threshold,0) + ' Std)'}` : '');
+  document.getElementById('calc-pay').textContent =
+    `Bruttolohn (Tag): ${gross ? fmtEur(gross) : '—'}`;
+}
+
+document.getElementById('add-entry').addEventListener('click', () => openEntryModal(null));
+
+document.getElementById('entry-save').addEventListener('click', () => {
+  const id = document.getElementById('entry-id').value;
+  const date = document.getElementById('entry-date').value;
+  if (!date) { alert('Bitte ein Datum angeben.'); return; }
+
+  let siteName = document.getElementById('entry-site').value;
+  if (siteName === '__new__') {
+    siteName = document.getElementById('entry-site-new').value.trim();
+    if (siteName && !state.settings.sites.find(s => s.name === siteName)) {
+      state.settings.sites.push({ name: siteName, address: document.getElementById('entry-address').value.trim() });
+    }
+  }
+
+  let assignmentType = document.getElementById('entry-type').value;
+  if (assignmentType === '__new__') {
+    assignmentType = document.getElementById('entry-type-new').value.trim();
+    if (assignmentType && !state.settings.assignmentTypes.includes(assignmentType)) {
+      state.settings.assignmentTypes.push(assignmentType);
+    }
+  }
+
+  const entry = {
+    id: id || uuid(),
+    date,
+    siteName,
+    address: document.getElementById('entry-address').value.trim(),
+    assignmentType,
+    startTime: document.getElementById('entry-start').value,
+    endTime: document.getElementById('entry-end').value,
+    workHours: +document.getElementById('entry-hours').value || 0,
+    kilometers: +document.getElementById('entry-km').value || 0
+  };
+
+  if (id) {
+    const idx = state.entries.findIndex(x => x.id === id);
+    if (idx >= 0) state.entries[idx] = entry;
+  } else {
+    state.entries.push(entry);
+  }
+  saveState();
+  closeModals();
+  render();
+});
+
+document.getElementById('entry-delete').addEventListener('click', () => {
+  const id = document.getElementById('entry-id').value;
+  if (!id) return;
+  if (!confirm('Diesen Eintrag wirklich löschen?')) return;
+  state.entries = state.entries.filter(x => x.id !== id);
+  saveState();
+  closeModals();
+  render();
+});
+
+// ============== SETTINGS MODAL ==============
+const settingsModal = document.getElementById('settings-modal');
+
+function openSettings() {
+  const s = state.settings;
+  document.getElementById('set-name').value = s.employeeName || '';
+  document.getElementById('set-personalnr').value = s.personalNumber || '';
+  document.getElementById('set-home').value = s.homeLocation || '';
+  document.getElementById('set-wage').value = s.hourlyWage || '';
+  document.getElementById('set-pauschale').value = s.pauschaleAmount || '';
+  document.getElementById('set-threshold').value = s.pauschaleThresholdHours || '';
+  renderSitesList();
+  renderTypesList();
+  // reset to first tab
+  document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'personal'));
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === 'personal'));
+  settingsModal.classList.add('open');
+}
+
+document.querySelectorAll('.settings-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.settings-tab').forEach(x => x.classList.toggle('active', x === t));
+    document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === t.dataset.tab));
+  });
+});
+
+document.getElementById('open-settings').addEventListener('click', openSettings);
+
+function renderSitesList() {
+  const list = document.getElementById('sites-list');
+  if (state.settings.sites.length === 0) {
+    list.innerHTML = '<div class="sub-list-empty">Noch keine Einsatzorte hinterlegt.</div>';
+    return;
+  }
+  list.innerHTML = state.settings.sites.map((s, i) => `
+    <div class="sub-list-item">
+      <input type="text" value="${escapeHtml(s.name)}" data-site-name="${i}" placeholder="Name">
+      <input type="text" value="${escapeHtml(s.address || '')}" data-site-address="${i}" placeholder="Adresse">
+      <button class="btn btn-danger btn-small" data-remove-site="${i}">✕</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-site-name]').forEach(inp => {
+    inp.addEventListener('change', () => { state.settings.sites[+inp.dataset.siteName].name = inp.value.trim(); });
+  });
+  list.querySelectorAll('[data-site-address]').forEach(inp => {
+    inp.addEventListener('change', () => { state.settings.sites[+inp.dataset.siteAddress].address = inp.value.trim(); });
+  });
+  list.querySelectorAll('[data-remove-site]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.settings.sites.splice(+btn.dataset.removeSite, 1);
+      renderSitesList();
+    });
+  });
+}
+function renderTypesList() {
+  const list = document.getElementById('types-list');
+  if (state.settings.assignmentTypes.length === 0) {
+    list.innerHTML = '<div class="sub-list-empty">Noch keine Einsatzarten hinterlegt.</div>';
+    return;
+  }
+  list.innerHTML = state.settings.assignmentTypes.map((t, i) => `
+    <div class="sub-list-item">
+      <input type="text" value="${escapeHtml(t)}" data-type-name="${i}">
+      <button class="btn btn-danger btn-small" data-remove-type="${i}">✕</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-type-name]').forEach(inp => {
+    inp.addEventListener('change', () => { state.settings.assignmentTypes[+inp.dataset.typeName] = inp.value.trim(); });
+  });
+  list.querySelectorAll('[data-remove-type]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.settings.assignmentTypes.splice(+btn.dataset.removeType, 1);
+      renderTypesList();
+    });
+  });
+}
+
+document.getElementById('add-site').addEventListener('click', () => {
+  const name = document.getElementById('new-site-name').value.trim();
+  const addr = document.getElementById('new-site-address').value.trim();
+  if (!name) return;
+  state.settings.sites.push({ name, address: addr });
+  document.getElementById('new-site-name').value = '';
+  document.getElementById('new-site-address').value = '';
+  renderSitesList();
+});
+document.getElementById('add-type').addEventListener('click', () => {
+  const name = document.getElementById('new-type-name').value.trim();
+  if (!name) return;
+  state.settings.assignmentTypes.push(name);
+  document.getElementById('new-type-name').value = '';
+  renderTypesList();
+});
+
+document.getElementById('settings-save').addEventListener('click', () => {
+  state.settings.employeeName = document.getElementById('set-name').value.trim();
+  state.settings.personalNumber = document.getElementById('set-personalnr').value.trim();
+  state.settings.homeLocation = document.getElementById('set-home').value.trim();
+  state.settings.hourlyWage = +document.getElementById('set-wage').value || 0;
+  state.settings.pauschaleAmount = +document.getElementById('set-pauschale').value || 14;
+  state.settings.pauschaleThresholdHours = +document.getElementById('set-threshold').value || 8;
+  // sites and types are already updated live
+  saveState();
+  closeModals();
+  render();
+});
+
+// ============== EXPORT / IMPORT ==============
+function downloadFile(filename, content, mime='text/plain') {
+  const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('print-btn').addEventListener('click', () => window.print());
+
+document.getElementById('export-csv').addEventListener('click', () => {
+  const entries = entriesForView();
+  const header = ['Datum','Einsatzort','Adresse','Art','Von','Bis','Außer Haus (Std)','Arbeitsstd','km','Pauschale (€)','Bruttolohn (€)'];
+  const rows = entries.map(e => {
+    const c = calcEntry(e);
+    return [
+      e.date,
+      e.siteName || '',
+      e.address || '',
+      e.assignmentType || '',
+      e.startTime || '',
+      e.endTime || '',
+      fmtNum(c.hoursAway,2),
+      fmtNum(c.workHours,2),
+      e.kilometers || 0,
+      fmtNum(c.pauschale,2),
+      fmtNum(c.gross,2)
+    ];
+  });
+  const csv = [header, ...rows].map(r => r.map(v => {
+    const s = String(v);
+    return /[";\n,]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(';')).join('\n');
+  const filename = `arbeitszeit_${viewYear}-${String(viewMonth).padStart(2,'0')}.csv`;
+  downloadFile(filename, '\ufeff' + csv, 'text/csv');
+});
+
+function exportJSON() {
+  const data = JSON.stringify(state, null, 2);
+  const filename = `arbeitszeit_backup_${todayISO()}.json`;
+  downloadFile(filename, data, 'application/json');
+}
+document.getElementById('export-json').addEventListener('click', exportJSON);
+document.getElementById('settings-export-json').addEventListener('click', exportJSON);
+
+function triggerImport() { document.getElementById('import-file').click(); }
+document.getElementById('import-json').addEventListener('click', triggerImport);
+document.getElementById('settings-import-json').addEventListener('click', triggerImport);
+
+document.getElementById('import-file').addEventListener('change', async ev => {
+  const f = ev.target.files[0];
+  if (!f) return;
+  try {
+    const txt = await f.text();
+    const data = JSON.parse(txt);
+    if (!data.settings || !Array.isArray(data.entries)) throw new Error('Ungültiges Backup-Format');
+    if (!confirm('Aktuelle Daten überschreiben?')) return;
+    state = {
+      settings: { ...DEFAULT_STATE.settings, ...data.settings },
+      entries: data.entries
+    };
+    saveState();
+    render();
+    closeModals();
+    alert('Backup geladen.');
+  } catch (e) {
+    alert('Fehler beim Laden: ' + e.message);
+  } finally {
+    ev.target.value = '';
+  }
+});
+
+document.getElementById('reset-all').addEventListener('click', () => {
+  if (!confirm('WIRKLICH alle Daten und Einstellungen löschen?')) return;
+  if (!confirm('Sicher? Diese Aktion ist nicht rückgängig zu machen.')) return;
+  state = structuredClone(DEFAULT_STATE);
+  saveState();
+  closeModals();
+  render();
+});
+
+// ============== MODAL DISMISS ==============
+function closeModals() {
+  document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+}
+document.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModals));
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModals(); });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+// ============== INITIAL RENDER ==============
+render();
+</script>
+</body>
+</html>
