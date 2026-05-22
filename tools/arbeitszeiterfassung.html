@@ -399,6 +399,211 @@
     color: var(--ink);
   }
 
+  /* Attachments */
+  .attachments-section { margin-top: 1.5rem; }
+  .attachments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: .6rem;
+    margin-bottom: .8rem;
+  }
+  .attachments-empty {
+    grid-column: 1 / -1;
+    padding: 1.2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: .85rem;
+    font-style: italic;
+    background: var(--cream);
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+  }
+  .att-thumb {
+    position: relative;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    display: flex; flex-direction: column;
+  }
+  .att-thumb img {
+    width: 100%; flex: 1; min-height: 0;
+    object-fit: cover;
+    background: #fff;
+    display: block;
+  }
+  .att-meta {
+    padding: .35rem .5rem;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    font-size: .68rem;
+    display: flex; flex-direction: column; gap: .15rem;
+    line-height: 1.3;
+  }
+  .att-badge {
+    display: inline-block;
+    padding: .05rem .35rem;
+    border-radius: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    width: fit-content;
+    font-size: .6rem;
+  }
+  .att-badge.pdf { background: var(--gold-soft); color: #4a2f0f; }
+  .att-badge.img { background: var(--teal-light); color: var(--paper); }
+  .att-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ink);
+  }
+  .att-size { color: var(--muted); }
+  .att-remove {
+    position: absolute;
+    top: .3rem; right: .3rem;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(20,32,31,0.7);
+    color: white;
+    cursor: pointer;
+    font-size: .75rem;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .att-remove:hover { background: var(--red); }
+
+  .upload-zone {
+    border: 2px dashed var(--line);
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: center;
+    background: var(--cream);
+    transition: all .15s;
+  }
+  .upload-zone.drag-over {
+    border-color: var(--teal);
+    background: rgba(26,94,91,0.06);
+  }
+  .upload-zone .help-text { display: block; margin-top: .5rem; }
+  #upload-status {
+    display: block;
+    margin-top: .4rem;
+    font-size: .75rem;
+    color: var(--teal);
+    min-height: 1em;
+  }
+  #upload-status.error { color: var(--red); }
+
+  .attachment-indicator {
+    display: inline-flex; align-items: center; gap: .2rem;
+    color: var(--teal); font-size: .75rem;
+    margin-left: .3rem;
+    vertical-align: middle;
+  }
+
+  /* Meal checkboxes (Mahlzeitenkürzung) */
+  .meals-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .3rem;
+  }
+  .meal-check {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .55rem .8rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--cream);
+    cursor: pointer;
+    transition: all .15s;
+    font-size: .85rem;
+    flex: 1 1 130px;
+    user-select: none;
+  }
+  .meal-check:hover { border-color: var(--teal-light); }
+  .meal-check input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--teal-deep);
+    margin: 0;
+    cursor: pointer;
+  }
+  .meal-check.checked {
+    background: rgba(166,114,50,0.08);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .meal-check .meal-amount {
+    color: var(--muted);
+    font-size: .75rem;
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .meal-check.checked .meal-amount { color: var(--gold); font-weight: 500; }
+
+  .meal-indicator {
+    display: inline-flex; gap: .15rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+  .meal-indicator .m {
+    background: var(--gold-soft);
+    color: #4a2f0f;
+    padding: 1px 4px;
+    border-radius: 2px;
+    line-height: 1.2;
+  }
+
+  /* First workplace status note */
+  .workplace-note {
+    font-size: .72rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: .25rem;
+  }
+
+  /* Print attachment pages (rendered into #print-attachments-container) */
+  #print-attachments-container { display: none; }
+  @media print {
+    #print-attachments-container { display: block; }
+    .print-attachment-page {
+      page-break-before: always;
+      padding: 0;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+    .att-print-header {
+      border-bottom: 2px solid black;
+      padding-bottom: .5rem;
+      margin-bottom: .8rem;
+    }
+    .att-print-title {
+      font-family: 'Fraunces', serif;
+      font-size: 14pt;
+      margin-bottom: .35rem;
+    }
+    .att-print-meta {
+      font-size: 9pt;
+      color: #333;
+      display: flex; flex-wrap: wrap; gap: .25rem 1.2rem;
+    }
+    .att-print-meta strong { color: black; font-weight: 600; }
+    .att-print-image {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .att-print-image img {
+      max-width: 100%;
+      max-height: 24cm;
+      object-fit: contain;
+    }
+  }
+
   /* Modal */
   .modal {
     position: fixed; inset: 0;
@@ -753,6 +958,7 @@
           <th class="num">Außer Haus</th>
           <th class="num">Arbeitsstd.</th>
           <th class="num">km</th>
+          <th class="num">Mahlz.</th>
           <th class="num">Pauschale</th>
           <th class="num">Bruttolohn</th>
           <th></th>
@@ -820,6 +1026,9 @@
         <div class="sig">Datum, Unterschrift Arbeitgeber</div>
       </div>
     </div>
+
+    <!-- Belege als zusätzliche Druckseiten -->
+    <div id="print-attachments-container"></div>
 
   </div><!-- /spesen view -->
 </main>
@@ -898,6 +1107,28 @@
             </div>
           </div>
         </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Mahlzeiten vom Arbeitgeber gestellt</div>
+          <div class="meals-row">
+            <label class="meal-check" id="meal-breakfast-label">
+              <input type="checkbox" id="meal-breakfast">
+              <span>Frühstück</span>
+              <span class="meal-amount" id="meal-breakfast-amt">−5,60 €</span>
+            </label>
+            <label class="meal-check" id="meal-lunch-label">
+              <input type="checkbox" id="meal-lunch">
+              <span>Mittag</span>
+              <span class="meal-amount" id="meal-lunch-amt">−11,20 €</span>
+            </label>
+            <label class="meal-check" id="meal-dinner-label">
+              <input type="checkbox" id="meal-dinner">
+              <span>Abend</span>
+              <span class="meal-amount" id="meal-dinner-amt">−11,20 €</span>
+            </label>
+          </div>
+          <span class="help-text">Bei gestellten Mahlzeiten wird die VMA-Pauschale entsprechend § 9 Abs. 4a EStG gekürzt.</span>
+        </div>
       </form>
     </div>
     <div class="modal-footer">
@@ -939,6 +1170,17 @@
             <label for="set-home">Wohnort</label>
             <input type="text" id="set-home">
           </div>
+          <div class="form-group span-2">
+            <label>Erste Tätigkeitsstätte (steuerlich)</label>
+            <div style="display:flex; gap:.5rem; align-items:center; padding:.4rem 0;">
+              <input type="checkbox" id="set-no-first-workplace" style="width:18px;height:18px;accent-color:var(--teal-deep);">
+              <label for="set-no-first-workplace" style="font-size:.9rem; cursor:pointer; flex:1;">
+                Keine erste Tätigkeitsstätte – wechselnde auswärtige Einsatzorte
+              </label>
+            </div>
+            <input type="text" id="set-first-workplace" placeholder="Falls vorhanden: Adresse der ersten Tätigkeitsstätte">
+            <span class="help-text">Bei wechselnden Einsatzorten (typisch für Bewacher/Sicherheitsdienste) hakst du oben „keine erste Tätigkeitsstätte" an. Diese Information erscheint auf der Druckabrechnung.</span>
+          </div>
         </div>
       </div>
 
@@ -956,6 +1198,22 @@
             <label for="set-threshold">Pauschale gilt ab (Std. außer Haus)</label>
             <input type="number" id="set-threshold" class="mono" step="0.5" min="0">
             <span class="help-text">Aktuell laut Steuerrecht: 8 Std. für die kleine VMA-Pauschale.</span>
+          </div>
+          <div class="form-group span-2" style="margin-top:.4rem; padding-top:.8rem; border-top:1px solid var(--line-soft);">
+            <label>Kürzung bei Mahlzeitengestellung (§ 9 Abs. 4a EStG)</label>
+            <span class="help-text">Festbeträge in Bezug auf die volle 24-Std.-Pauschale (28 €): 20 % / 40 % / 40 %.</span>
+          </div>
+          <div class="form-group">
+            <label for="set-meal-breakfast">Frühstück (€)</label>
+            <input type="number" id="set-meal-breakfast" class="mono" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label for="set-meal-lunch">Mittag (€)</label>
+            <input type="number" id="set-meal-lunch" class="mono" step="0.01" min="0">
+          </div>
+          <div class="form-group span-2">
+            <label for="set-meal-dinner">Abend (€)</label>
+            <input type="number" id="set-meal-dinner" class="mono" step="0.01" min="0">
           </div>
         </div>
       </div>
@@ -1053,6 +1311,17 @@
             <input type="text" id="expense-note" placeholder="Beleg-Nr., Verkäufer, ...">
           </div>
         </div>
+
+        <div class="form-section attachments-section">
+          <div class="form-section-title">Belege (Bilder &amp; PDFs)</div>
+          <div class="attachments-grid" id="attachments-grid"></div>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="attachment-input" accept="image/*,application/pdf" multiple hidden>
+            <button type="button" class="btn" id="upload-btn">📎 Datei auswählen oder hierher ziehen</button>
+            <span class="help-text">Mehrere Dateien möglich. Bilder werden automatisch komprimiert (~150–300 KB). PDFs werden für den Druck Seite für Seite aufbereitet.</span>
+            <span id="upload-status"></span>
+          </div>
+        </div>
       </form>
     </div>
     <div class="modal-footer">
@@ -1066,8 +1335,11 @@
 
 <script>
 'use strict';
-// ============== STATE ==============
-const STORAGE_KEY = 'arbeitszeit_v1';
+// ============== STATE & STORAGE (IndexedDB) ==============
+const DB_NAME = 'arbeitszeit';
+const DB_VERSION = 1;
+const LEGACY_STORAGE_KEY = 'arbeitszeit_v1';
+let db = null;
 let storageAvailable = true;
 
 const DEFAULT_STATE = {
@@ -1078,51 +1350,112 @@ const DEFAULT_STATE = {
     hourlyWage: 0,
     pauschaleAmount: 14,
     pauschaleThresholdHours: 8,
+    // Mahlzeitenkürzung nach § 9 Abs. 4a EStG (Bezug: 28 € volle Pauschale)
+    mealBreakfastDeduction: 5.60,
+    mealLunchDeduction: 11.20,
+    mealDinnerDeduction: 11.20,
+    // Erste Tätigkeitsstätte (steuerlich)
+    noFirstWorkplace: true,        // true = wechselnde Einsatzorte
+    firstWorkplaceAddress: '',     // falls vorhanden
     sites: [],          // [{name, address, defaultKm, defaultHours, defaultStart, defaultEnd}]
     assignmentTypes: [],// [name]
     expenseCategories: ['Verpflegung','Fahrtkosten','Parkgebühren','Übernachtung','Sonstiges']
   },
-  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workHours, kilometers}]
+  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workHours, kilometers, mealBreakfast, mealLunch, mealDinner}]
   expenses: []          // [{id, date, description, category, amount, notes}]
 };
 
-let state = loadState();
+let state = structuredClone(DEFAULT_STATE);
 let viewYear, viewMonth;  // 1..12
 let currentView = 'stunden';  // 'stunden' | 'spesen'
+let attachmentCounts = {};    // {expenseId: count} - kept in memory for fast render
 {
   const now = new Date();
   viewYear = now.getFullYear();
   viewMonth = now.getMonth() + 1;
 }
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return structuredClone(DEFAULT_STATE);
-    const parsed = JSON.parse(raw);
-    // Merge with defaults so new fields don't break
-    return {
-      settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
-      entries: Array.isArray(parsed.entries) ? parsed.entries : [],
-      expenses: Array.isArray(parsed.expenses) ? parsed.expenses : []
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error('IndexedDB nicht verfügbar'));
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('attachments')) {
+        const s = d.createObjectStore('attachments', { keyPath: 'id' });
+        s.createIndex('expenseId', 'expenseId', { unique: false });
+      }
     };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function idbReq(store, mode, action) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, mode);
+    const os = tx.objectStore(store);
+    const r = action(os);
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+const idbGet     = (store, key) => idbReq(store, 'readonly',  os => os.get(key));
+const idbPut     = (store, val) => idbReq(store, 'readwrite', os => os.put(val));
+const idbDelete  = (store, key) => idbReq(store, 'readwrite', os => os.delete(key));
+const idbGetAll  = (store)      => idbReq(store, 'readonly',  os => os.getAll());
+const idbClear   = (store)      => idbReq(store, 'readwrite', os => os.clear());
+const idbGetByIx = (store, ix, key) => new Promise((res, rej) => {
+  const r = db.transaction(store, 'readonly').objectStore(store).index(ix).getAll(key);
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+
+async function loadState() {
+  try {
+    const meta = await idbGet('meta', 'current');
+    if (meta) {
+      return {
+        settings: { ...DEFAULT_STATE.settings, ...meta.settings },
+        entries: Array.isArray(meta.entries) ? meta.entries : [],
+        expenses: Array.isArray(meta.expenses) ? meta.expenses : []
+      };
+    }
+    // Migration aus altem localStorage
+    try {
+      const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const migrated = {
+          settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
+          entries: Array.isArray(parsed.entries) ? parsed.entries : [],
+          expenses: Array.isArray(parsed.expenses) ? parsed.expenses : []
+        };
+        await idbPut('meta', { id: 'current', ...migrated });
+        console.info('Migration von localStorage → IndexedDB erfolgreich.');
+        return migrated;
+      }
+    } catch (_) { /* ignore */ }
+    return structuredClone(DEFAULT_STATE);
   } catch (e) {
+    console.error('loadState failed', e);
     storageAvailable = false;
     return structuredClone(DEFAULT_STATE);
   }
 }
 
-function saveState() {
+async function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    await idbPut('meta', {
+      id: 'current',
+      settings: state.settings,
+      entries: state.entries,
+      expenses: state.expenses
+    });
   } catch (e) {
     storageAvailable = false;
     document.getElementById('storage-warning').hidden = false;
   }
-}
-
-if (!storageAvailable) {
-  document.getElementById('storage-warning').hidden = false;
 }
 
 // ============== UTILITIES ==============
@@ -1160,9 +1493,17 @@ function calcEntry(e) {
   const hoursAway = hoursBetween(e.startTime, e.endTime);
   const workHours = +e.workHours || 0;
   const eligible = hoursAway >= (+state.settings.pauschaleThresholdHours || 8);
-  const pauschale = eligible ? (+state.settings.pauschaleAmount || 0) : 0;
+  const grossPauschale = eligible ? (+state.settings.pauschaleAmount || 0) : 0;
+
+  let mealDeduction = 0;
+  if (eligible) {
+    if (e.mealBreakfast) mealDeduction += (+state.settings.mealBreakfastDeduction || 0);
+    if (e.mealLunch)     mealDeduction += (+state.settings.mealLunchDeduction || 0);
+    if (e.mealDinner)    mealDeduction += (+state.settings.mealDinnerDeduction || 0);
+  }
+  const pauschale = Math.max(0, grossPauschale - mealDeduction);
   const gross = workHours * (+state.settings.hourlyWage || 0);
-  return { hoursAway, workHours, pauschale, gross, eligible };
+  return { hoursAway, workHours, grossPauschale, mealDeduction, pauschale, gross, eligible };
 }
 
 function entriesForView() {
@@ -1204,12 +1545,16 @@ function renderMonthLabel() {
 function renderEmployeeStrip() {
   const s = state.settings;
   const el = document.getElementById('employee-strip');
+  const workplaceStatus = s.noFirstWorkplace !== false
+    ? 'keine (wechselnde Einsatzorte)'
+    : (s.firstWorkplaceAddress || 'angegeben');
   const items = [
     ['Mitarbeiter', s.employeeName],
     ['Personalnr.', s.personalNumber],
     ['Wohnort', s.homeLocation],
     ['Stundenlohn', s.hourlyWage ? fmtEur(s.hourlyWage) : null],
-    ['VMA-Pauschale', `${fmtEur(s.pauschaleAmount)} ab ${fmtNum(s.pauschaleThresholdHours,0)} Std`]
+    ['VMA-Pauschale', `${fmtEur(s.pauschaleAmount)} ab ${fmtNum(s.pauschaleThresholdHours,0)} Std`],
+    ['Erste Tätigkeitsstätte', workplaceStatus]
   ];
   el.innerHTML = items.map(([label, val]) => `
     <div class="field">
@@ -1221,17 +1566,22 @@ function renderEmployeeStrip() {
 
 function renderSummary() {
   const entries = entriesForView();
-  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalKm = 0, totalAway = 0, pauschaleDays = 0;
+  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalGrossPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0, pauschaleDays = 0;
   for (const e of entries) {
     const c = calcEntry(e);
     totalWorkHours += c.workHours;
     totalGross += c.gross;
     totalPauschale += c.pauschale;
+    totalGrossPauschale += c.grossPauschale;
+    totalMealDeduction += c.mealDeduction;
     if (c.eligible) pauschaleDays++;
     totalKm += (+e.kilometers || 0);
     totalAway += c.hoursAway;
   }
   const sum = totalGross + totalPauschale;
+  const pauschaleDetail = totalMealDeduction > 0
+    ? `${pauschaleDays} × ${fmtEur(state.settings.pauschaleAmount)} = ${fmtEur(totalGrossPauschale)}<br>− Mahlzeitenkürzung ${fmtEur(totalMealDeduction)}`
+    : `${pauschaleDays} ${pauschaleDays === 1 ? 'Tag' : 'Tage'} × ${fmtEur(state.settings.pauschaleAmount)}`;
   document.getElementById('summary-grid').innerHTML = `
     <div class="summary-card position">
       <span class="position-tag">Position 1</span>
@@ -1241,9 +1591,9 @@ function renderSummary() {
     </div>
     <div class="summary-card position pauschale">
       <span class="position-tag">Position 2</span>
-      <span class="label">VMA-Pauschalen</span>
+      <span class="label">VMA-Pauschalen (netto)</span>
       <span class="amount">${fmtEur(totalPauschale)}</span>
-      <span class="detail">${pauschaleDays} ${pauschaleDays === 1 ? 'Tag' : 'Tage'} × ${fmtEur(state.settings.pauschaleAmount)}</span>
+      <span class="detail">${pauschaleDetail}</span>
     </div>
     <div class="summary-card total">
       <span class="label">Summe (Position 1 + 2)</span>
@@ -1268,7 +1618,7 @@ function renderEntries() {
   const today = todayISO();
 
   if (entries.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="12" class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="13" class="empty-state">
       <h3>Keine Einträge für ${MONTH_NAMES[viewMonth-1]} ${viewYear}</h3>
       <p>Über „＋ Eintrag hinzufügen" einen ersten Tag erfassen.</p>
     </td></tr>`;
@@ -1276,12 +1626,13 @@ function renderEntries() {
     return;
   }
 
-  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalKm = 0, totalAway = 0;
+  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0;
   tbody.innerHTML = entries.map(e => {
     const c = calcEntry(e);
     totalWorkHours += c.workHours;
     totalGross += c.gross;
     totalPauschale += c.pauschale;
+    totalMealDeduction += c.mealDeduction;
     totalKm += (+e.kilometers || 0);
     totalAway += c.hoursAway;
 
@@ -1289,6 +1640,15 @@ function renderEntries() {
     const wd = WEEKDAYS[d.getDay()];
     const dateStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
     const cls = e.date > today ? 'future' : (e.date === today ? 'today' : '');
+
+    // Meal indicator
+    const mealParts = [];
+    if (e.mealBreakfast) mealParts.push('F');
+    if (e.mealLunch)     mealParts.push('M');
+    if (e.mealDinner)    mealParts.push('A');
+    const mealCell = mealParts.length
+      ? `<span class="meal-indicator" title="Kürzung: ${fmtEur(c.mealDeduction)}">${mealParts.map(m => `<span class="m">${m}</span>`).join('')}</span>`
+      : '';
 
     return `<tr class="${cls}" data-id="${e.id}">
       <td class="date-cell">${dateStr}<span class="weekday">${wd}</span></td>
@@ -1300,7 +1660,8 @@ function renderEntries() {
       <td class="num">${c.hoursAway ? fmtNum(c.hoursAway,1) + ' h' : ''}</td>
       <td class="num">${c.workHours ? fmtNum(c.workHours,2) : ''}</td>
       <td class="num">${e.kilometers ? fmtInt(e.kilometers) : ''}</td>
-      <td class="num ${c.eligible ? 'pauschale-yes' : 'pauschale-no'}">${c.pauschale ? fmtEur(c.pauschale) : '—'}</td>
+      <td class="num">${mealCell}</td>
+      <td class="num ${c.eligible ? 'pauschale-yes' : 'pauschale-no'}" title="${c.mealDeduction > 0 ? 'Brutto: ' + fmtEur(c.grossPauschale) + ' − ' + fmtEur(c.mealDeduction) : ''}">${c.eligible ? fmtEur(c.pauschale) : '—'}</td>
       <td class="num">${fmtEur(c.gross)}</td>
       <td class="actions-cell">
         <button class="btn btn-ghost btn-small" data-edit="${e.id}">Bearb.</button>
@@ -1308,11 +1669,15 @@ function renderEntries() {
     </tr>`;
   }).join('');
 
-  tfoot.innerHTML = `<tr>
+  const footerMealNote = totalMealDeduction > 0
+    ? `<tr><td colspan="9" style="text-align:right; font-weight:400; color:var(--ink-soft); font-size:.8rem;">davon Mahlzeitenkürzung</td><td></td><td class="num" style="font-weight:400; color:var(--gold);">−${fmtEur(totalMealDeduction)}</td><td></td><td></td></tr>`
+    : '';
+  tfoot.innerHTML = `${footerMealNote}<tr>
     <td colspan="6" style="text-align:right">Summen</td>
     <td class="num">${fmtNum(totalAway,1)} h</td>
     <td class="num">${fmtNum(totalWorkHours,2)}</td>
     <td class="num">${fmtInt(totalKm)}</td>
+    <td></td>
     <td class="num">${fmtEur(totalPauschale)}</td>
     <td class="num">${fmtEur(totalGross)}</td>
     <td></td>
@@ -1326,11 +1691,15 @@ function renderEntries() {
 
 function renderPrintMeta() {
   const s = state.settings;
+  const workplaceStatus = s.noFirstWorkplace !== false
+    ? 'keine (wechselnde Einsatzorte)'
+    : (s.firstWorkplaceAddress || 'angegeben');
   const fields = [
     ['Mitarbeiter', s.employeeName || '—'],
     ['Personalnr.', s.personalNumber || '—'],
     ['Wohnort', s.homeLocation || '—'],
-    ['Zeitraum', MONTH_NAMES[viewMonth-1] + ' ' + viewYear]
+    ['Zeitraum', MONTH_NAMES[viewMonth-1] + ' ' + viewYear],
+    ['Erste Tätigkeitsstätte', workplaceStatus]
   ];
   document.getElementById('print-meta').innerHTML = fields.map(([l,v]) => `
     <div><div class="label">${l}</div><div>${escapeHtml(v)}</div></div>
@@ -1340,6 +1709,205 @@ function renderPrintMeta() {
 function escapeHtml(s) {
   if (s == null) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============== ATTACHMENTS (Belege) ==============
+async function reloadAttachmentCounts() {
+  try {
+    const all = await idbGetAll('attachments');
+    attachmentCounts = {};
+    for (const a of all) {
+      attachmentCounts[a.expenseId] = (attachmentCounts[a.expenseId] || 0) + 1;
+    }
+  } catch (e) {
+    attachmentCounts = {};
+  }
+}
+
+async function getAttachmentsByExpense(expenseId) {
+  try { return await idbGetByIx('attachments', 'expenseId', expenseId); }
+  catch (e) { return []; }
+}
+
+async function deleteAttachmentsByExpense(expenseId) {
+  const atts = await getAttachmentsByExpense(expenseId);
+  for (const a of atts) await idbDelete('attachments', a.id);
+}
+
+// Image compression via Canvas
+async function compressImage(file, maxDim = 1600, quality = 0.82) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = () => rej(new Error('Bild konnte nicht gelesen werden'));
+      i.src = url;
+    });
+    let { naturalWidth: w, naturalHeight: h } = img;
+    if (w > maxDim || h > maxDim) {
+      const r = Math.min(maxDim / w, maxDim / h);
+      w = Math.round(w * r); h = Math.round(h * r);
+    }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    return await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// PDF.js loader (lazy, from CDN)
+let pdfJsPromise = null;
+function loadPdfJs() {
+  if (pdfJsPromise) return pdfJsPromise;
+  pdfJsPromise = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => {
+      try {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        res(window.pdfjsLib);
+      } catch (e) { rej(e); }
+    };
+    s.onerror = () => rej(new Error('PDF-Bibliothek konnte nicht geladen werden (Internetverbindung?)'));
+    document.head.appendChild(s);
+  });
+  return pdfJsPromise;
+}
+
+async function renderPdfPagesToImages(file, scale = 2) {
+  const lib = await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const pdf = await lib.getDocument({ data: buf }).promise;
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const vp = page.getViewport({ scale });
+    const c = document.createElement('canvas');
+    c.width = vp.width; c.height = vp.height;
+    await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+    pages.push(blob);
+  }
+  return pages;
+}
+
+// Modal attachment state (in-memory while editing)
+let modalAttachments = []; // {id, type, mimeType, blob, pageBlobs?, filename, isNew, isDeleted, createdAt}
+let modalObjectUrls = [];
+
+function clearModalObjectUrls() {
+  modalObjectUrls.forEach(u => URL.revokeObjectURL(u));
+  modalObjectUrls = [];
+}
+
+function newAttachmentId() {
+  return 'att_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+async function handleAttachmentFiles(fileList) {
+  const status = document.getElementById('upload-status');
+  status.classList.remove('error');
+  let ok = 0, fail = 0;
+  for (const file of fileList) {
+    try {
+      status.textContent = `Verarbeite ${file.name}…`;
+      let att;
+      if (file.type.startsWith('image/')) {
+        const blob = await compressImage(file);
+        att = {
+          id: newAttachmentId(), type: 'image', mimeType: 'image/jpeg',
+          blob, filename: file.name, isNew: true, createdAt: Date.now()
+        };
+      } else if (file.type === 'application/pdf') {
+        status.textContent = `Verarbeite PDF ${file.name}… (kann etwas dauern)`;
+        const pageBlobs = await renderPdfPagesToImages(file);
+        att = {
+          id: newAttachmentId(), type: 'pdf', mimeType: 'application/pdf',
+          blob: file, pageBlobs, filename: file.name, isNew: true, createdAt: Date.now()
+        };
+      } else {
+        status.textContent = `${file.name}: Dateityp nicht unterstützt`;
+        status.classList.add('error');
+        fail++;
+        continue;
+      }
+      modalAttachments.push(att);
+      ok++;
+    } catch (e) {
+      console.error('Upload error', e);
+      status.textContent = `Fehler bei ${file.name}: ${e.message}`;
+      status.classList.add('error');
+      fail++;
+    }
+  }
+  if (ok > 0 && fail === 0) status.textContent = `${ok} Datei(en) hinzugefügt.`;
+  else if (ok > 0 && fail > 0) status.textContent = `${ok} hinzugefügt, ${fail} fehlgeschlagen.`;
+  renderModalAttachments();
+}
+
+function renderModalAttachments() {
+  clearModalObjectUrls();
+  const grid = document.getElementById('attachments-grid');
+  const active = modalAttachments.filter(a => !a.isDeleted);
+  if (active.length === 0) {
+    grid.innerHTML = '<div class="attachments-empty">Noch keine Belege angehängt.</div>';
+    return;
+  }
+  grid.innerHTML = active.map(a => {
+    const previewBlob = a.type === 'pdf' && a.pageBlobs && a.pageBlobs.length
+      ? a.pageBlobs[0] : a.blob;
+    const url = URL.createObjectURL(previewBlob);
+    modalObjectUrls.push(url);
+    const sizeKb = Math.round((a.blob && a.blob.size || 0) / 1024);
+    const badge = a.type === 'pdf'
+      ? `<span class="att-badge pdf">PDF · ${a.pageBlobs ? a.pageBlobs.length : '?'} S.</span>`
+      : `<span class="att-badge img">IMG</span>`;
+    return `<div class="att-thumb">
+      <img src="${url}" alt="">
+      <button class="att-remove" data-att-id="${a.id}" title="Entfernen">✕</button>
+      <div class="att-meta">
+        ${badge}
+        <span class="att-name" title="${escapeHtml(a.filename)}">${escapeHtml(a.filename)}</span>
+        <span class="att-size">${sizeKb} KB</span>
+      </div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.att-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const att = modalAttachments.find(a => a.id === btn.dataset.attId);
+      if (!att) return;
+      if (att.isNew) {
+        modalAttachments = modalAttachments.filter(a => a.id !== att.id);
+      } else {
+        att.isDeleted = true;
+      }
+      renderModalAttachments();
+    });
+  });
+}
+
+async function syncModalAttachments(expenseId) {
+  for (const att of modalAttachments) {
+    if (att.isDeleted && !att.isNew) {
+      await idbDelete('attachments', att.id);
+    } else if (att.isNew && !att.isDeleted) {
+      await idbPut('attachments', {
+        id: att.id,
+        expenseId,
+        type: att.type,
+        mimeType: att.mimeType,
+        blob: att.blob,
+        pageBlobs: att.pageBlobs,
+        filename: att.filename,
+        createdAt: att.createdAt
+      });
+    }
+  }
 }
 
 // ============== EXPENSES (Spesen) ==============
@@ -1408,7 +1976,7 @@ function renderExpensesTable() {
     const cls = e.date > today ? 'future' : (e.date === today ? 'today' : '');
     return `<tr class="${cls}" data-id="${e.id}">
       <td class="date-cell">${dateStr}<span class="weekday">${wd}</span></td>
-      <td class="site-cell">${escapeHtml(e.description || '—')}</td>
+      <td class="site-cell">${escapeHtml(e.description || '—')}${attachmentCounts[e.id] ? ` <span class="attachment-indicator" title="${attachmentCounts[e.id]} Beleg(e)">📎${attachmentCounts[e.id]}</span>` : ''}</td>
       <td class="type-cell">${escapeHtml(e.category || '')}</td>
       <td class="address-cell">${escapeHtml(e.notes || '')}</td>
       <td class="num">${fmtEur(amount)}</td>
@@ -1466,11 +2034,15 @@ function setExpenseCategoryOrCustom(value) {
 
 const expenseModal = document.getElementById('expense-modal');
 
-function openExpenseModal(id) {
+async function openExpenseModal(id) {
+  clearModalObjectUrls();
+  modalAttachments = [];
   const form = document.getElementById('expense-form');
   form.reset();
   populateExpenseCategoryDropdown();
   document.getElementById('expense-category-new').parentElement.style.display = 'none';
+  document.getElementById('upload-status').textContent = '';
+  document.getElementById('upload-status').classList.remove('error');
 
   if (id) {
     const e = state.expenses.find(x => x.id === id);
@@ -1483,6 +2055,9 @@ function openExpenseModal(id) {
     document.getElementById('expense-amount').value = e.amount || '';
     document.getElementById('expense-note').value = e.notes || '';
     document.getElementById('expense-delete').hidden = false;
+    // Load attachments
+    const atts = await getAttachmentsByExpense(e.id);
+    modalAttachments = atts.map(a => ({ ...a, isNew: false, isDeleted: false }));
   } else {
     document.getElementById('expense-modal-title').textContent = 'Neuer Spesen-Eintrag';
     document.getElementById('expense-id').value = '';
@@ -1492,6 +2067,7 @@ function openExpenseModal(id) {
     if (last && last.category) setExpenseCategoryOrCustom(last.category);
     document.getElementById('expense-delete').hidden = true;
   }
+  renderModalAttachments();
   expenseModal.classList.add('open');
 }
 
@@ -1507,7 +2083,7 @@ document.getElementById('expense-category').addEventListener('change', e => {
 
 document.getElementById('add-expense').addEventListener('click', () => openExpenseModal(null));
 
-document.getElementById('expense-save').addEventListener('click', () => {
+document.getElementById('expense-save').addEventListener('click', async () => {
   const id = document.getElementById('expense-id').value;
   const date = document.getElementById('expense-date').value;
   const description = document.getElementById('expense-description').value.trim();
@@ -1545,20 +2121,60 @@ document.getElementById('expense-save').addEventListener('click', () => {
   } else {
     state.expenses.push(expense);
   }
-  saveState();
+
+  // Save state first, then sync attachments
+  const saveBtn = document.getElementById('expense-save');
+  const orig = saveBtn.textContent;
+  saveBtn.textContent = 'Speichere…';
+  saveBtn.disabled = true;
+  try {
+    await syncModalAttachments(expense.id);
+    await saveState();
+    await reloadAttachmentCounts();
+    closeModals();
+    render();
+  } catch (e) {
+    alert('Speichern fehlgeschlagen: ' + e.message);
+  } finally {
+    saveBtn.textContent = orig;
+    saveBtn.disabled = false;
+  }
+});
+
+document.getElementById('expense-delete').addEventListener('click', async () => {
+  const id = document.getElementById('expense-id').value;
+  if (!id) return;
+  if (!confirm('Diesen Spesen-Eintrag inkl. aller angehängten Belege wirklich löschen?')) return;
+  await deleteAttachmentsByExpense(id);
+  state.expenses = state.expenses.filter(x => x.id !== id);
+  await saveState();
+  await reloadAttachmentCounts();
   closeModals();
   render();
 });
 
-document.getElementById('expense-delete').addEventListener('click', () => {
-  const id = document.getElementById('expense-id').value;
-  if (!id) return;
-  if (!confirm('Diesen Spesen-Eintrag wirklich löschen?')) return;
-  state.expenses = state.expenses.filter(x => x.id !== id);
-  saveState();
-  closeModals();
-  render();
+// Upload UI wiring
+document.getElementById('upload-btn').addEventListener('click', () => {
+  document.getElementById('attachment-input').click();
 });
+document.getElementById('attachment-input').addEventListener('change', async e => {
+  const files = e.target.files;
+  if (files && files.length) await handleAttachmentFiles(files);
+  e.target.value = '';
+});
+{
+  const uz = document.getElementById('upload-zone');
+  ['dragenter','dragover'].forEach(ev => uz.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); uz.classList.add('drag-over');
+  }));
+  ['dragleave','drop'].forEach(ev => uz.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); uz.classList.remove('drag-over');
+  }));
+  uz.addEventListener('drop', async e => {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) await handleAttachmentFiles(files);
+  });
+}
 
 // Settings: categories list
 function renderCategoriesList() {
@@ -1629,6 +2245,11 @@ function openEntryModal(id) {
   document.getElementById('entry-site-new').parentElement.style.display = 'none';
   document.getElementById('entry-type-new').parentElement.style.display = 'none';
 
+  // Refresh meal amount labels from current settings
+  document.getElementById('meal-breakfast-amt').textContent = '−' + fmtEur(state.settings.mealBreakfastDeduction || 0);
+  document.getElementById('meal-lunch-amt').textContent     = '−' + fmtEur(state.settings.mealLunchDeduction || 0);
+  document.getElementById('meal-dinner-amt').textContent    = '−' + fmtEur(state.settings.mealDinnerDeduction || 0);
+
   if (id) {
     const e = state.entries.find(x => x.id === id);
     if (!e) return;
@@ -1642,11 +2263,13 @@ function openEntryModal(id) {
     document.getElementById('entry-end').value = e.endTime || '';
     document.getElementById('entry-hours').value = e.workHours || '';
     document.getElementById('entry-km').value = e.kilometers || '';
+    document.getElementById('meal-breakfast').checked = !!e.mealBreakfast;
+    document.getElementById('meal-lunch').checked     = !!e.mealLunch;
+    document.getElementById('meal-dinner').checked    = !!e.mealDinner;
     document.getElementById('entry-delete').hidden = false;
   } else {
     document.getElementById('entry-modal-title').textContent = 'Neuer Eintrag';
     document.getElementById('entry-id').value = '';
-    // prefill from last entry where possible
     const last = [...state.entries].sort((a,b) => b.date.localeCompare(a.date))[0];
     document.getElementById('entry-date').value = todayISO();
     if (last) {
@@ -1656,11 +2279,30 @@ function openEntryModal(id) {
       document.getElementById('entry-start').value = last.startTime || '';
       document.getElementById('entry-end').value = last.endTime || '';
     }
+    // Mahlzeiten standardmäßig nicht gestellt
+    document.getElementById('meal-breakfast').checked = false;
+    document.getElementById('meal-lunch').checked = false;
+    document.getElementById('meal-dinner').checked = false;
     document.getElementById('entry-delete').hidden = true;
   }
+  updateMealCheckVisuals();
   updateLiveCalc();
   entryModal.classList.add('open');
 }
+
+function updateMealCheckVisuals() {
+  ['breakfast','lunch','dinner'].forEach(m => {
+    const cb = document.getElementById('meal-' + m);
+    const lab = document.getElementById('meal-' + m + '-label');
+    if (cb && lab) lab.classList.toggle('checked', cb.checked);
+  });
+}
+['meal-breakfast','meal-lunch','meal-dinner'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    updateMealCheckVisuals();
+    updateLiveCalc();
+  });
+});
 
 function setSelectOrCustom(selectId, value) {
   const sel = document.getElementById(selectId);
@@ -1728,19 +2370,36 @@ function updateLiveCalc() {
   const hours = +document.getElementById('entry-hours').value || 0;
   const away = hoursBetween(start, end);
   const threshold = +state.settings.pauschaleThresholdHours || 8;
-  const pauschale = away >= threshold ? (+state.settings.pauschaleAmount || 0) : 0;
+  const eligible = away >= threshold;
+  const grossPauschale = eligible ? (+state.settings.pauschaleAmount || 0) : 0;
+  let deduction = 0;
+  if (eligible) {
+    if (document.getElementById('meal-breakfast').checked) deduction += (+state.settings.mealBreakfastDeduction || 0);
+    if (document.getElementById('meal-lunch').checked)     deduction += (+state.settings.mealLunchDeduction || 0);
+    if (document.getElementById('meal-dinner').checked)    deduction += (+state.settings.mealDinnerDeduction || 0);
+  }
+  const pauschale = Math.max(0, grossPauschale - deduction);
   const gross = hours * (+state.settings.hourlyWage || 0);
 
+  let pInfo = '';
+  if (away) {
+    if (!eligible) {
+      pInfo = `Pauschale: nein (< ${fmtNum(threshold,0)} Std)`;
+    } else if (deduction > 0) {
+      pInfo = `Pauschale: ${fmtEur(grossPauschale)} − ${fmtEur(deduction)} = ${fmtEur(pauschale)} ✓`;
+    } else {
+      pInfo = `Pauschale: ${fmtEur(pauschale)} ✓`;
+    }
+  }
   document.getElementById('calc-away').textContent =
-    `Außer Haus: ${away ? fmtNum(away,2) + ' Std' : '—'}` +
-    (away ? `  •  Pauschale: ${pauschale ? fmtEur(pauschale) + ' ✓' : 'nein (< ' + fmtNum(threshold,0) + ' Std)'}` : '');
+    `Außer Haus: ${away ? fmtNum(away,2) + ' Std' : '—'}` + (pInfo ? '  •  ' + pInfo : '');
   document.getElementById('calc-pay').textContent =
     `Bruttolohn (Tag): ${gross ? fmtEur(gross) : '—'}`;
 }
 
 document.getElementById('add-entry').addEventListener('click', () => openEntryModal(null));
 
-document.getElementById('entry-save').addEventListener('click', () => {
+document.getElementById('entry-save').addEventListener('click', async () => {
   const id = document.getElementById('entry-id').value;
   const date = document.getElementById('entry-date').value;
   if (!date) { alert('Bitte ein Datum angeben.'); return; }
@@ -1770,7 +2429,10 @@ document.getElementById('entry-save').addEventListener('click', () => {
     startTime: document.getElementById('entry-start').value,
     endTime: document.getElementById('entry-end').value,
     workHours: +document.getElementById('entry-hours').value || 0,
-    kilometers: +document.getElementById('entry-km').value || 0
+    kilometers: +document.getElementById('entry-km').value || 0,
+    mealBreakfast: document.getElementById('meal-breakfast').checked,
+    mealLunch:     document.getElementById('meal-lunch').checked,
+    mealDinner:    document.getElementById('meal-dinner').checked
   };
 
   if (id) {
@@ -1779,17 +2441,17 @@ document.getElementById('entry-save').addEventListener('click', () => {
   } else {
     state.entries.push(entry);
   }
-  saveState();
+  await saveState();
   closeModals();
   render();
 });
 
-document.getElementById('entry-delete').addEventListener('click', () => {
+document.getElementById('entry-delete').addEventListener('click', async () => {
   const id = document.getElementById('entry-id').value;
   if (!id) return;
   if (!confirm('Diesen Eintrag wirklich löschen?')) return;
   state.entries = state.entries.filter(x => x.id !== id);
-  saveState();
+  await saveState();
   closeModals();
   render();
 });
@@ -1802,9 +2464,20 @@ function openSettings() {
   document.getElementById('set-name').value = s.employeeName || '';
   document.getElementById('set-personalnr').value = s.personalNumber || '';
   document.getElementById('set-home').value = s.homeLocation || '';
+  document.getElementById('set-no-first-workplace').checked = s.noFirstWorkplace !== false;
+  document.getElementById('set-first-workplace').value = s.firstWorkplaceAddress || '';
+  {
+    const addrField = document.getElementById('set-first-workplace');
+    const isNone = s.noFirstWorkplace !== false;
+    addrField.disabled = isNone;
+    addrField.style.opacity = isNone ? '0.5' : '1';
+  }
   document.getElementById('set-wage').value = s.hourlyWage || '';
   document.getElementById('set-pauschale').value = s.pauschaleAmount || '';
   document.getElementById('set-threshold').value = s.pauschaleThresholdHours || '';
+  document.getElementById('set-meal-breakfast').value = s.mealBreakfastDeduction != null ? s.mealBreakfastDeduction : 5.60;
+  document.getElementById('set-meal-lunch').value     = s.mealLunchDeduction     != null ? s.mealLunchDeduction     : 11.20;
+  document.getElementById('set-meal-dinner').value    = s.mealDinnerDeduction    != null ? s.mealDinnerDeduction    : 11.20;
   renderSitesList();
   renderTypesList();
   renderCategoriesList();
@@ -1912,15 +2585,27 @@ document.getElementById('add-type').addEventListener('click', () => {
   renderTypesList();
 });
 
-document.getElementById('settings-save').addEventListener('click', () => {
+document.getElementById('set-no-first-workplace').addEventListener('change', e => {
+  const addrField = document.getElementById('set-first-workplace');
+  addrField.disabled = e.target.checked;
+  addrField.style.opacity = e.target.checked ? '0.5' : '1';
+  if (e.target.checked) addrField.value = '';
+});
+
+document.getElementById('settings-save').addEventListener('click', async () => {
   state.settings.employeeName = document.getElementById('set-name').value.trim();
   state.settings.personalNumber = document.getElementById('set-personalnr').value.trim();
   state.settings.homeLocation = document.getElementById('set-home').value.trim();
+  state.settings.noFirstWorkplace = document.getElementById('set-no-first-workplace').checked;
+  state.settings.firstWorkplaceAddress = document.getElementById('set-first-workplace').value.trim();
   state.settings.hourlyWage = +document.getElementById('set-wage').value || 0;
   state.settings.pauschaleAmount = +document.getElementById('set-pauschale').value || 14;
   state.settings.pauschaleThresholdHours = +document.getElementById('set-threshold').value || 8;
+  state.settings.mealBreakfastDeduction = +document.getElementById('set-meal-breakfast').value || 0;
+  state.settings.mealLunchDeduction     = +document.getElementById('set-meal-lunch').value     || 0;
+  state.settings.mealDinnerDeduction    = +document.getElementById('set-meal-dinner').value    || 0;
   // sites and types are already updated live
-  saveState();
+  await saveState();
   closeModals();
   render();
 });
@@ -1936,11 +2621,75 @@ function downloadFile(filename, content, mime='text/plain') {
 }
 
 document.getElementById('print-btn').addEventListener('click', () => window.print());
-document.getElementById('print-btn-spesen').addEventListener('click', () => window.print());
+
+async function preparePrintAttachmentPages() {
+  const container = document.getElementById('print-attachments-container');
+  // Cleanup previous URLs
+  container.querySelectorAll('img[data-blob-url]').forEach(img => {
+    try { URL.revokeObjectURL(img.src); } catch (_) {}
+  });
+  container.innerHTML = '';
+  if (currentView !== 'spesen') return 0;
+
+  const expenses = expensesForView();
+  let pageCount = 0;
+  for (const exp of expenses) {
+    const atts = await getAttachmentsByExpense(exp.id);
+    if (!atts.length) continue;
+    atts.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const d = parseDate(exp.date);
+    const dateStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + d.getFullYear();
+    for (const att of atts) {
+      const blobs = att.type === 'pdf' && att.pageBlobs && att.pageBlobs.length
+        ? att.pageBlobs : [att.blob];
+      for (let i = 0; i < blobs.length; i++) {
+        const url = URL.createObjectURL(blobs[i]);
+        const page = document.createElement('div');
+        page.className = 'print-attachment-page';
+        page.innerHTML = `
+          <div class="att-print-header">
+            <div class="att-print-title">Beleg: ${escapeHtml(exp.description || '')}</div>
+            <div class="att-print-meta">
+              <span>Datum: <strong>${dateStr}</strong></span>
+              <span>Betrag: <strong>${fmtEur(exp.amount)}</strong></span>
+              <span>Kategorie: <strong>${escapeHtml(exp.category || '—')}</strong></span>
+              ${exp.notes ? `<span>Notiz: <strong>${escapeHtml(exp.notes)}</strong></span>` : ''}
+              <span>Datei: <strong>${escapeHtml(att.filename)}</strong>${att.type === 'pdf' ? ` · Seite ${i+1}/${blobs.length}` : ''}</span>
+            </div>
+          </div>
+          <div class="att-print-image">
+            <img src="${url}" data-blob-url="1" alt="">
+          </div>
+        `;
+        container.appendChild(page);
+        pageCount++;
+      }
+    }
+  }
+  return pageCount;
+}
+
+document.getElementById('print-btn-spesen').addEventListener('click', async () => {
+  const btn = document.getElementById('print-btn-spesen');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Belege vorbereiten…';
+  btn.disabled = true;
+  try {
+    const n = await preparePrintAttachmentPages();
+    // Small delay so images can decode before the print dialog snapshots
+    await new Promise(r => setTimeout(r, n > 0 ? 250 : 50));
+    window.print();
+  } catch (e) {
+    alert('Fehler beim Vorbereiten der Belege: ' + e.message);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+});
 
 function exportStundenCSV() {
   const entries = entriesForView();
-  const header = ['Datum','Einsatzort','Adresse','Art','Von','Bis','Außer Haus (Std)','Arbeitsstd','km','Pauschale (€)','Bruttolohn (€)'];
+  const header = ['Datum','Einsatzort','Adresse','Art','Von','Bis','Außer Haus (Std)','Arbeitsstd','km','Frühstück','Mittag','Abend','Pauschale brutto (€)','Mahlzeitenkürzung (€)','Pauschale netto (€)','Bruttolohn (€)'];
   const rows = entries.map(e => {
     const c = calcEntry(e);
     return [
@@ -1953,6 +2702,11 @@ function exportStundenCSV() {
       fmtNum(c.hoursAway,2),
       fmtNum(c.workHours,2),
       e.kilometers || 0,
+      e.mealBreakfast ? 'ja' : '',
+      e.mealLunch ? 'ja' : '',
+      e.mealDinner ? 'ja' : '',
+      fmtNum(c.grossPauschale,2),
+      fmtNum(c.mealDeduction,2),
       fmtNum(c.pauschale,2),
       fmtNum(c.gross,2)
     ];
@@ -1989,8 +2743,61 @@ function exportSpesenCSV() {
 document.getElementById('export-csv').addEventListener('click', exportStundenCSV);
 document.getElementById('export-csv-spesen').addEventListener('click', exportSpesenCSV);
 
-function exportJSON() {
-  const data = JSON.stringify(state, null, 2);
+function blobToDataURL(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+function dataURLToBlob(dataUrl) {
+  const [header, b64] = dataUrl.split(',');
+  const mimeMatch = /:(.*?);/.exec(header);
+  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+  const bin = atob(b64);
+  const len = bin.length;
+  const arr = new Uint8Array(len);
+  for (let i = 0; i < len; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+async function exportJSON() {
+  const attachments = await idbGetAll('attachments').catch(() => []);
+  let includeAttachments = true;
+  if (attachments.length > 0) {
+    let totalBytes = 0;
+    for (const a of attachments) {
+      if (a.blob && a.blob.size) totalBytes += a.blob.size;
+      if (a.pageBlobs) for (const p of a.pageBlobs) totalBytes += (p && p.size) || 0;
+    }
+    const mb = (totalBytes / 1024 / 1024).toFixed(1);
+    includeAttachments = confirm(`Backup mit Belegen einschließen? (≈ ${mb} MB)\n\nOK = mit Belegen\nAbbrechen = nur Daten ohne Belege`);
+  }
+
+  const exportedAttachments = [];
+  if (includeAttachments) {
+    for (const a of attachments) {
+      const rec = {
+        id: a.id, expenseId: a.expenseId, type: a.type, mimeType: a.mimeType,
+        filename: a.filename, createdAt: a.createdAt
+      };
+      if (a.blob) rec.blobDataUrl = await blobToDataURL(a.blob);
+      if (a.pageBlobs && a.pageBlobs.length) {
+        rec.pageDataUrls = [];
+        for (const p of a.pageBlobs) rec.pageDataUrls.push(await blobToDataURL(p));
+      }
+      exportedAttachments.push(rec);
+    }
+  }
+
+  const data = JSON.stringify({
+    version: 2,
+    settings: state.settings,
+    entries: state.entries,
+    expenses: state.expenses,
+    attachments: exportedAttachments
+  }, null, 2);
   const filename = `arbeitszeit_backup_${todayISO()}.json`;
   downloadFile(filename, data, 'application/json');
 }
@@ -2010,13 +2817,27 @@ document.getElementById('import-file').addEventListener('change', async ev => {
     const txt = await f.text();
     const data = JSON.parse(txt);
     if (!data.settings || !Array.isArray(data.entries)) throw new Error('Ungültiges Backup-Format');
-    if (!confirm('Aktuelle Daten überschreiben?')) return;
+    if (!confirm('Aktuelle Daten überschreiben? (Vorhandene Belege werden ebenfalls ersetzt.)')) return;
     state = {
       settings: { ...DEFAULT_STATE.settings, ...data.settings },
       entries: data.entries,
       expenses: Array.isArray(data.expenses) ? data.expenses : []
     };
-    saveState();
+    await saveState();
+    // Replace attachments
+    await idbClear('attachments');
+    if (Array.isArray(data.attachments)) {
+      for (const a of data.attachments) {
+        const rec = {
+          id: a.id, expenseId: a.expenseId, type: a.type, mimeType: a.mimeType,
+          filename: a.filename, createdAt: a.createdAt
+        };
+        if (a.blobDataUrl) rec.blob = dataURLToBlob(a.blobDataUrl);
+        if (Array.isArray(a.pageDataUrls)) rec.pageBlobs = a.pageDataUrls.map(dataURLToBlob);
+        await idbPut('attachments', rec);
+      }
+    }
+    await reloadAttachmentCounts();
     render();
     closeModals();
     alert('Backup geladen.');
@@ -2027,11 +2848,13 @@ document.getElementById('import-file').addEventListener('change', async ev => {
   }
 });
 
-document.getElementById('reset-all').addEventListener('click', () => {
-  if (!confirm('WIRKLICH alle Daten und Einstellungen löschen?')) return;
+document.getElementById('reset-all').addEventListener('click', async () => {
+  if (!confirm('WIRKLICH alle Daten, Einstellungen und Belege löschen?')) return;
   if (!confirm('Sicher? Diese Aktion ist nicht rückgängig zu machen.')) return;
   state = structuredClone(DEFAULT_STATE);
-  saveState();
+  await idbClear('meta');
+  await idbClear('attachments');
+  await reloadAttachmentCounts();
   closeModals();
   render();
 });
@@ -2047,7 +2870,24 @@ document.querySelectorAll('.modal').forEach(m => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
 
 // ============== INITIAL RENDER ==============
-render();
+async function init() {
+  try {
+    db = await openDB();
+    state = await loadState();
+    await reloadAttachmentCounts();
+  } catch (e) {
+    console.error('Init failed:', e);
+    storageAvailable = false;
+    const w = document.getElementById('storage-warning');
+    if (w) {
+      w.hidden = false;
+      w.textContent = '⚠ Speicher (IndexedDB) nicht verfügbar — Daten gehen beim Neuladen verloren. Im privaten Modus oder bestimmten Browsern kann das vorkommen.';
+    }
+  }
+  render();
+}
+
+init();
 </script>
 </body>
 </html>
