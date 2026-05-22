@@ -863,99 +863,135 @@
 
   /* PRINT */
   @media print {
-    body { background: white; padding: 0; font-size: 10pt; color: black; }
+    /* Prevent overflow on any element from pushing content off the page */
+    *, *::before, *::after { box-sizing: border-box !important; }
+
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    body { background: white; padding: 0; margin: 0; font-size: 9pt; color: black; }
     body::before { display: none; }
     .topbar, .view-tabs, .action-bar, .modal, .actions-cell, .btn, .no-print, .topbar-actions {
       display: none !important;
     }
-    main { max-width: none; padding: 0; }
+    main { max-width: 100%; width: 100%; padding: 0; margin: 0; }
     .print-only { display: block; }
     .print-header {
       border-bottom: 2px solid black;
-      padding-bottom: .6rem;
-      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      margin-bottom: .7rem;
     }
     .print-header h1 {
-      font-size: 16pt;
+      font-size: 15pt;
       font-family: 'Fraunces', serif;
-      margin-bottom: .3rem;
+      margin-bottom: .25rem;
     }
     .print-header .meta {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: .4rem;
-      font-size: 8.5pt;
-      margin-top: .4rem;
+      gap: .3rem;
+      font-size: 8pt;
+      margin-top: .3rem;
     }
-    .print-header .meta .label { color: #555; text-transform: uppercase; font-size: 7pt; letter-spacing: .1em; }
+    .print-header .meta .label { color: #555; text-transform: uppercase; font-size: 6.5pt; letter-spacing: .1em; }
 
     .employee-strip { display: none; }
+
+    /* Summary grid: 4 cards inline when wide enough, auto-wrap to 2 cols when narrow (portrait) */
     .summary-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: .4rem;
-      margin-bottom: .8rem;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .35rem;
+      margin-bottom: .7rem;
+      width: 100%;
     }
-    .summary-card { box-shadow: none; border: 1px solid #999; padding: .4rem .55rem; min-height: 0; }
+    .summary-card { box-shadow: none; border: 1px solid #999; padding: .35rem .45rem; min-height: 0; min-width: 0; overflow: hidden; }
     .summary-card.total { background: white !important; color: black !important; border: 2px solid black; }
     .summary-card.total .label, .summary-card.total .amount, .summary-card.total .detail { color: black !important; }
-    .summary-card .amount { font-size: 11.5pt; }
+    .summary-card .amount { font-size: 10.5pt; word-break: break-word; }
     .summary-card .position-tag { display: none; }
-    .summary-card .label { font-size: 7pt; }
-    .summary-card .detail { font-size: 7.5pt; }
+    .summary-card .label { font-size: 6.5pt; }
+    .summary-card .detail { font-size: 7pt; word-break: break-word; }
 
-    .entries-wrap { box-shadow: none; border: 1px solid #555; border-radius: 0; overflow: visible; }
-    .entries-table { font-size: 8pt; table-layout: fixed; width: 100%; }
-    .entries-table thead th { background: #eee !important; color: black; border-bottom: 1px solid black; padding: .3rem .25rem; font-size: 6.5pt; }
-    .entries-table tbody td { padding: .25rem .3rem; vertical-align: top; }
-    .entries-table .date-cell { font-size: 8pt; }
-    .entries-table .date-cell .weekday { font-size: 6.5pt; }
-    .entries-table .address-cell, .entries-table .type-cell { font-size: 7.5pt; }
-    .entries-table .time-range { font-size: 7.5pt; }
-    .entries-table .time-range .dur { font-size: 6.5pt; }
+    /* Table: strict fixed layout so 11 columns always fit the page width */
+    .entries-wrap { box-shadow: none; border: 1px solid #555; border-radius: 0; overflow: hidden; width: 100%; }
+    .entries-table {
+      font-size: 7.5pt;
+      table-layout: fixed;
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+    }
+    .entries-table thead th {
+      background: #eee !important; color: black;
+      border-bottom: 1px solid black;
+      padding: .25rem .2rem;
+      font-size: 6pt;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .entries-table tbody td {
+      padding: .2rem .25rem;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .entries-table .date-cell { font-size: 7.5pt; white-space: normal; }
+    .entries-table .date-cell .weekday { font-size: 6pt; }
+    .entries-table .site-cell { font-size: 7pt; }
+    .entries-table .address-cell, .entries-table .type-cell { font-size: 6.8pt; }
+    .entries-table .time-range { font-size: 7pt; white-space: normal; }
+    .entries-table .time-range .dur { font-size: 6pt; }
+    .entries-table .num { font-size: 7pt; }
     .entries-table tr.future td.date-cell::before, .entries-table tr.today td.date-cell::before { display: none; }
-    .entries-table tfoot td { background: white; border-top: 1.5px solid black; padding: .3rem .25rem; font-size: 7.5pt; }
+    .entries-table tfoot td { background: white; border-top: 1.5px solid black; padding: .25rem .2rem; font-size: 7pt; }
     .entries-table .actions-cell { display: none; }
     .entries-table thead th:last-child { display: none; }
-    .meal-indicator, .premium-indicator { font-size: 6.5pt; }
-    .meal-indicator .m, .premium-indicator .p { padding: 0 2px; }
+    .meal-indicator, .premium-indicator { font-size: 6pt; }
+    .meal-indicator .m, .premium-indicator .p { padding: 0 1px; }
+
+    /* Explicit column widths (sum = 100%) — guarantees 11 columns fit in A4 portrait & landscape */
+    .entries-table colgroup col.c-date  { width:  6.5%; }
+    .entries-table colgroup col.c-site  { width: 12.0%; }
+    .entries-table colgroup col.c-addr  { width: 13.0%; }
+    .entries-table colgroup col.c-type  { width:  9.0%; }
+    .entries-table colgroup col.c-away  { width: 10.0%; }
+    .entries-table colgroup col.c-work  { width: 13.5%; }
+    .entries-table colgroup col.c-km    { width:  5.0%; }
+    .entries-table colgroup col.c-meal  { width:  6.5%; }
+    .entries-table colgroup col.c-prem  { width:  6.5%; }
+    .entries-table colgroup col.c-pausch{ width:  8.0%; }
+    .entries-table colgroup col.c-gross { width: 10.0%; }
+    .entries-table colgroup col.c-act   { width:  0%;  }
 
     .print-footer {
-      margin-top: 1.5rem;
+      margin-top: 1.2rem;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-      font-size: 9pt;
+      gap: 2rem;
+      font-size: 8.5pt;
     }
     .print-footer .sig {
       border-top: 1px solid black;
-      padding-top: .3rem;
-      margin-top: 2.5rem;
+      padding-top: .25rem;
+      margin-top: 2rem;
       font-style: italic;
       color: #555;
     }
-    .reimbursement-field {
-      margin-bottom: 1.2rem;
-    }
-    .reimbursement-label {
-      font-size: 8.5pt;
-      color: #333;
-      margin-bottom: .35rem;
-      font-weight: 500;
-    }
+    .reimbursement-field { margin-bottom: 1rem; }
+    .reimbursement-label { font-size: 8pt; color: #333; margin-bottom: .3rem; font-weight: 500; }
     .reimbursement-line {
       border: 1px solid #555;
-      height: 1.8em;
+      height: 1.7em;
       position: relative;
       background: white;
     }
     .reimbursement-line .eur-mark {
       position: absolute;
-      right: .4rem;
-      bottom: .25rem;
-      font-size: 10pt;
+      right: .35rem;
+      bottom: .2rem;
+      font-size: 9.5pt;
       color: #555;
     }
-    @page { margin: 1cm 1.2cm; }
+    @page { margin: 1cm 1cm; }
   }
   /* Default print orientation: stunden = landscape, spesen = portrait (set dynamically) */
 </style>
@@ -1019,6 +1055,20 @@
 
   <section class="entries-wrap">
     <table class="entries-table" id="entries-table">
+      <colgroup>
+        <col class="c-date">
+        <col class="c-site">
+        <col class="c-addr">
+        <col class="c-type">
+        <col class="c-away">
+        <col class="c-work">
+        <col class="c-km">
+        <col class="c-meal">
+        <col class="c-prem">
+        <col class="c-pausch">
+        <col class="c-gross">
+        <col class="c-act">
+      </colgroup>
       <thead>
         <tr>
           <th>Datum</th>
@@ -3015,7 +3065,13 @@ function setPrintOrientation(orientation) {
     style.id = 'dyn-print-orientation';
     document.head.appendChild(style);
   }
-  style.textContent = `@media print { @page { size: A4 ${orientation}; margin: 1cm 1.2cm; } }`;
+  // Use both the keyword form AND explicit dimensions for maximum browser compatibility.
+  // Some mobile browsers ignore "A4 landscape" but honor explicit "297mm 210mm".
+  const dims = orientation === 'landscape' ? '297mm 210mm' : '210mm 297mm';
+  style.textContent =
+    `@media print {
+       @page { size: A4 ${orientation}; size: ${dims}; margin: 1cm; }
+     }`;
 }
 
 document.getElementById('print-btn').addEventListener('click', () => {
