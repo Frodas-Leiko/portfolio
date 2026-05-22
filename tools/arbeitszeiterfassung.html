@@ -331,6 +331,74 @@
     content: '●'; color: var(--green); margin-right: .3rem; font-size: .7em;
   }
 
+  /* View tabs (main: Stunden / Spesen) */
+  .view-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 2;
+  }
+  .view-tab {
+    background: transparent;
+    border: 0;
+    padding: .9rem 1.4rem;
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .15s;
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .view-tab:hover { color: var(--ink-soft); }
+  .view-tab.active {
+    color: var(--teal-deep);
+    border-bottom-color: var(--teal-deep);
+    font-weight: 500;
+  }
+  .view-tab .glyph {
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-size: .85rem;
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--cream-warm);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .view-tab.active .glyph { background: var(--teal-deep); color: var(--paper); }
+
+  /* Category breakdown (Spesen summary) */
+  .cat-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: .4rem;
+    max-height: 6.5rem;
+    overflow-y: auto;
+  }
+  .cat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: .85rem;
+    padding: .25rem 0;
+    border-bottom: 1px dotted var(--line);
+  }
+  .cat-row:last-child { border-bottom: 0; }
+  .cat-row .cat-name { color: var(--ink-soft); }
+  .cat-row .cat-amount {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
   /* Modal */
   .modal {
     position: fixed; inset: 0;
@@ -552,7 +620,7 @@
   @media print {
     body { background: white; padding: 0; font-size: 11pt; color: black; }
     body::before { display: none; }
-    .topbar, .action-bar, .modal, .actions-cell, .btn, .summary-card.info, .topbar-actions {
+    .topbar, .view-tabs, .action-bar, .modal, .actions-cell, .btn, .no-print, .topbar-actions {
       display: none !important;
     }
     main { max-width: none; padding: 0; }
@@ -638,12 +706,20 @@
   </div>
 </header>
 
+<nav class="view-tabs">
+  <button class="view-tab active" data-view="stunden"><span class="glyph">⏱</span> Stunden</button>
+  <button class="view-tab" data-view="spesen"><span class="glyph">€</span> Spesen</button>
+</nav>
+
 <main>
   <div class="warning" id="storage-warning" hidden>
     ⚠ Browser-Speicher nicht verfügbar — Daten gehen beim Neuladen verloren. Bitte „JSON sichern" verwenden.
   </div>
 
   <section class="employee-strip" id="employee-strip"></section>
+
+  <!-- ===== STUNDEN VIEW ===== -->
+  <div class="view-content" data-view="stunden">
 
   <section class="summary-grid" id="summary-grid"></section>
 
@@ -695,6 +771,57 @@
       <div class="sig">Datum, Unterschrift Arbeitgeber</div>
     </div>
   </div>
+
+  </div><!-- /stunden view -->
+
+  <!-- ===== SPESEN VIEW ===== -->
+  <div class="view-content" data-view="spesen" hidden>
+
+    <section class="summary-grid" id="spesen-summary-grid"></section>
+
+    <section class="action-bar">
+      <button class="btn btn-primary" id="add-expense">＋ Spesen-Eintrag</button>
+      <div class="spacer"></div>
+      <div class="exports">
+        <button class="btn" id="print-btn-spesen">🖨 Drucken / PDF</button>
+        <button class="btn" id="export-csv-spesen">CSV</button>
+        <button class="btn" id="export-json-spesen">JSON sichern</button>
+        <button class="btn" id="import-json-spesen">JSON laden</button>
+      </div>
+    </section>
+
+    <div class="print-only print-header">
+      <h1>Spesenabrechnung</h1>
+      <div class="meta" id="print-meta-spesen"></div>
+    </div>
+
+    <section class="entries-wrap">
+      <table class="entries-table" id="expenses-table">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Beschreibung</th>
+            <th>Kategorie</th>
+            <th>Notiz / Beleg-Nr.</th>
+            <th class="num">Betrag</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="expenses-tbody"></tbody>
+        <tfoot id="expenses-tfoot"></tfoot>
+      </table>
+    </section>
+
+    <div class="print-only print-footer">
+      <div>
+        <div class="sig">Datum, Unterschrift Arbeitnehmer</div>
+      </div>
+      <div>
+        <div class="sig">Datum, Unterschrift Arbeitgeber</div>
+      </div>
+    </div>
+
+  </div><!-- /spesen view -->
 </main>
 
 <!-- ENTRY MODAL -->
@@ -794,6 +921,7 @@
       <button class="settings-tab" data-tab="rates">Lohn &amp; Pauschale</button>
       <button class="settings-tab" data-tab="sites">Einsatzorte</button>
       <button class="settings-tab" data-tab="types">Einsatzarten</button>
+      <button class="settings-tab" data-tab="categories">Spesen-Kategorien</button>
       <button class="settings-tab" data-tab="data">Daten</button>
     </div>
     <div class="modal-body">
@@ -855,6 +983,17 @@
         </div>
       </div>
 
+      <div class="settings-panel" data-panel="categories">
+        <div class="form-section">
+          <span class="help-text">Z.B. Verpflegung, Fahrtkosten, Parkgebühren, Übernachtung, Sonstiges…</span>
+          <div class="sub-list" id="categories-list" style="margin-top:.8rem"></div>
+          <div class="sub-list-add">
+            <input type="text" id="new-category-name" placeholder="Name der Kategorie">
+            <button class="btn btn-primary" id="add-category">＋ Hinzufügen</button>
+          </div>
+        </div>
+      </div>
+
       <div class="settings-panel" data-panel="data">
         <div class="form-section">
           <div class="form-section-title">Sicherung</div>
@@ -875,9 +1014,58 @@
   </div>
 </div>
 
+<!-- EXPENSE MODAL -->
+<div class="modal" id="expense-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="expense-modal-title">Neuer Spesen-Eintrag</h2>
+      <button class="btn btn-ghost btn-icon" data-close-modal>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="expense-form">
+        <input type="hidden" id="expense-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="expense-date">Datum</label>
+            <input type="date" id="expense-date" required>
+          </div>
+          <div class="form-group">
+            <label for="expense-amount">Betrag (€)</label>
+            <input type="number" id="expense-amount" class="mono" step="0.01" min="0" required placeholder="0.00">
+          </div>
+          <div class="form-group span-2">
+            <label for="expense-description">Beschreibung</label>
+            <input type="text" id="expense-description" required placeholder="z.B. Mittagessen, Parkgebühr">
+          </div>
+          <div class="form-group">
+            <label for="expense-category">Kategorie</label>
+            <select id="expense-category">
+              <option value="">— wählen —</option>
+              <option value="__new__">＋ Neue Kategorie…</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="expense-category-new">Neue Kategorie</label>
+            <input type="text" id="expense-category-new" placeholder="z.B. Verpflegung">
+          </div>
+          <div class="form-group span-2">
+            <label for="expense-note">Notiz / Beleg-Nr. (optional)</label>
+            <input type="text" id="expense-note" placeholder="Beleg-Nr., Verkäufer, ...">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="expense-delete" hidden>Löschen</button>
+      <div style="flex:1"></div>
+      <button class="btn" data-close-modal>Abbrechen</button>
+      <button class="btn btn-primary" id="expense-save">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
-
 // ============== STATE ==============
 const STORAGE_KEY = 'arbeitszeit_v1';
 let storageAvailable = true;
@@ -890,14 +1078,17 @@ const DEFAULT_STATE = {
     hourlyWage: 0,
     pauschaleAmount: 14,
     pauschaleThresholdHours: 8,
-    sites: [],          // [{name, address}]
-    assignmentTypes: [] // [name]
+    sites: [],          // [{name, address, defaultKm, defaultHours, defaultStart, defaultEnd}]
+    assignmentTypes: [],// [name]
+    expenseCategories: ['Verpflegung','Fahrtkosten','Parkgebühren','Übernachtung','Sonstiges']
   },
-  entries: []           // [{id, date, siteName, address, assignmentType, startTime, endTime, workHours, kilometers}]
+  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workHours, kilometers}]
+  expenses: []          // [{id, date, description, category, amount, notes}]
 };
 
 let state = loadState();
 let viewYear, viewMonth;  // 1..12
+let currentView = 'stunden';  // 'stunden' | 'spesen'
 {
   const now = new Date();
   viewYear = now.getFullYear();
@@ -912,7 +1103,8 @@ function loadState() {
     // Merge with defaults so new fields don't break
     return {
       settings: { ...DEFAULT_STATE.settings, ...parsed.settings },
-      entries: Array.isArray(parsed.entries) ? parsed.entries : []
+      entries: Array.isArray(parsed.entries) ? parsed.entries : [],
+      expenses: Array.isArray(parsed.expenses) ? parsed.expenses : []
     };
   } catch (e) {
     storageAvailable = false;
@@ -984,10 +1176,26 @@ function entriesForView() {
 function render() {
   renderMonthLabel();
   renderEmployeeStrip();
-  renderSummary();
-  renderEntries();
-  renderPrintMeta();
+  if (currentView === 'stunden') {
+    renderSummary();
+    renderEntries();
+    renderPrintMeta();
+  } else {
+    renderExpenseSummary();
+    renderExpensesTable();
+    renderExpensePrintMeta();
+  }
 }
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.querySelectorAll('.view-content').forEach(c => c.hidden = c.dataset.view !== view);
+  render();
+}
+document.querySelectorAll('.view-tab').forEach(t => {
+  t.addEventListener('click', () => switchView(t.dataset.view));
+});
 
 function renderMonthLabel() {
   document.getElementById('month-label').textContent = MONTH_NAMES[viewMonth-1] + ' ' + viewYear;
@@ -1042,7 +1250,7 @@ function renderSummary() {
       <span class="amount">${fmtEur(sum)}</span>
       <span class="detail">${entries.length} ${entries.length === 1 ? 'Einsatztag' : 'Einsatztage'}</span>
     </div>
-    <div class="summary-card info">
+    <div class="summary-card info no-print">
       <span class="label">Nur Steuer-Info</span>
       <span class="amount" style="font-size:1rem; line-height:1.4">
         ${fmtNum(totalAway,1)} Std außer Haus<br>
@@ -1133,6 +1341,258 @@ function escapeHtml(s) {
   if (s == null) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+// ============== EXPENSES (Spesen) ==============
+function expensesForView() {
+  const prefix = viewYear + '-' + String(viewMonth).padStart(2,'0');
+  return state.expenses
+    .filter(e => e.date && e.date.startsWith(prefix))
+    .sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function renderExpenseSummary() {
+  const expenses = expensesForView();
+  const total = expenses.reduce((s, e) => s + (+e.amount || 0), 0);
+  const byCat = {};
+  for (const e of expenses) {
+    const cat = e.category || 'Ohne Kategorie';
+    byCat[cat] = (byCat[cat] || 0) + (+e.amount || 0);
+  }
+  const catEntries = Object.entries(byCat).sort((a,b) => b[1] - a[1]);
+
+  document.getElementById('spesen-summary-grid').innerHTML = `
+    <div class="summary-card position pauschale">
+      <span class="position-tag">Position</span>
+      <span class="label">Gesamtbetrag Spesen</span>
+      <span class="amount">${fmtEur(total)}</span>
+      <span class="detail">${expenses.length} ${expenses.length === 1 ? 'Eintrag' : 'Einträge'}</span>
+    </div>
+    ${catEntries.length > 0 ? `
+      <div class="summary-card info" style="grid-column: span 2">
+        <span class="label">Aufschlüsselung nach Kategorie</span>
+        <div class="cat-breakdown">
+          ${catEntries.map(([cat, amt]) => `
+            <div class="cat-row">
+              <span class="cat-name">${escapeHtml(cat)}</span>
+              <span class="cat-amount">${fmtEur(amt)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderExpensesTable() {
+  const expenses = expensesForView();
+  const tbody = document.getElementById('expenses-tbody');
+  const tfoot = document.getElementById('expenses-tfoot');
+  const today = todayISO();
+
+  if (expenses.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+      <h3>Keine Spesen für ${MONTH_NAMES[viewMonth-1]} ${viewYear}</h3>
+      <p>Über „＋ Spesen-Eintrag" einen ersten Beleg erfassen.</p>
+    </td></tr>`;
+    tfoot.innerHTML = '';
+    return;
+  }
+
+  let total = 0;
+  tbody.innerHTML = expenses.map(e => {
+    const amount = +e.amount || 0;
+    total += amount;
+    const d = parseDate(e.date);
+    const wd = WEEKDAYS[d.getDay()];
+    const dateStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+    const cls = e.date > today ? 'future' : (e.date === today ? 'today' : '');
+    return `<tr class="${cls}" data-id="${e.id}">
+      <td class="date-cell">${dateStr}<span class="weekday">${wd}</span></td>
+      <td class="site-cell">${escapeHtml(e.description || '—')}</td>
+      <td class="type-cell">${escapeHtml(e.category || '')}</td>
+      <td class="address-cell">${escapeHtml(e.notes || '')}</td>
+      <td class="num">${fmtEur(amount)}</td>
+      <td class="actions-cell">
+        <button class="btn btn-ghost btn-small" data-edit-expense="${e.id}">Bearb.</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  tfoot.innerHTML = `<tr>
+    <td colspan="4" style="text-align:right">Gesamt</td>
+    <td class="num">${fmtEur(total)}</td>
+    <td></td>
+  </tr>`;
+
+  tbody.querySelectorAll('[data-edit-expense]').forEach(btn => {
+    btn.addEventListener('click', () => openExpenseModal(btn.dataset.editExpense));
+  });
+}
+
+function renderExpensePrintMeta() {
+  const s = state.settings;
+  const fields = [
+    ['Mitarbeiter', s.employeeName || '—'],
+    ['Personalnr.', s.personalNumber || '—'],
+    ['Wohnort', s.homeLocation || '—'],
+    ['Zeitraum', MONTH_NAMES[viewMonth-1] + ' ' + viewYear]
+  ];
+  document.getElementById('print-meta-spesen').innerHTML = fields.map(([l,v]) => `
+    <div><div class="label">${l}</div><div>${escapeHtml(v)}</div></div>
+  `).join('');
+}
+
+function populateExpenseCategoryDropdown() {
+  const sel = document.getElementById('expense-category');
+  const cats = state.settings.expenseCategories || [];
+  sel.innerHTML = '<option value="">— wählen —</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('') +
+    '<option value="__new__">＋ Neue Kategorie…</option>';
+}
+
+function setExpenseCategoryOrCustom(value) {
+  const sel = document.getElementById('expense-category');
+  if (!value) { sel.value = ''; return; }
+  const has = [...sel.options].some(o => o.value === value);
+  if (has) {
+    sel.value = value;
+  } else {
+    sel.value = '__new__';
+    const newInput = document.getElementById('expense-category-new');
+    newInput.value = value;
+    newInput.parentElement.style.display = '';
+  }
+}
+
+const expenseModal = document.getElementById('expense-modal');
+
+function openExpenseModal(id) {
+  const form = document.getElementById('expense-form');
+  form.reset();
+  populateExpenseCategoryDropdown();
+  document.getElementById('expense-category-new').parentElement.style.display = 'none';
+
+  if (id) {
+    const e = state.expenses.find(x => x.id === id);
+    if (!e) return;
+    document.getElementById('expense-modal-title').textContent = 'Spesen bearbeiten';
+    document.getElementById('expense-id').value = e.id;
+    document.getElementById('expense-date').value = e.date || '';
+    document.getElementById('expense-description').value = e.description || '';
+    setExpenseCategoryOrCustom(e.category);
+    document.getElementById('expense-amount').value = e.amount || '';
+    document.getElementById('expense-note').value = e.notes || '';
+    document.getElementById('expense-delete').hidden = false;
+  } else {
+    document.getElementById('expense-modal-title').textContent = 'Neuer Spesen-Eintrag';
+    document.getElementById('expense-id').value = '';
+    document.getElementById('expense-date').value = todayISO();
+    // Prefill category from most recent expense
+    const last = [...state.expenses].sort((a,b) => b.date.localeCompare(a.date))[0];
+    if (last && last.category) setExpenseCategoryOrCustom(last.category);
+    document.getElementById('expense-delete').hidden = true;
+  }
+  expenseModal.classList.add('open');
+}
+
+document.getElementById('expense-category').addEventListener('change', e => {
+  const newGroup = document.getElementById('expense-category-new').parentElement;
+  if (e.target.value === '__new__') {
+    newGroup.style.display = '';
+    document.getElementById('expense-category-new').focus();
+  } else {
+    newGroup.style.display = 'none';
+  }
+});
+
+document.getElementById('add-expense').addEventListener('click', () => openExpenseModal(null));
+
+document.getElementById('expense-save').addEventListener('click', () => {
+  const id = document.getElementById('expense-id').value;
+  const date = document.getElementById('expense-date').value;
+  const description = document.getElementById('expense-description').value.trim();
+  const amount = +document.getElementById('expense-amount').value;
+
+  if (!date) { alert('Bitte ein Datum angeben.'); return; }
+  if (!description) { alert('Bitte eine Beschreibung angeben.'); return; }
+  if (!amount || amount <= 0) { alert('Bitte einen Betrag größer 0 angeben.'); return; }
+
+  let category = document.getElementById('expense-category').value;
+  if (category === '__new__') {
+    category = document.getElementById('expense-category-new').value.trim();
+    if (category) {
+      if (!Array.isArray(state.settings.expenseCategories)) state.settings.expenseCategories = [];
+      if (!state.settings.expenseCategories.includes(category)) {
+        state.settings.expenseCategories.push(category);
+      }
+    } else {
+      category = '';
+    }
+  }
+
+  const expense = {
+    id: id || 'exp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
+    date,
+    description,
+    category,
+    amount,
+    notes: document.getElementById('expense-note').value.trim()
+  };
+
+  if (id) {
+    const idx = state.expenses.findIndex(x => x.id === id);
+    if (idx >= 0) state.expenses[idx] = expense;
+  } else {
+    state.expenses.push(expense);
+  }
+  saveState();
+  closeModals();
+  render();
+});
+
+document.getElementById('expense-delete').addEventListener('click', () => {
+  const id = document.getElementById('expense-id').value;
+  if (!id) return;
+  if (!confirm('Diesen Spesen-Eintrag wirklich löschen?')) return;
+  state.expenses = state.expenses.filter(x => x.id !== id);
+  saveState();
+  closeModals();
+  render();
+});
+
+// Settings: categories list
+function renderCategoriesList() {
+  const list = document.getElementById('categories-list');
+  const cats = state.settings.expenseCategories || [];
+  if (cats.length === 0) {
+    list.innerHTML = '<div class="sub-list-empty">Noch keine Kategorien hinterlegt.</div>';
+    return;
+  }
+  list.innerHTML = cats.map((t, i) => `
+    <div class="sub-list-item">
+      <input type="text" value="${escapeHtml(t)}" data-category-name="${i}">
+      <button class="btn btn-danger btn-small" data-remove-category="${i}">✕</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-category-name]').forEach(inp => {
+    inp.addEventListener('change', () => { state.settings.expenseCategories[+inp.dataset.categoryName] = inp.value.trim(); });
+  });
+  list.querySelectorAll('[data-remove-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.settings.expenseCategories.splice(+btn.dataset.removeCategory, 1);
+      renderCategoriesList();
+    });
+  });
+}
+
+document.getElementById('add-category').addEventListener('click', () => {
+  const name = document.getElementById('new-category-name').value.trim();
+  if (!name) return;
+  if (!Array.isArray(state.settings.expenseCategories)) state.settings.expenseCategories = [];
+  state.settings.expenseCategories.push(name);
+  document.getElementById('new-category-name').value = '';
+  renderCategoriesList();
+});
 
 // ============== MONTH NAVIGATION ==============
 document.getElementById('prev-month').addEventListener('click', () => {
@@ -1347,6 +1807,7 @@ function openSettings() {
   document.getElementById('set-threshold').value = s.pauschaleThresholdHours || '';
   renderSitesList();
   renderTypesList();
+  renderCategoriesList();
   // reset to first tab
   document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'personal'));
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === 'personal'));
@@ -1475,8 +1936,9 @@ function downloadFile(filename, content, mime='text/plain') {
 }
 
 document.getElementById('print-btn').addEventListener('click', () => window.print());
+document.getElementById('print-btn-spesen').addEventListener('click', () => window.print());
 
-document.getElementById('export-csv').addEventListener('click', () => {
+function exportStundenCSV() {
   const entries = entriesForView();
   const header = ['Datum','Einsatzort','Adresse','Art','Von','Bis','Außer Haus (Std)','Arbeitsstd','km','Pauschale (€)','Bruttolohn (€)'];
   const rows = entries.map(e => {
@@ -1501,7 +1963,31 @@ document.getElementById('export-csv').addEventListener('click', () => {
   }).join(';')).join('\n');
   const filename = `arbeitszeit_${viewYear}-${String(viewMonth).padStart(2,'0')}.csv`;
   downloadFile(filename, '\ufeff' + csv, 'text/csv');
-});
+}
+
+function exportSpesenCSV() {
+  const expenses = expensesForView();
+  const header = ['Datum','Beschreibung','Kategorie','Notiz / Beleg-Nr.','Betrag (€)'];
+  const rows = expenses.map(e => [
+    e.date,
+    e.description || '',
+    e.category || '',
+    e.notes || '',
+    fmtNum(+e.amount || 0, 2)
+  ]);
+  // Add total row
+  const total = expenses.reduce((s,e) => s + (+e.amount || 0), 0);
+  rows.push(['', '', '', 'Gesamt', fmtNum(total, 2)]);
+  const csv = [header, ...rows].map(r => r.map(v => {
+    const s = String(v);
+    return /[";\n,]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(';')).join('\n');
+  const filename = `spesen_${viewYear}-${String(viewMonth).padStart(2,'0')}.csv`;
+  downloadFile(filename, '\ufeff' + csv, 'text/csv');
+}
+
+document.getElementById('export-csv').addEventListener('click', exportStundenCSV);
+document.getElementById('export-csv-spesen').addEventListener('click', exportSpesenCSV);
 
 function exportJSON() {
   const data = JSON.stringify(state, null, 2);
@@ -1510,10 +1996,12 @@ function exportJSON() {
 }
 document.getElementById('export-json').addEventListener('click', exportJSON);
 document.getElementById('settings-export-json').addEventListener('click', exportJSON);
+document.getElementById('export-json-spesen').addEventListener('click', exportJSON);
 
 function triggerImport() { document.getElementById('import-file').click(); }
 document.getElementById('import-json').addEventListener('click', triggerImport);
 document.getElementById('settings-import-json').addEventListener('click', triggerImport);
+document.getElementById('import-json-spesen').addEventListener('click', triggerImport);
 
 document.getElementById('import-file').addEventListener('change', async ev => {
   const f = ev.target.files[0];
@@ -1525,7 +2013,8 @@ document.getElementById('import-file').addEventListener('change', async ev => {
     if (!confirm('Aktuelle Daten überschreiben?')) return;
     state = {
       settings: { ...DEFAULT_STATE.settings, ...data.settings },
-      entries: data.entries
+      entries: data.entries,
+      expenses: Array.isArray(data.expenses) ? data.expenses : []
     };
     saveState();
     render();
