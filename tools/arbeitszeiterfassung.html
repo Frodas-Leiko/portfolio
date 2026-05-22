@@ -557,6 +557,43 @@
     line-height: 1.2;
   }
 
+  /* Premium badges (Zuschläge) */
+  .premium-indicator {
+    display: inline-flex; gap: .15rem; flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .72rem;
+    font-weight: 600;
+  }
+  .premium-indicator .p {
+    padding: 1px 4px;
+    border-radius: 2px;
+    line-height: 1.2;
+  }
+  .premium-indicator .p.s { background: #c2dfd4; color: #1f4530; }
+  .premium-indicator .p.f { background: #f0c0a8; color: #5a2a0a; }
+  .premium-indicator .p.n { background: #2a3a5a; color: #d4d8e0; }
+
+  /* Date marker for Sundays/Holidays */
+  .date-cell.is-sunday { color: var(--red); font-weight: 500; }
+  .date-cell.is-holiday { color: var(--gold); font-weight: 500; }
+
+  /* Compact time range cell */
+  .time-range {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  .time-range .dur {
+    color: var(--muted);
+    font-size: .72rem;
+    display: block;
+  }
+  .time-range .nighthint {
+    color: #5a78c8;
+    font-size: .68rem;
+  }
+
   /* First workplace status note */
   .workplace-note {
     font-size: .72rem;
@@ -953,12 +990,11 @@
           <th>Einsatzort</th>
           <th>Adresse</th>
           <th>Art</th>
-          <th>Von</th>
-          <th>Bis</th>
-          <th class="num">Außer Haus</th>
-          <th class="num">Arbeitsstd.</th>
+          <th>Abwesenheit</th>
+          <th>Arbeitszeit</th>
           <th class="num">km</th>
           <th class="num">Mahlz.</th>
+          <th class="num">Zuschl.</th>
           <th class="num">Pauschale</th>
           <th class="num">Bruttolohn</th>
           <th></th>
@@ -1084,28 +1120,53 @@
           <div class="form-section-title">Zeiten &amp; Strecke</div>
           <div class="form-grid">
             <div class="form-group">
-              <label for="entry-start">Abwesenheit von</label>
+              <label for="entry-start">Abwesenheit von (Pauschale)</label>
               <input type="time" id="entry-start" class="mono">
             </div>
             <div class="form-group">
-              <label for="entry-end">Abwesenheit bis</label>
+              <label for="entry-end">Abwesenheit bis (Pauschale)</label>
               <input type="time" id="entry-end" class="mono">
             </div>
             <div class="form-group span-2">
               <span class="help-text calc" id="calc-away">Außer Haus: —</span>
             </div>
+
             <div class="form-group">
-              <label for="entry-hours">Reine Arbeitszeit (Std., dezimal)</label>
-              <input type="number" id="entry-hours" class="mono" step="0.25" min="0" placeholder="7.5">
+              <label for="entry-work-start">Arbeitsbeginn (Lohn)</label>
+              <input type="time" id="entry-work-start" class="mono">
             </div>
+            <div class="form-group">
+              <label for="entry-work-end">Arbeitsende (Lohn)</label>
+              <input type="time" id="entry-work-end" class="mono">
+            </div>
+            <div class="form-group span-2">
+              <button type="button" class="btn btn-ghost btn-small" id="copy-from-away" style="align-self:flex-start; margin-bottom:.2rem;">↺ Arbeitszeit = Abwesenheitszeit übernehmen</button>
+              <span class="help-text calc" id="calc-work">Arbeitsstunden: —</span>
+            </div>
+
             <div class="form-group">
               <label for="entry-km">Kilometer (gesamt)</label>
               <input type="number" id="entry-km" class="mono" step="1" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <!-- placeholder -->
             </div>
             <div class="form-group span-2">
               <span class="help-text calc" id="calc-pay">Bruttolohn (Tag): —</span>
             </div>
           </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Schichtart &amp; Zuschläge</div>
+          <div class="meals-row">
+            <label class="meal-check" id="holiday-label">
+              <input type="checkbox" id="entry-holiday">
+              <span>Feiertag (gesetzlich)</span>
+              <span class="meal-amount" id="holiday-amt">+0 %</span>
+            </label>
+          </div>
+          <span class="help-text" id="day-type-hint" style="margin-top:.5rem; display:block;">Sonntag wird automatisch anhand des Datums erkannt.</span>
         </div>
 
         <div class="form-section">
@@ -1199,6 +1260,41 @@
             <input type="number" id="set-threshold" class="mono" step="0.5" min="0">
             <span class="help-text">Aktuell laut Steuerrecht: 8 Std. für die kleine VMA-Pauschale.</span>
           </div>
+          <div class="form-group span-2" style="margin-top:.4rem; padding-top:.8rem; border-top:1px solid var(--line-soft);">
+            <label>Lohn-Zuschläge (in % auf den Stundenlohn)</label>
+            <span class="help-text">Aufschlag pro Stunde im jeweiligen Schicht-Fenster. Steuerfreie Höchstgrenzen: Sonntag 50 %, Feiertag 125 %, Nacht 25 %.</span>
+          </div>
+          <div class="form-group">
+            <label for="set-premium-sunday">Sonntag (%)</label>
+            <input type="number" id="set-premium-sunday" class="mono" step="1" min="0">
+          </div>
+          <div class="form-group">
+            <label for="set-premium-holiday">Feiertag (%)</label>
+            <input type="number" id="set-premium-holiday" class="mono" step="1" min="0">
+          </div>
+          <div class="form-group">
+            <label for="set-premium-night">Nachtschicht (%)</label>
+            <input type="number" id="set-premium-night" class="mono" step="1" min="0">
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <div style="display:flex; gap:.5rem; align-items:center; padding:.55rem 0;">
+              <input type="checkbox" id="set-sunday-holiday-stack" style="width:18px;height:18px;accent-color:var(--teal-deep);">
+              <label for="set-sunday-holiday-stack" style="font-size:.85rem; cursor:pointer;">Sonntag + Feiertag addieren</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="set-night-start">Nachtschicht von</label>
+            <input type="time" id="set-night-start" class="mono">
+          </div>
+          <div class="form-group">
+            <label for="set-night-end">Nachtschicht bis</label>
+            <input type="time" id="set-night-end" class="mono">
+          </div>
+          <div class="form-group span-2">
+            <span class="help-text">Wenn Sonntag + Feiertag <strong>nicht</strong> addieren: gilt nur der höhere Zuschlag (i.d.R. Feiertag).</span>
+          </div>
+
           <div class="form-group span-2" style="margin-top:.4rem; padding-top:.8rem; border-top:1px solid var(--line-soft);">
             <label>Kürzung bei Mahlzeitengestellung (§ 9 Abs. 4a EStG)</label>
             <span class="help-text">Festbeträge in Bezug auf die volle 24-Std.-Pauschale (28 €): 20 % / 40 % / 40 %.</span>
@@ -1357,11 +1453,18 @@ const DEFAULT_STATE = {
     // Erste Tätigkeitsstätte (steuerlich)
     noFirstWorkplace: true,        // true = wechselnde Einsatzorte
     firstWorkplaceAddress: '',     // falls vorhanden
-    sites: [],          // [{name, address, defaultKm, defaultHours, defaultStart, defaultEnd}]
+    // Lohn-Zuschläge in Prozent
+    sundayPremiumPercent: 50,
+    holidayPremiumPercent: 125,
+    nightPremiumPercent: 25,
+    nightStart: '20:00',
+    nightEnd: '06:00',
+    sundayHolidayStack: false,     // false = nur der höhere zählt, true = beide addieren
+    sites: [],          // [{name, address, defaultKm, defaultHours, defaultStart, defaultEnd, defaultWorkStart, defaultWorkEnd}]
     assignmentTypes: [],// [name]
     expenseCategories: ['Verpflegung','Fahrtkosten','Parkgebühren','Übernachtung','Sonstiges']
   },
-  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workHours, kilometers, mealBreakfast, mealLunch, mealDinner}]
+  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workStart, workEnd, kilometers, mealBreakfast, mealLunch, mealDinner, isHoliday}]
   expenses: []          // [{id, date, description, category, amount, notes}]
 };
 
@@ -1489,9 +1592,32 @@ function todayISO() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+function nightOverlapHours(start, end, nightStart, nightEnd) {
+  if (!start || !end) return 0;
+  const toMin = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  let s = toMin(start);
+  let e = toMin(end);
+  if (e <= s) e += 24 * 60;  // overnight shift
+  const ns = toMin(nightStart);
+  const ne = toMin(nightEnd);
+
+  // Night window can span midnight (e.g. 20:00–06:00 = [20:00,24:00] ∪ [00:00,06:00])
+  const nightRanges = ne > ns ? [[ns, ne]] : [[ns, 24*60], [0, ne]];
+
+  let total = 0;
+  for (let dayBase = 0; dayBase < e; dayBase += 24 * 60) {
+    for (const [nrs, nre] of nightRanges) {
+      const nS = dayBase + nrs, nE = dayBase + nre;
+      const oS = Math.max(s, nS), oE = Math.min(e, nE);
+      if (oE > oS) total += oE - oS;
+    }
+  }
+  return total / 60;
+}
+
 function calcEntry(e) {
+  // VMA-Pauschale aus Abwesenheitszeiten
   const hoursAway = hoursBetween(e.startTime, e.endTime);
-  const workHours = +e.workHours || 0;
   const eligible = hoursAway >= (+state.settings.pauschaleThresholdHours || 8);
   const grossPauschale = eligible ? (+state.settings.pauschaleAmount || 0) : 0;
 
@@ -1502,8 +1628,66 @@ function calcEntry(e) {
     if (e.mealDinner)    mealDeduction += (+state.settings.mealDinnerDeduction || 0);
   }
   const pauschale = Math.max(0, grossPauschale - mealDeduction);
-  const gross = workHours * (+state.settings.hourlyWage || 0);
-  return { hoursAway, workHours, grossPauschale, mealDeduction, pauschale, gross, eligible };
+
+  // Arbeitszeit aus workStart/workEnd
+  const workHours = hoursBetween(e.workStart, e.workEnd);
+  const hourlyWage = +state.settings.hourlyWage || 0;
+  const baseGross = workHours * hourlyWage;
+
+  // Tag-Typ
+  const date = parseDate(e.date);
+  const isSunday = date ? date.getDay() === 0 : false;
+  const isHoliday = !!e.isHoliday;
+
+  // Tag-Zuschlag bestimmen
+  const sundayPct  = +state.settings.sundayPremiumPercent  || 0;
+  const holidayPct = +state.settings.holidayPremiumPercent || 0;
+  let dayPercent = 0;
+  let dayLabel = '';
+  let sundayPremium = 0;
+  let holidayPremium = 0;
+
+  if (isSunday && isHoliday) {
+    if (state.settings.sundayHolidayStack) {
+      sundayPremium  = baseGross * (sundayPct  / 100);
+      holidayPremium = baseGross * (holidayPct / 100);
+      dayPercent = sundayPct + holidayPct;
+      dayLabel = 'S+F';
+    } else {
+      // Nur der höhere zählt
+      if (holidayPct >= sundayPct) {
+        holidayPremium = baseGross * (holidayPct / 100);
+        dayPercent = holidayPct; dayLabel = 'F';
+      } else {
+        sundayPremium = baseGross * (sundayPct / 100);
+        dayPercent = sundayPct; dayLabel = 'S';
+      }
+    }
+  } else if (isHoliday) {
+    holidayPremium = baseGross * (holidayPct / 100);
+    dayPercent = holidayPct; dayLabel = 'F';
+  } else if (isSunday) {
+    sundayPremium = baseGross * (sundayPct / 100);
+    dayPercent = sundayPct; dayLabel = 'S';
+  }
+
+  // Nachtschicht-Zuschlag (gilt immer zusätzlich)
+  const nightStart = state.settings.nightStart || '20:00';
+  const nightEnd   = state.settings.nightEnd   || '06:00';
+  const nightHours = nightOverlapHours(e.workStart, e.workEnd, nightStart, nightEnd);
+  const nightPct   = +state.settings.nightPremiumPercent || 0;
+  const nightPremium = nightHours * hourlyWage * (nightPct / 100);
+
+  const totalPremiums = sundayPremium + holidayPremium + nightPremium;
+  const gross = baseGross + totalPremiums;
+
+  return {
+    hoursAway, workHours, nightHours,
+    isSunday, isHoliday, dayLabel, dayPercent,
+    baseGross, sundayPremium, holidayPremium, nightPremium, totalPremiums,
+    grossPauschale, mealDeduction, pauschale, eligible,
+    gross
+  };
 }
 
 function entriesForView() {
@@ -1566,37 +1750,60 @@ function renderEmployeeStrip() {
 
 function renderSummary() {
   const entries = entriesForView();
-  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalGrossPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0, pauschaleDays = 0;
+  let totalWorkHours = 0, totalBaseGross = 0, totalGross = 0, totalPauschale = 0;
+  let totalGrossPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0;
+  let totalNight = 0, totalSundayPrem = 0, totalHolidayPrem = 0, totalNightPrem = 0;
+  let pauschaleDays = 0;
   for (const e of entries) {
     const c = calcEntry(e);
     totalWorkHours += c.workHours;
+    totalBaseGross += c.baseGross;
     totalGross += c.gross;
     totalPauschale += c.pauschale;
     totalGrossPauschale += c.grossPauschale;
     totalMealDeduction += c.mealDeduction;
+    totalSundayPrem += c.sundayPremium;
+    totalHolidayPrem += c.holidayPremium;
+    totalNightPrem += c.nightPremium;
+    totalNight += c.nightHours;
     if (c.eligible) pauschaleDays++;
     totalKm += (+e.kilometers || 0);
     totalAway += c.hoursAway;
   }
+  const totalPremiums = totalSundayPrem + totalHolidayPrem + totalNightPrem;
   const sum = totalGross + totalPauschale;
+
   const pauschaleDetail = totalMealDeduction > 0
     ? `${pauschaleDays} × ${fmtEur(state.settings.pauschaleAmount)} = ${fmtEur(totalGrossPauschale)}<br>− Mahlzeitenkürzung ${fmtEur(totalMealDeduction)}`
     : `${pauschaleDays} ${pauschaleDays === 1 ? 'Tag' : 'Tage'} × ${fmtEur(state.settings.pauschaleAmount)}`;
+
+  const premParts = [];
+  if (totalSundayPrem  > 0) premParts.push(`Sonntag: ${fmtEur(totalSundayPrem)}`);
+  if (totalHolidayPrem > 0) premParts.push(`Feiertag: ${fmtEur(totalHolidayPrem)}`);
+  if (totalNightPrem   > 0) premParts.push(`Nacht (${fmtNum(totalNight,1)} h): ${fmtEur(totalNightPrem)}`);
+  const premDetail = premParts.length ? premParts.join('<br>') : 'keine in diesem Zeitraum';
+
   document.getElementById('summary-grid').innerHTML = `
     <div class="summary-card position">
       <span class="position-tag">Position 1</span>
-      <span class="label">Bruttolohn</span>
-      <span class="amount">${fmtEur(totalGross)}</span>
+      <span class="label">Grundlohn</span>
+      <span class="amount">${fmtEur(totalBaseGross)}</span>
       <span class="detail">${fmtNum(totalWorkHours,2)} Std × ${fmtEur(state.settings.hourlyWage)}</span>
     </div>
+    <div class="summary-card position" style="border-left-color: var(--teal-light);">
+      <span class="position-tag" style="color: var(--teal-light);">Position 2</span>
+      <span class="label">Steuerfreie Zuschläge</span>
+      <span class="amount">${fmtEur(totalPremiums)}</span>
+      <span class="detail">${premDetail}</span>
+    </div>
     <div class="summary-card position pauschale">
-      <span class="position-tag">Position 2</span>
+      <span class="position-tag">Position 3</span>
       <span class="label">VMA-Pauschalen (netto)</span>
       <span class="amount">${fmtEur(totalPauschale)}</span>
       <span class="detail">${pauschaleDetail}</span>
     </div>
     <div class="summary-card total">
-      <span class="label">Summe (Position 1 + 2)</span>
+      <span class="label">Summe (Pos. 1 + 2 + 3)</span>
       <span class="amount">${fmtEur(sum)}</span>
       <span class="detail">${entries.length} ${entries.length === 1 ? 'Einsatztag' : 'Einsatztage'}</span>
     </div>
@@ -1618,7 +1825,7 @@ function renderEntries() {
   const today = todayISO();
 
   if (entries.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="13" class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="12" class="empty-state">
       <h3>Keine Einträge für ${MONTH_NAMES[viewMonth-1]} ${viewYear}</h3>
       <p>Über „＋ Eintrag hinzufügen" einen ersten Tag erfassen.</p>
     </td></tr>`;
@@ -1626,20 +1833,27 @@ function renderEntries() {
     return;
   }
 
-  let totalWorkHours = 0, totalGross = 0, totalPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0;
+  let totalWorkHours = 0, totalGross = 0, totalBaseGross = 0, totalPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0, totalNight = 0;
+  let totalSundayPrem = 0, totalHolidayPrem = 0, totalNightPrem = 0;
   tbody.innerHTML = entries.map(e => {
     const c = calcEntry(e);
     totalWorkHours += c.workHours;
     totalGross += c.gross;
+    totalBaseGross += c.baseGross;
     totalPauschale += c.pauschale;
     totalMealDeduction += c.mealDeduction;
     totalKm += (+e.kilometers || 0);
     totalAway += c.hoursAway;
+    totalNight += c.nightHours;
+    totalSundayPrem += c.sundayPremium;
+    totalHolidayPrem += c.holidayPremium;
+    totalNightPrem += c.nightPremium;
 
     const d = parseDate(e.date);
     const wd = WEEKDAYS[d.getDay()];
     const dateStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
-    const cls = e.date > today ? 'future' : (e.date === today ? 'today' : '');
+    const cls = (e.date > today ? 'future' : (e.date === today ? 'today' : ''));
+    const dateCls = c.isHoliday ? 'is-holiday' : (c.isSunday ? 'is-sunday' : '');
 
     // Meal indicator
     const mealParts = [];
@@ -1650,33 +1864,61 @@ function renderEntries() {
       ? `<span class="meal-indicator" title="Kürzung: ${fmtEur(c.mealDeduction)}">${mealParts.map(m => `<span class="m">${m}</span>`).join('')}</span>`
       : '';
 
+    // Premium indicator (S/F/N)
+    const premParts = [];
+    if (c.sundayPremium  > 0) premParts.push(`<span class="p s" title="Sonntag ${fmtNum(state.settings.sundayPremiumPercent,0)}% = ${fmtEur(c.sundayPremium)}">S</span>`);
+    if (c.holidayPremium > 0) premParts.push(`<span class="p f" title="Feiertag ${fmtNum(state.settings.holidayPremiumPercent,0)}% = ${fmtEur(c.holidayPremium)}">F</span>`);
+    if (c.nightPremium   > 0) premParts.push(`<span class="p n" title="Nacht ${fmtNum(c.nightHours,1)} h × ${fmtNum(state.settings.nightPremiumPercent,0)}% = ${fmtEur(c.nightPremium)}">N</span>`);
+    const premCell = premParts.length ? `<span class="premium-indicator">${premParts.join('')}</span>` : '';
+
+    // Time range cells
+    const awayCell = e.startTime && e.endTime
+      ? `<span class="time-range">${e.startTime}–${e.endTime}<span class="dur">${fmtNum(c.hoursAway,1)} h</span></span>`
+      : '';
+    const workCell = e.workStart && e.workEnd
+      ? `<span class="time-range">${e.workStart}–${e.workEnd}<span class="dur">${fmtNum(c.workHours,2)} h${c.nightHours > 0 ? ` <span class="nighthint">(${fmtNum(c.nightHours,1)} h Nacht)</span>` : ''}</span></span>`
+      : '';
+
+    // Tooltip for Bruttolohn
+    let grossTitle = `Grundlohn: ${fmtEur(c.baseGross)}`;
+    if (c.totalPremiums > 0) grossTitle += ` + Zuschläge ${fmtEur(c.totalPremiums)}`;
+
     return `<tr class="${cls}" data-id="${e.id}">
-      <td class="date-cell">${dateStr}<span class="weekday">${wd}</span></td>
+      <td class="date-cell ${dateCls}">${dateStr}<span class="weekday">${wd}${c.isHoliday ? ' · Feiertag' : ''}</span></td>
       <td class="site-cell">${escapeHtml(e.siteName || '—')}</td>
       <td class="address-cell">${escapeHtml(e.address || '')}</td>
       <td class="type-cell">${escapeHtml(e.assignmentType || '')}</td>
-      <td class="num">${e.startTime || ''}</td>
-      <td class="num">${e.endTime || ''}</td>
-      <td class="num">${c.hoursAway ? fmtNum(c.hoursAway,1) + ' h' : ''}</td>
-      <td class="num">${c.workHours ? fmtNum(c.workHours,2) : ''}</td>
+      <td>${awayCell}</td>
+      <td>${workCell}</td>
       <td class="num">${e.kilometers ? fmtInt(e.kilometers) : ''}</td>
       <td class="num">${mealCell}</td>
+      <td class="num">${premCell}</td>
       <td class="num ${c.eligible ? 'pauschale-yes' : 'pauschale-no'}" title="${c.mealDeduction > 0 ? 'Brutto: ' + fmtEur(c.grossPauschale) + ' − ' + fmtEur(c.mealDeduction) : ''}">${c.eligible ? fmtEur(c.pauschale) : '—'}</td>
-      <td class="num">${fmtEur(c.gross)}</td>
+      <td class="num" title="${grossTitle}">${fmtEur(c.gross)}</td>
       <td class="actions-cell">
         <button class="btn btn-ghost btn-small" data-edit="${e.id}">Bearb.</button>
       </td>
     </tr>`;
   }).join('');
 
-  const footerMealNote = totalMealDeduction > 0
-    ? `<tr><td colspan="9" style="text-align:right; font-weight:400; color:var(--ink-soft); font-size:.8rem;">davon Mahlzeitenkürzung</td><td></td><td class="num" style="font-weight:400; color:var(--gold);">−${fmtEur(totalMealDeduction)}</td><td></td><td></td></tr>`
-    : '';
-  tfoot.innerHTML = `${footerMealNote}<tr>
-    <td colspan="6" style="text-align:right">Summen</td>
-    <td class="num">${fmtNum(totalAway,1)} h</td>
-    <td class="num">${fmtNum(totalWorkHours,2)}</td>
+  // Footer breakdowns (Mahlzeitenkürzung + Zuschläge summary)
+  const subRows = [];
+  if (totalMealDeduction > 0) {
+    subRows.push(`<tr><td colspan="9" style="text-align:right; font-weight:400; color:var(--ink-soft); font-size:.8rem;">davon Mahlzeitenkürzung</td><td class="num" style="font-weight:400; color:var(--gold);">−${fmtEur(totalMealDeduction)}</td><td></td><td></td></tr>`);
+  }
+  const totalPremiums = totalSundayPrem + totalHolidayPrem + totalNightPrem;
+  if (totalPremiums > 0) {
+    const parts = [];
+    if (totalSundayPrem  > 0) parts.push(`Sonntag ${fmtEur(totalSundayPrem)}`);
+    if (totalHolidayPrem > 0) parts.push(`Feiertag ${fmtEur(totalHolidayPrem)}`);
+    if (totalNightPrem   > 0) parts.push(`Nacht ${fmtEur(totalNightPrem)}`);
+    subRows.push(`<tr><td colspan="10" style="text-align:right; font-weight:400; color:var(--ink-soft); font-size:.8rem;">davon Zuschläge (${parts.join(' · ')})</td><td class="num" style="font-weight:400; color:var(--teal);">+${fmtEur(totalPremiums)}</td><td></td></tr>`);
+  }
+  tfoot.innerHTML = `${subRows.join('')}<tr>
+    <td colspan="5" style="text-align:right">Summen</td>
+    <td class="num">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? ` <span style="color:var(--muted); font-weight:400;">(${fmtNum(totalNight,1)} N)</span>` : ''}</td>
     <td class="num">${fmtInt(totalKm)}</td>
+    <td></td>
     <td></td>
     <td class="num">${fmtEur(totalPauschale)}</td>
     <td class="num">${fmtEur(totalGross)}</td>
@@ -2249,6 +2491,8 @@ function openEntryModal(id) {
   document.getElementById('meal-breakfast-amt').textContent = '−' + fmtEur(state.settings.mealBreakfastDeduction || 0);
   document.getElementById('meal-lunch-amt').textContent     = '−' + fmtEur(state.settings.mealLunchDeduction || 0);
   document.getElementById('meal-dinner-amt').textContent    = '−' + fmtEur(state.settings.mealDinnerDeduction || 0);
+  // Holiday badge with current premium percent
+  document.getElementById('holiday-amt').textContent = '+' + fmtNum(state.settings.holidayPremiumPercent || 0, 0) + ' %';
 
   if (id) {
     const e = state.entries.find(x => x.id === id);
@@ -2261,11 +2505,13 @@ function openEntryModal(id) {
     setSelectOrCustom('entry-type', e.assignmentType);
     document.getElementById('entry-start').value = e.startTime || '';
     document.getElementById('entry-end').value = e.endTime || '';
-    document.getElementById('entry-hours').value = e.workHours || '';
+    document.getElementById('entry-work-start').value = e.workStart || '';
+    document.getElementById('entry-work-end').value = e.workEnd || '';
     document.getElementById('entry-km').value = e.kilometers || '';
     document.getElementById('meal-breakfast').checked = !!e.mealBreakfast;
     document.getElementById('meal-lunch').checked     = !!e.mealLunch;
     document.getElementById('meal-dinner').checked    = !!e.mealDinner;
+    document.getElementById('entry-holiday').checked  = !!e.isHoliday;
     document.getElementById('entry-delete').hidden = false;
   } else {
     document.getElementById('entry-modal-title').textContent = 'Neuer Eintrag';
@@ -2278,14 +2524,17 @@ function openEntryModal(id) {
       setSelectOrCustom('entry-type', last.assignmentType);
       document.getElementById('entry-start').value = last.startTime || '';
       document.getElementById('entry-end').value = last.endTime || '';
+      document.getElementById('entry-work-start').value = last.workStart || '';
+      document.getElementById('entry-work-end').value = last.workEnd || '';
     }
-    // Mahlzeiten standardmäßig nicht gestellt
     document.getElementById('meal-breakfast').checked = false;
     document.getElementById('meal-lunch').checked = false;
     document.getElementById('meal-dinner').checked = false;
+    document.getElementById('entry-holiday').checked = false;
     document.getElementById('entry-delete').hidden = true;
   }
   updateMealCheckVisuals();
+  updateHolidayVisual();
   updateLiveCalc();
   entryModal.classList.add('open');
 }
@@ -2297,11 +2546,29 @@ function updateMealCheckVisuals() {
     if (cb && lab) lab.classList.toggle('checked', cb.checked);
   });
 }
+function updateHolidayVisual() {
+  const cb = document.getElementById('entry-holiday');
+  const lab = document.getElementById('holiday-label');
+  if (cb && lab) lab.classList.toggle('checked', cb.checked);
+}
 ['meal-breakfast','meal-lunch','meal-dinner'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
     updateMealCheckVisuals();
     updateLiveCalc();
   });
+});
+document.getElementById('entry-holiday').addEventListener('change', () => {
+  updateHolidayVisual();
+  updateLiveCalc();
+});
+document.getElementById('entry-date').addEventListener('change', updateLiveCalc);
+['entry-work-start','entry-work-end'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateLiveCalc);
+});
+document.getElementById('copy-from-away').addEventListener('click', () => {
+  document.getElementById('entry-work-start').value = document.getElementById('entry-start').value;
+  document.getElementById('entry-work-end').value   = document.getElementById('entry-end').value;
+  updateLiveCalc();
 });
 
 function setSelectOrCustom(selectId, value) {
@@ -2343,9 +2610,13 @@ document.getElementById('entry-site').addEventListener('change', e => {
     if (site) {
       if (site.address)       document.getElementById('entry-address').value = site.address;
       if (site.defaultKm)     document.getElementById('entry-km').value = site.defaultKm;
-      if (site.defaultHours)  document.getElementById('entry-hours').value = site.defaultHours;
       if (site.defaultStart)  document.getElementById('entry-start').value = site.defaultStart;
       if (site.defaultEnd)    document.getElementById('entry-end').value = site.defaultEnd;
+      // Arbeitszeit: nutzt defaults wenn vorhanden, sonst Abwesenheits-Zeiten als Annäherung
+      if (site.defaultWorkStart) document.getElementById('entry-work-start').value = site.defaultWorkStart;
+      else if (site.defaultStart) document.getElementById('entry-work-start').value = site.defaultStart;
+      if (site.defaultWorkEnd) document.getElementById('entry-work-end').value = site.defaultWorkEnd;
+      else if (site.defaultEnd) document.getElementById('entry-work-end').value = site.defaultEnd;
       updateLiveCalc();
     }
   }
@@ -2360,14 +2631,17 @@ document.getElementById('entry-type').addEventListener('change', e => {
   }
 });
 
-['entry-start','entry-end','entry-hours'].forEach(id => {
+['entry-start','entry-end'].forEach(id => {
   document.getElementById(id).addEventListener('input', updateLiveCalc);
 });
 
 function updateLiveCalc() {
   const start = document.getElementById('entry-start').value;
   const end = document.getElementById('entry-end').value;
-  const hours = +document.getElementById('entry-hours').value || 0;
+  const ws = document.getElementById('entry-work-start').value;
+  const we = document.getElementById('entry-work-end').value;
+  const dateStr = document.getElementById('entry-date').value;
+
   const away = hoursBetween(start, end);
   const threshold = +state.settings.pauschaleThresholdHours || 8;
   const eligible = away >= threshold;
@@ -2379,22 +2653,78 @@ function updateLiveCalc() {
     if (document.getElementById('meal-dinner').checked)    deduction += (+state.settings.mealDinnerDeduction || 0);
   }
   const pauschale = Math.max(0, grossPauschale - deduction);
-  const gross = hours * (+state.settings.hourlyWage || 0);
 
+  const workHours = hoursBetween(ws, we);
+  const hourlyWage = +state.settings.hourlyWage || 0;
+  const baseGross = workHours * hourlyWage;
+
+  // Day type
+  const d = parseDate(dateStr);
+  const isSunday = d ? d.getDay() === 0 : false;
+  const isHoliday = document.getElementById('entry-holiday').checked;
+  const sundayPct = +state.settings.sundayPremiumPercent || 0;
+  const holidayPct = +state.settings.holidayPremiumPercent || 0;
+  let sundayPrem = 0, holidayPrem = 0, dayLabel = '';
+  if (isSunday && isHoliday) {
+    if (state.settings.sundayHolidayStack) {
+      sundayPrem  = baseGross * sundayPct / 100;
+      holidayPrem = baseGross * holidayPct / 100;
+      dayLabel = `Sonntag (${sundayPct} %) + Feiertag (${holidayPct} %)`;
+    } else if (holidayPct >= sundayPct) {
+      holidayPrem = baseGross * holidayPct / 100;
+      dayLabel = `Feiertag (${holidayPct} %) – höher als Sonntag`;
+    } else {
+      sundayPrem = baseGross * sundayPct / 100;
+      dayLabel = `Sonntag (${sundayPct} %) – höher als Feiertag`;
+    }
+  } else if (isHoliday) {
+    holidayPrem = baseGross * holidayPct / 100;
+    dayLabel = `Feiertag (${holidayPct} %)`;
+  } else if (isSunday) {
+    sundayPrem = baseGross * sundayPct / 100;
+    dayLabel = `Sonntag (${sundayPct} %)`;
+  }
+
+  const nightStart = state.settings.nightStart || '20:00';
+  const nightEnd   = state.settings.nightEnd   || '06:00';
+  const nightHours = nightOverlapHours(ws, we, nightStart, nightEnd);
+  const nightPct   = +state.settings.nightPremiumPercent || 0;
+  const nightPrem  = nightHours * hourlyWage * nightPct / 100;
+  const totalPrem  = sundayPrem + holidayPrem + nightPrem;
+  const totalGross = baseGross + totalPrem;
+
+  // Display
   let pInfo = '';
   if (away) {
-    if (!eligible) {
-      pInfo = `Pauschale: nein (< ${fmtNum(threshold,0)} Std)`;
-    } else if (deduction > 0) {
-      pInfo = `Pauschale: ${fmtEur(grossPauschale)} − ${fmtEur(deduction)} = ${fmtEur(pauschale)} ✓`;
-    } else {
-      pInfo = `Pauschale: ${fmtEur(pauschale)} ✓`;
-    }
+    if (!eligible) pInfo = `Pauschale: nein (< ${fmtNum(threshold,0)} Std)`;
+    else if (deduction > 0) pInfo = `Pauschale: ${fmtEur(grossPauschale)} − ${fmtEur(deduction)} = ${fmtEur(pauschale)} ✓`;
+    else pInfo = `Pauschale: ${fmtEur(pauschale)} ✓`;
   }
   document.getElementById('calc-away').textContent =
     `Außer Haus: ${away ? fmtNum(away,2) + ' Std' : '—'}` + (pInfo ? '  •  ' + pInfo : '');
-  document.getElementById('calc-pay').textContent =
-    `Bruttolohn (Tag): ${gross ? fmtEur(gross) : '—'}`;
+
+  const workInfo = workHours
+    ? `${fmtNum(workHours,2)} Std${nightHours > 0 ? ` (davon ${fmtNum(nightHours,2)} Std Nachtschicht)` : ''}`
+    : '—';
+  document.getElementById('calc-work').textContent = `Arbeitsstunden: ${workInfo}`;
+
+  // Build pay detail
+  const parts = [];
+  if (baseGross)   parts.push(`Grund ${fmtEur(baseGross)}`);
+  if (sundayPrem)  parts.push(`Sonntag +${fmtEur(sundayPrem)}`);
+  if (holidayPrem) parts.push(`Feiertag +${fmtEur(holidayPrem)}`);
+  if (nightPrem)   parts.push(`Nacht +${fmtEur(nightPrem)}`);
+  document.getElementById('calc-pay').innerHTML =
+    `Bruttolohn (Tag): ${totalGross ? `<strong>${fmtEur(totalGross)}</strong>` : '—'}` +
+    (parts.length > 1 ? `<br><span style="color:var(--muted)">${parts.join(' · ')}</span>` : '');
+
+  // Day type hint
+  const hintEl = document.getElementById('day-type-hint');
+  if (isSunday || isHoliday) {
+    hintEl.innerHTML = `<strong style="color:var(--teal-deep)">Erkannt:</strong> ${dayLabel}`;
+  } else {
+    hintEl.textContent = 'Sonntag wird automatisch anhand des Datums erkannt.';
+  }
 }
 
 document.getElementById('add-entry').addEventListener('click', () => openEntryModal(null));
@@ -2428,11 +2758,13 @@ document.getElementById('entry-save').addEventListener('click', async () => {
     assignmentType,
     startTime: document.getElementById('entry-start').value,
     endTime: document.getElementById('entry-end').value,
-    workHours: +document.getElementById('entry-hours').value || 0,
+    workStart: document.getElementById('entry-work-start').value,
+    workEnd:   document.getElementById('entry-work-end').value,
     kilometers: +document.getElementById('entry-km').value || 0,
     mealBreakfast: document.getElementById('meal-breakfast').checked,
     mealLunch:     document.getElementById('meal-lunch').checked,
-    mealDinner:    document.getElementById('meal-dinner').checked
+    mealDinner:    document.getElementById('meal-dinner').checked,
+    isHoliday:     document.getElementById('entry-holiday').checked
   };
 
   if (id) {
@@ -2478,6 +2810,12 @@ function openSettings() {
   document.getElementById('set-meal-breakfast').value = s.mealBreakfastDeduction != null ? s.mealBreakfastDeduction : 5.60;
   document.getElementById('set-meal-lunch').value     = s.mealLunchDeduction     != null ? s.mealLunchDeduction     : 11.20;
   document.getElementById('set-meal-dinner').value    = s.mealDinnerDeduction    != null ? s.mealDinnerDeduction    : 11.20;
+  document.getElementById('set-premium-sunday').value  = s.sundayPremiumPercent  != null ? s.sundayPremiumPercent  : 50;
+  document.getElementById('set-premium-holiday').value = s.holidayPremiumPercent != null ? s.holidayPremiumPercent : 125;
+  document.getElementById('set-premium-night').value   = s.nightPremiumPercent   != null ? s.nightPremiumPercent   : 25;
+  document.getElementById('set-night-start').value     = s.nightStart || '20:00';
+  document.getElementById('set-night-end').value       = s.nightEnd   || '06:00';
+  document.getElementById('set-sunday-holiday-stack').checked = !!s.sundayHolidayStack;
   renderSitesList();
   renderTypesList();
   renderCategoriesList();
@@ -2604,6 +2942,12 @@ document.getElementById('settings-save').addEventListener('click', async () => {
   state.settings.mealBreakfastDeduction = +document.getElementById('set-meal-breakfast').value || 0;
   state.settings.mealLunchDeduction     = +document.getElementById('set-meal-lunch').value     || 0;
   state.settings.mealDinnerDeduction    = +document.getElementById('set-meal-dinner').value    || 0;
+  state.settings.sundayPremiumPercent  = +document.getElementById('set-premium-sunday').value  || 0;
+  state.settings.holidayPremiumPercent = +document.getElementById('set-premium-holiday').value || 0;
+  state.settings.nightPremiumPercent   = +document.getElementById('set-premium-night').value   || 0;
+  state.settings.nightStart            = document.getElementById('set-night-start').value || '20:00';
+  state.settings.nightEnd              = document.getElementById('set-night-end').value   || '06:00';
+  state.settings.sundayHolidayStack    = document.getElementById('set-sunday-holiday-stack').checked;
   // sites and types are already updated live
   await saveState();
   closeModals();
@@ -2689,18 +3033,25 @@ document.getElementById('print-btn-spesen').addEventListener('click', async () =
 
 function exportStundenCSV() {
   const entries = entriesForView();
-  const header = ['Datum','Einsatzort','Adresse','Art','Von','Bis','Außer Haus (Std)','Arbeitsstd','km','Frühstück','Mittag','Abend','Pauschale brutto (€)','Mahlzeitenkürzung (€)','Pauschale netto (€)','Bruttolohn (€)'];
+  const header = ['Datum','Wochentag','Einsatzort','Adresse','Art','Abw. von','Abw. bis','Außer Haus (Std)','Arbeitsbeginn','Arbeitsende','Arbeitsstunden','Nachtstunden','Sonntag','Feiertag','km','Frühstück','Mittag','Abend','Pauschale brutto (€)','Mahlzeitenkürzung (€)','Pauschale netto (€)','Grundlohn (€)','Sonntagszuschlag (€)','Feiertagszuschlag (€)','Nachtzuschlag (€)','Bruttolohn gesamt (€)'];
   const rows = entries.map(e => {
     const c = calcEntry(e);
+    const d = parseDate(e.date);
     return [
       e.date,
+      d ? WEEKDAYS[d.getDay()] : '',
       e.siteName || '',
       e.address || '',
       e.assignmentType || '',
       e.startTime || '',
       e.endTime || '',
       fmtNum(c.hoursAway,2),
+      e.workStart || '',
+      e.workEnd || '',
       fmtNum(c.workHours,2),
+      fmtNum(c.nightHours,2),
+      c.isSunday ? 'ja' : '',
+      c.isHoliday ? 'ja' : '',
       e.kilometers || 0,
       e.mealBreakfast ? 'ja' : '',
       e.mealLunch ? 'ja' : '',
@@ -2708,6 +3059,10 @@ function exportStundenCSV() {
       fmtNum(c.grossPauschale,2),
       fmtNum(c.mealDeduction,2),
       fmtNum(c.pauschale,2),
+      fmtNum(c.baseGross,2),
+      fmtNum(c.sundayPremium,2),
+      fmtNum(c.holidayPremium,2),
+      fmtNum(c.nightPremium,2),
       fmtNum(c.gross,2)
     ];
   });
