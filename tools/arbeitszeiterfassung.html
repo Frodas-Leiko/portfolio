@@ -431,17 +431,24 @@
   .sub-list-item:hover { background: var(--paper); }
   .sub-list-item input { flex: 1; background: transparent; border: 0; padding: .2rem 0; font-size: .9rem; }
   .sub-list-item input:focus { background: var(--paper); border-bottom: 1px solid var(--teal); outline: 0; }
-  .sub-list-add { display: flex; gap: .4rem; margin-top: .5rem; }
-  .sub-list-add input { flex: 1; }
+  .sub-list-add { display: flex; gap: .4rem; margin-top: .5rem; flex-wrap: wrap; }
+  .sub-list-add input { flex: 1 1 140px; min-width: 0; }
+  .sub-list-add .btn { flex-shrink: 0; }
   .sub-list-empty { padding: 1rem; text-align: center; color: var(--muted); font-size: .8rem; font-style: italic; }
 
   /* Settings nav */
   .settings-tabs {
     display: flex; gap: .25rem;
     border-bottom: 1px solid var(--line);
-    padding: 0 1.5rem;
+    padding: 0 1rem;
     background: var(--cream-warm);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
   }
+  .settings-tabs::-webkit-scrollbar { height: 4px; }
+  .settings-tabs::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
   .settings-tab {
     padding: .8rem 1rem;
     background: transparent;
@@ -452,6 +459,9 @@
     color: var(--ink-soft);
     font-family: inherit;
     margin-bottom: -1px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    scroll-snap-align: start;
   }
   .settings-tab.active {
     color: var(--teal-deep);
@@ -769,7 +779,7 @@
           <div class="sub-list-add">
             <input type="text" id="new-site-name" placeholder="Name des Einsatzorts">
             <input type="text" id="new-site-address" placeholder="Adresse (optional)">
-            <button class="btn btn-primary btn-small" id="add-site">＋</button>
+            <button class="btn btn-primary" id="add-site">＋ Hinzufügen</button>
           </div>
         </div>
       </div>
@@ -780,7 +790,7 @@
           <div class="sub-list" id="types-list" style="margin-top:.8rem"></div>
           <div class="sub-list-add">
             <input type="text" id="new-type-name" placeholder="Art des Einsatzes">
-            <button class="btn btn-primary btn-small" id="add-type">＋</button>
+            <button class="btn btn-primary" id="add-type">＋ Hinzufügen</button>
           </div>
         </div>
       </div>
