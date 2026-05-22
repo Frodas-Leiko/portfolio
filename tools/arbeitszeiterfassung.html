@@ -436,6 +436,66 @@
   .sub-list-add .btn { flex-shrink: 0; }
   .sub-list-empty { padding: 1rem; text-align: center; color: var(--muted); font-size: .8rem; font-style: italic; }
 
+  /* Site cards (richer than the basic sub-list-item) */
+  .site-card {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: .65rem .7rem;
+    margin-bottom: .4rem;
+  }
+  .site-card:last-child { margin-bottom: 0; }
+  .site-card-header {
+    display: flex; gap: .4rem; align-items: center; margin-bottom: .35rem;
+  }
+  .site-card-header input.site-name-input {
+    flex: 1; background: transparent; border: 0;
+    border-bottom: 1px solid transparent;
+    padding: .2rem 0; font-size: .95rem; font-weight: 500; color: var(--ink);
+  }
+  .site-card-header input.site-name-input:focus {
+    outline: 0; border-bottom-color: var(--teal);
+  }
+  .site-card .addr-input {
+    width: 100%; background: transparent; border: 0;
+    border-bottom: 1px solid transparent;
+    padding: .2rem 0; font-size: .82rem; color: var(--ink-soft);
+    margin-bottom: .5rem;
+  }
+  .site-card .addr-input:focus { outline: 0; border-bottom-color: var(--teal); }
+  .site-defaults-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .35rem;
+  }
+  .site-defaults-grid label {
+    display: flex; flex-direction: column; gap: .15rem;
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .site-defaults-grid input {
+    font-family: 'IBM Plex Mono', monospace;
+    padding: .35rem .4rem;
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: 3px;
+    font-size: .82rem;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .site-defaults-grid input:focus {
+    outline: 0; border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(26,94,91,0.12);
+  }
+  @media (max-width: 480px) {
+    .site-defaults-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* Settings nav */
   .settings-tabs {
     display: flex; gap: .25rem;
@@ -1176,9 +1236,16 @@ document.getElementById('entry-site').addEventListener('change', e => {
     document.getElementById('entry-site-new').focus();
   } else {
     newGroup.style.display = 'none';
-    // autofill address from known site
+    // Autofill defaults from known site
     const site = state.settings.sites.find(s => s.name === e.target.value);
-    if (site && site.address) document.getElementById('entry-address').value = site.address;
+    if (site) {
+      if (site.address)       document.getElementById('entry-address').value = site.address;
+      if (site.defaultKm)     document.getElementById('entry-km').value = site.defaultKm;
+      if (site.defaultHours)  document.getElementById('entry-hours').value = site.defaultHours;
+      if (site.defaultStart)  document.getElementById('entry-start').value = site.defaultStart;
+      if (site.defaultEnd)    document.getElementById('entry-end').value = site.defaultEnd;
+      updateLiveCalc();
+    }
   }
 });
 document.getElementById('entry-type').addEventListener('change', e => {
@@ -1302,20 +1369,43 @@ function renderSitesList() {
     return;
   }
   list.innerHTML = state.settings.sites.map((s, i) => `
-    <div class="sub-list-item">
-      <input type="text" value="${escapeHtml(s.name)}" data-site-name="${i}" placeholder="Name">
-      <input type="text" value="${escapeHtml(s.address || '')}" data-site-address="${i}" placeholder="Adresse">
-      <button class="btn btn-danger btn-small" data-remove-site="${i}">✕</button>
+    <div class="site-card">
+      <div class="site-card-header">
+        <input type="text" class="site-name-input" value="${escapeHtml(s.name)}" data-site-field="name" data-site-i="${i}" placeholder="Name des Einsatzorts">
+        <button class="btn btn-danger btn-small" data-remove-site="${i}" title="Einsatzort entfernen">✕</button>
+      </div>
+      <input type="text" class="addr-input" value="${escapeHtml(s.address || '')}" data-site-field="address" data-site-i="${i}" placeholder="Adresse">
+      <div class="site-defaults-grid">
+        <label>km
+          <input type="number" step="1" min="0" value="${s.defaultKm || ''}" data-site-field="defaultKm" data-site-i="${i}" placeholder="0">
+        </label>
+        <label>Std
+          <input type="number" step="0.25" min="0" value="${s.defaultHours || ''}" data-site-field="defaultHours" data-site-i="${i}" placeholder="0">
+        </label>
+        <label>Abfahrt
+          <input type="time" value="${s.defaultStart || ''}" data-site-field="defaultStart" data-site-i="${i}">
+        </label>
+        <label>Rückkehr
+          <input type="time" value="${s.defaultEnd || ''}" data-site-field="defaultEnd" data-site-i="${i}">
+        </label>
+      </div>
     </div>
   `).join('');
-  list.querySelectorAll('[data-site-name]').forEach(inp => {
-    inp.addEventListener('change', () => { state.settings.sites[+inp.dataset.siteName].name = inp.value.trim(); });
+
+  list.querySelectorAll('[data-site-field]').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const i = +inp.dataset.siteI;
+      const f = inp.dataset.siteField;
+      let v = inp.value;
+      if (f === 'defaultKm' || f === 'defaultHours') v = +v || 0;
+      else if (typeof v === 'string') v = v.trim();
+      state.settings.sites[i][f] = v;
+    });
   });
-  list.querySelectorAll('[data-site-address]').forEach(inp => {
-    inp.addEventListener('change', () => { state.settings.sites[+inp.dataset.siteAddress].address = inp.value.trim(); });
-  });
+
   list.querySelectorAll('[data-remove-site]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (!confirm('Diesen Einsatzort entfernen?')) return;
       state.settings.sites.splice(+btn.dataset.removeSite, 1);
       renderSitesList();
     });
