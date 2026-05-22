@@ -775,7 +775,7 @@
   .site-card .addr-input:focus { outline: 0; border-bottom-color: var(--teal); }
   .site-defaults-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: .35rem;
   }
   .site-defaults-grid label {
@@ -802,7 +802,10 @@
     outline: 0; border-color: var(--teal);
     box-shadow: 0 0 0 2px rgba(26,94,91,0.12);
   }
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
+    .site-defaults-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 420px) {
     .site-defaults-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
@@ -860,7 +863,7 @@
 
   /* PRINT */
   @media print {
-    body { background: white; padding: 0; font-size: 11pt; color: black; }
+    body { background: white; padding: 0; font-size: 10pt; color: black; }
     body::before { display: none; }
     .topbar, .view-tabs, .action-bar, .modal, .actions-cell, .btn, .no-print, .topbar-actions {
       display: none !important;
@@ -869,60 +872,92 @@
     .print-only { display: block; }
     .print-header {
       border-bottom: 2px solid black;
-      padding-bottom: .8rem;
-      margin-bottom: 1.2rem;
+      padding-bottom: .6rem;
+      margin-bottom: 1rem;
     }
     .print-header h1 {
-      font-size: 18pt;
+      font-size: 16pt;
       font-family: 'Fraunces', serif;
       margin-bottom: .3rem;
     }
     .print-header .meta {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: .4rem;
-      font-size: 9.5pt;
-      margin-top: .5rem;
+      font-size: 8.5pt;
+      margin-top: .4rem;
     }
-    .print-header .meta .label { color: #555; text-transform: uppercase; font-size: 7.5pt; letter-spacing: .1em; }
+    .print-header .meta .label { color: #555; text-transform: uppercase; font-size: 7pt; letter-spacing: .1em; }
 
     .employee-strip { display: none; }
     .summary-grid {
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: .5rem;
-      margin-bottom: 1rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .4rem;
+      margin-bottom: .8rem;
     }
-    .summary-card { box-shadow: none; border: 1px solid #999; padding: .5rem .7rem; }
+    .summary-card { box-shadow: none; border: 1px solid #999; padding: .4rem .55rem; min-height: 0; }
     .summary-card.total { background: white !important; color: black !important; border: 2px solid black; }
     .summary-card.total .label, .summary-card.total .amount, .summary-card.total .detail { color: black !important; }
-    .summary-card .amount { font-size: 13pt; }
+    .summary-card .amount { font-size: 11.5pt; }
     .summary-card .position-tag { display: none; }
+    .summary-card .label { font-size: 7pt; }
+    .summary-card .detail { font-size: 7.5pt; }
 
-    .entries-wrap { box-shadow: none; border: 1px solid #555; border-radius: 0; }
-    .entries-table { font-size: 9.5pt; }
-    .entries-table thead th { background: #eee; color: black; border-bottom: 1px solid black; padding: .35rem .4rem; }
-    .entries-table tbody td { padding: .3rem .4rem; }
+    .entries-wrap { box-shadow: none; border: 1px solid #555; border-radius: 0; overflow: visible; }
+    .entries-table { font-size: 8pt; table-layout: fixed; width: 100%; }
+    .entries-table thead th { background: #eee !important; color: black; border-bottom: 1px solid black; padding: .3rem .25rem; font-size: 6.5pt; }
+    .entries-table tbody td { padding: .25rem .3rem; vertical-align: top; }
+    .entries-table .date-cell { font-size: 8pt; }
+    .entries-table .date-cell .weekday { font-size: 6.5pt; }
+    .entries-table .address-cell, .entries-table .type-cell { font-size: 7.5pt; }
+    .entries-table .time-range { font-size: 7.5pt; }
+    .entries-table .time-range .dur { font-size: 6.5pt; }
     .entries-table tr.future td.date-cell::before, .entries-table tr.today td.date-cell::before { display: none; }
-    .entries-table tfoot td { background: white; border-top: 1.5px solid black; }
+    .entries-table tfoot td { background: white; border-top: 1.5px solid black; padding: .3rem .25rem; font-size: 7.5pt; }
     .entries-table .actions-cell { display: none; }
     .entries-table thead th:last-child { display: none; }
+    .meal-indicator, .premium-indicator { font-size: 6.5pt; }
+    .meal-indicator .m, .premium-indicator .p { padding: 0 2px; }
 
     .print-footer {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 3rem;
-      font-size: 9.5pt;
+      font-size: 9pt;
     }
     .print-footer .sig {
       border-top: 1px solid black;
       padding-top: .3rem;
-      margin-top: 3rem;
+      margin-top: 2.5rem;
       font-style: italic;
       color: #555;
     }
-    @page { margin: 1.5cm; }
+    .reimbursement-field {
+      margin-bottom: 1.2rem;
+    }
+    .reimbursement-label {
+      font-size: 8.5pt;
+      color: #333;
+      margin-bottom: .35rem;
+      font-weight: 500;
+    }
+    .reimbursement-line {
+      border: 1px solid #555;
+      height: 1.8em;
+      position: relative;
+      background: white;
+    }
+    .reimbursement-line .eur-mark {
+      position: absolute;
+      right: .4rem;
+      bottom: .25rem;
+      font-size: 10pt;
+      color: #555;
+    }
+    @page { margin: 1cm 1.2cm; }
   }
+  /* Default print orientation: stunden = landscape, spesen = portrait (set dynamically) */
 </style>
 </head>
 <body>
@@ -1010,6 +1045,10 @@
       <div class="sig">Datum, Unterschrift Arbeitnehmer</div>
     </div>
     <div>
+      <div class="reimbursement-field">
+        <div class="reimbursement-label">VMA-Pauschalen vom Arbeitgeber erstattet:</div>
+        <div class="reimbursement-line"><span class="eur-mark">€</span></div>
+      </div>
       <div class="sig">Datum, Unterschrift Arbeitgeber</div>
     </div>
   </div>
@@ -1729,9 +1768,10 @@ function renderMonthLabel() {
 function renderEmployeeStrip() {
   const s = state.settings;
   const el = document.getElementById('employee-strip');
-  const workplaceStatus = s.noFirstWorkplace !== false
-    ? 'keine (wechselnde Einsatzorte)'
-    : (s.firstWorkplaceAddress || 'angegeben');
+  const noFirst = s.noFirstWorkplace !== false;
+  const workplaceStatus = noFirst
+    ? 'Wechselnde Einsatzorte (keine feste)'
+    : (s.firstWorkplaceAddress || 'feste Tätigkeitsstätte (Adresse fehlt)');
   const items = [
     ['Mitarbeiter', s.employeeName],
     ['Personalnr.', s.personalNumber],
@@ -1933,9 +1973,10 @@ function renderEntries() {
 
 function renderPrintMeta() {
   const s = state.settings;
-  const workplaceStatus = s.noFirstWorkplace !== false
-    ? 'keine (wechselnde Einsatzorte)'
-    : (s.firstWorkplaceAddress || 'angegeben');
+  const noFirst = s.noFirstWorkplace !== false;
+  const workplaceStatus = noFirst
+    ? 'Wechselnde Einsatzorte (keine feste)'
+    : (s.firstWorkplaceAddress || 'feste Tätigkeitsstätte (Adresse fehlt)');
   const fields = [
     ['Mitarbeiter', s.employeeName || '—'],
     ['Personalnr.', s.personalNumber || '—'],
@@ -2851,14 +2892,17 @@ function renderSitesList() {
         <label>km
           <input type="number" step="1" min="0" value="${s.defaultKm || ''}" data-site-field="defaultKm" data-site-i="${i}" placeholder="0">
         </label>
-        <label>Std
-          <input type="number" step="0.25" min="0" value="${s.defaultHours || ''}" data-site-field="defaultHours" data-site-i="${i}" placeholder="0">
-        </label>
-        <label>Abfahrt
+        <label>Abw. von
           <input type="time" value="${s.defaultStart || ''}" data-site-field="defaultStart" data-site-i="${i}">
         </label>
-        <label>Rückkehr
+        <label>Abw. bis
           <input type="time" value="${s.defaultEnd || ''}" data-site-field="defaultEnd" data-site-i="${i}">
+        </label>
+        <label>Arbeit von
+          <input type="time" value="${s.defaultWorkStart || ''}" data-site-field="defaultWorkStart" data-site-i="${i}">
+        </label>
+        <label>Arbeit bis
+          <input type="time" value="${s.defaultWorkEnd || ''}" data-site-field="defaultWorkEnd" data-site-i="${i}">
         </label>
       </div>
     </div>
@@ -2964,7 +3008,20 @@ function downloadFile(filename, content, mime='text/plain') {
   URL.revokeObjectURL(url);
 }
 
-document.getElementById('print-btn').addEventListener('click', () => window.print());
+function setPrintOrientation(orientation) {
+  let style = document.getElementById('dyn-print-orientation');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'dyn-print-orientation';
+    document.head.appendChild(style);
+  }
+  style.textContent = `@media print { @page { size: A4 ${orientation}; margin: 1cm 1.2cm; } }`;
+}
+
+document.getElementById('print-btn').addEventListener('click', () => {
+  setPrintOrientation('landscape');
+  window.print();
+});
 
 async function preparePrintAttachmentPages() {
   const container = document.getElementById('print-attachments-container');
@@ -3020,6 +3077,7 @@ document.getElementById('print-btn-spesen').addEventListener('click', async () =
   btn.disabled = true;
   try {
     const n = await preparePrintAttachmentPages();
+    setPrintOrientation('portrait');
     // Small delay so images can decode before the print dialog snapshots
     await new Promise(r => setTimeout(r, n > 0 ? 250 : 50));
     window.print();
