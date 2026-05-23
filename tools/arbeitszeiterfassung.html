@@ -942,7 +942,7 @@
     .entries-table .time-range .dur { font-size: 6pt; }
     .entries-table .num { font-size: 7pt; }
     .entries-table tr.future td.date-cell::before, .entries-table tr.today td.date-cell::before { display: none; }
-    .entries-table tfoot td { background: white; border-top: 1.5px solid black; padding: .25rem .2rem; font-size: 7pt; }
+    .entries-table tfoot td { background: white; border-top: 1.5px solid black; padding: .25rem .2rem; font-size: 7pt; vertical-align: top; }
     .entries-table .actions-cell { display: none; }
     .entries-table thead th:last-child { display: none; }
     .meal-indicator, .premium-indicator { font-size: 6pt; }
@@ -2006,7 +2006,7 @@ function renderEntries() {
   }
   tfoot.innerHTML = `${subRows.join('')}<tr>
     <td colspan="5" style="text-align:right">Summen</td>
-    <td class="num">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? ` <span style="color:var(--muted); font-weight:400; white-space:nowrap;">(${fmtNum(totalNight,1)} N)</span>` : ''}</td>
+    <td><span class="time-range">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? `<span class="dur" style="font-weight:400;">(${fmtNum(totalNight,1)} N)</span>` : ''}</span></td>
     <td class="num">${fmtInt(totalKm)}&nbsp;km</td>
     <td></td>
     <td></td>
