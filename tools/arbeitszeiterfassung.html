@@ -2664,7 +2664,16 @@ function renderEntries() {
       ? `<span class="time-range">${e.startTime}–${e.endTime}<span class="dur">${fmtNum(c.hoursAway,1)} h</span></span>`
       : '';
     const workCell = e.workStart && e.workEnd
-      ? `<span class="time-range">${e.workStart}–${e.workEnd}<span class="dur">${fmtNum(c.workHours,2)} h${c.nightHours > 0 ? ` <span class="nighthint">(${fmtNum(c.nightHours,1)} h Nacht)</span>` : ''}</span></span>`
+      ? (() => {
+          const nightHint  = c.nightHours   > 0 ? ` <span class="nighthint">(${fmtNum(c.nightHours,1)} h Nacht)</span>` : '';
+          let holidayHint = '';
+          if (c.holidayHours > 0) {
+            const h = findHoliday(e.date);
+            const nm = (h && h.name) ? h.name : 'Feiertag';
+            holidayHint = `<br><span class="nighthint">(${fmtNum(c.holidayHours,1)} h ${escapeHtml(nm)})</span>`;
+          }
+          return `<span class="time-range">${e.workStart}–${e.workEnd}<span class="dur">${fmtNum(c.workHours,2)} h${nightHint}${holidayHint}</span></span>`;
+        })()
       : '';
 
     // Tooltip for Bruttolohn
@@ -4306,8 +4315,17 @@ function generateStundenPDF() {
     const dateCell = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.\n' + wd + holidaySuffix;
     const awayCell = (e.startTime && e.endTime)
       ? e.startTime + '–' + e.endTime + '\n' + fmtNum(c.hoursAway,1) + ' h' : '';
-    const workCell = (e.workStart && e.workEnd)
-      ? e.workStart + '–' + e.workEnd + '\n' + fmtNum(c.workHours,2) + ' h' + (c.nightHours > 0 ? ' (' + fmtNum(c.nightHours,1) + ' h Nacht)' : '') : '';
+    const workCell = (() => {
+      if (!e.workStart || !e.workEnd) return '';
+      let s = e.workStart + '–' + e.workEnd + '\n' + fmtNum(c.workHours,2) + ' h';
+      if (c.nightHours > 0) s += ' (' + fmtNum(c.nightHours,1) + ' h Nacht)';
+      if (c.holidayHours > 0) {
+        const h = findHoliday(e.date);
+        const nm = (h && h.name) ? h.name : 'Feiertag';
+        s += '\n(' + fmtNum(c.holidayHours,1) + ' h ' + nm + ')';
+      }
+      return s;
+    })();
 
     const mealParts = [];
     if (e.mealBreakfast) mealParts.push('F');
