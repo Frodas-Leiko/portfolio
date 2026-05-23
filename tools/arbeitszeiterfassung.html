@@ -951,11 +951,11 @@
     /* Explicit column widths (sum = 100%) — guarantees 11 columns fit in A4 portrait & landscape */
     .entries-table colgroup col.c-date  { width:  6.5%; }
     .entries-table colgroup col.c-site  { width: 12.0%; }
-    .entries-table colgroup col.c-addr  { width: 13.0%; }
+    .entries-table colgroup col.c-addr  { width: 12.0%; }
     .entries-table colgroup col.c-type  { width:  9.0%; }
     .entries-table colgroup col.c-away  { width: 10.0%; }
     .entries-table colgroup col.c-work  { width: 13.5%; }
-    .entries-table colgroup col.c-km    { width:  5.0%; }
+    .entries-table colgroup col.c-km    { width:  6.0%; }
     .entries-table colgroup col.c-meal  { width:  6.5%; }
     .entries-table colgroup col.c-prem  { width:  6.5%; }
     .entries-table colgroup col.c-pausch{ width:  8.0%; }
@@ -2007,7 +2007,7 @@ function renderEntries() {
   tfoot.innerHTML = `${subRows.join('')}<tr>
     <td colspan="5" style="text-align:right">Summen</td>
     <td class="num">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? ` <span style="color:var(--muted); font-weight:400; white-space:nowrap;">(${fmtNum(totalNight,1)} N)</span>` : ''}</td>
-    <td class="num">${fmtInt(totalKm)} km</td>
+    <td class="num">${fmtInt(totalKm)}&nbsp;km</td>
     <td></td>
     <td></td>
     <td class="num">${fmtEur(totalPauschale)}</td>
