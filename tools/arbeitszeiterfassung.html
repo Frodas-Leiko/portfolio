@@ -3916,8 +3916,8 @@ function generateStundenPDF() {
     : (s.firstWorkplaceAddress || 'feste Tätigkeitsstätte (Adresse fehlt)');
   const meta = [
     ['MITARBEITER', s.employeeName || '—'],
-    ['PERSONALNR.', s.employeeId || '—'],
-    ['WOHNORT', s.employeeAddress || '—'],
+    ['PERSONALNR.', s.personalNumber || '—'],
+    ['WOHNORT', s.homeLocation || '—'],
     ['ZEITRAUM', MONTH_NAMES[viewMonth-1] + ' ' + viewYear],
     ['ERSTE TÄTIGKEITSSTÄTTE', workplaceStatus]
   ];
@@ -4140,24 +4140,26 @@ function generateStundenPDF() {
   });
 
   // Signature footer
-  let sigY = cardY + cardH + 12;
-  if (sigY + 18 > pageH - margin) {
+  // Reserve more vertical space: reimbursement-box is positioned ~22mm above
+  // the signature line so there's actual room to write a signature between them.
+  let sigY = cardY + cardH + 28;
+  if (sigY + 7 > pageH - margin) {
     doc.addPage();
-    sigY = margin + 20;
+    sigY = margin + 32;
   } else {
-    sigY = Math.max(sigY, pageH - margin - 18);
+    sigY = Math.max(sigY, pageH - margin - 7);
   }
   const sigColW = (contentW - 10) / 2;
-  // Right reimbursement field (above signature line)
   const rightX = margin + sigColW + 10;
+  // Right column: reimbursement field positioned WELL ABOVE the signature line
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(50);
-  doc.text('VMA-Pauschalen vom Arbeitgeber erstattet:', rightX, sigY - 10);
+  doc.text('VMA-Pauschalen vom Arbeitgeber erstattet:', rightX, sigY - 24);
   doc.setDrawColor(80); doc.setLineWidth(0.3);
-  doc.rect(rightX, sigY - 8, sigColW, 6);
+  doc.rect(rightX, sigY - 22, sigColW, 6);   // box: 22..16 above signature → 16mm clear for actual signature
   doc.setFontSize(9); doc.setTextColor(110);
-  doc.text('€', rightX + sigColW - 4, sigY - 3.5);
+  doc.text('€', rightX + sigColW - 4, sigY - 17.5);
   // Both signature lines
   doc.setDrawColor(20); doc.setLineWidth(0.3);
   doc.line(margin, sigY, margin + sigColW, sigY);
@@ -4193,8 +4195,8 @@ async function generateSpesenPDF() {
   const s = state.settings;
   const meta = [
     ['MITARBEITER', s.employeeName || '—'],
-    ['PERSONALNR.', s.employeeId || '—'],
-    ['WOHNORT', s.employeeAddress || '—'],
+    ['PERSONALNR.', s.personalNumber || '—'],
+    ['WOHNORT', s.homeLocation || '—'],
     ['ZEITRAUM', MONTH_NAMES[viewMonth-1] + ' ' + viewYear]
   ];
   const metaY = margin + 12;
