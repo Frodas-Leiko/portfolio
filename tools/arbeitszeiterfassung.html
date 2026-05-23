@@ -878,6 +878,83 @@
     .site-defaults-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
+  /* Holiday cards */
+  .holiday-card {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: .55rem .7rem;
+    margin-bottom: .4rem;
+  }
+  .holiday-card:last-child { margin-bottom: 0; }
+  .holiday-card-row {
+    display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
+  }
+  .holiday-card input.holiday-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .85rem;
+    padding: .3rem .4rem;
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: 3px;
+    width: 9em;
+  }
+  .holiday-card input.holiday-name {
+    flex: 1 1 140px;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    padding: .25rem 0;
+    font-size: .9rem;
+    color: var(--ink);
+  }
+  .holiday-card input.holiday-name:focus { outline: 0; border-bottom-color: var(--teal); background: var(--cream); }
+  .holiday-card .holiday-wd {
+    font-size: .72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    flex-shrink: 0;
+  }
+  .holiday-card .holiday-mode {
+    display: flex; gap: .4rem; align-items: center;
+    flex-wrap: wrap;
+    margin-top: .4rem;
+    padding-top: .4rem;
+    border-top: 1px dashed var(--line-soft);
+  }
+  .holiday-card .holiday-mode label {
+    font-size: .8rem;
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    cursor: pointer;
+  }
+  .holiday-card .holiday-mode input[type="radio"] {
+    accent-color: var(--teal-deep);
+  }
+  .holiday-card .holiday-times {
+    display: inline-flex;
+    gap: .35rem;
+    align-items: center;
+    margin-left: .5rem;
+  }
+  .holiday-card .holiday-times input[type="time"] {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .82rem;
+    padding: .25rem .35rem;
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: 3px;
+    width: 6.5em;
+  }
+  .holiday-card.disabled-times .holiday-times {
+    opacity: .4;
+    pointer-events: none;
+  }
+
   /* Settings nav */
   .settings-tabs {
     display: flex; gap: .25rem;
@@ -1338,15 +1415,8 @@
         </div>
 
         <div class="form-section">
-          <div class="form-section-title">Schichtart &amp; Zuschläge</div>
-          <div class="meals-row">
-            <label class="meal-check" id="holiday-label">
-              <input type="checkbox" id="entry-holiday">
-              <span>Feiertag (gesetzlich)</span>
-              <span class="meal-amount" id="holiday-amt">+0 %</span>
-            </label>
-          </div>
-          <span class="help-text" id="day-type-hint" style="margin-top:.5rem; display:block;">Sonntag wird automatisch anhand des Datums erkannt.</span>
+          <div class="form-section-title">Tagestyp &amp; Zuschläge</div>
+          <span class="help-text" id="day-type-hint" style="display:block;">Sonntag und Feiertage werden automatisch anhand des Datums erkannt. Feiertage werden in den Einstellungen gepflegt.</span>
         </div>
 
         <div class="form-section">
@@ -1391,6 +1461,7 @@
     <div class="settings-tabs">
       <button class="settings-tab active" data-tab="personal">Personalien</button>
       <button class="settings-tab" data-tab="rates">Lohn &amp; Pauschale</button>
+      <button class="settings-tab" data-tab="holidays">Feiertage</button>
       <button class="settings-tab" data-tab="sites">Einsatzorte</button>
       <button class="settings-tab" data-tab="types">Einsatzarten</button>
       <button class="settings-tab" data-tab="categories">Spesen-Kategorien</button>
@@ -1490,6 +1561,36 @@
           <div class="form-group span-2">
             <label for="set-meal-dinner">Abend (€)</label>
             <input type="number" id="set-meal-dinner" class="mono" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" data-panel="holidays">
+        <div class="form-section">
+          <span class="help-text">
+            Feiertage gelten <strong>stundenweise</strong>: Bei „ganzer Tag" wird der Feiertagszuschlag für die gesamte Schicht-Arbeitszeit gerechnet. Bei einem Zeitfenster (z.B. Heiligabend ab 14 Uhr) bekommen nur die Schichtstunden innerhalb dieses Fensters den Zuschlag – analog zum Nachtzuschlag. Einträge ohne passenden Feiertags-Eintrag in dieser Liste bekommen keinen Feiertagszuschlag.
+          </span>
+
+          <div style="display:flex; gap:.4rem; align-items:flex-end; flex-wrap:wrap; margin-top:.8rem; padding-top:.8rem; border-top:1px solid var(--line-soft);">
+            <div style="flex:0 0 auto;">
+              <label style="display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); margin-bottom:.2rem;">Vorlage: Bundesweite gesetzliche Feiertage</label>
+              <div style="display:flex; gap:.4rem; align-items:center;">
+                <input type="number" id="holiday-template-year" class="mono" min="2020" max="2099" step="1" style="width:6em;">
+                <button class="btn" id="holiday-template-add">＋ Für Jahr einfügen</button>
+              </div>
+            </div>
+            <span class="help-text" style="flex:1; min-width:200px; align-self:center;">Fügt Neujahr, 1. Mai, Tag der Deutschen Einheit, 1. &amp; 2. Weihnachtstag (ganztägig) ein. Bewegliche Feiertage (Karfreitag, Ostermontag, Christi Himmelfahrt, Pfingstmontag, Fronleichnam) und regionale Feiertage musst du selbst hinzufügen.</span>
+          </div>
+
+          <div class="sub-list" id="holidays-list" style="margin-top:.8rem"></div>
+
+          <div style="margin-top:.8rem; padding-top:.8rem; border-top:1px solid var(--line-soft);">
+            <label style="display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); margin-bottom:.4rem;">Einzelnen Feiertag hinzufügen</label>
+            <div class="sub-list-add" style="align-items:flex-end;">
+              <input type="date" id="new-holiday-date" style="flex:1 1 140px;">
+              <input type="text" id="new-holiday-name" placeholder="Bezeichnung (optional, z.B. Heiligabend)" style="flex:2 1 200px;">
+              <button class="btn btn-primary" id="add-holiday">＋ Hinzufügen</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2055,11 +2156,14 @@ const DEFAULT_STATE = {
     nightStart: '20:00',
     nightEnd: '06:00',
     sundayHolidayStack: false,     // false = nur der höhere zählt, true = beide addieren
+    // Feiertage: [{id, date: 'YYYY-MM-DD', name, allDay, startTime: 'HH:MM', endTime: 'HH:MM'}]
+    // Werden stundenweise auf Schichten angewandt - analog zu Nachtzuschlag.
+    holidays: [],
     sites: [],          // [{name, address, defaultKm, defaultHours, defaultStart, defaultEnd, defaultWorkStart, defaultWorkEnd}]
     assignmentTypes: [],// [name]
     expenseCategories: ['Verpflegung','Fahrtkosten','Parkgebühren','Übernachtung','Sonstiges']
   },
-  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workStart, workEnd, kilometers, mealBreakfast, mealLunch, mealDinner, isHoliday}]
+  entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workStart, workEnd, kilometers, mealBreakfast, mealLunch, mealDinner}]
   expenses: []          // [{id, date, description, category, amount, notes}]
 };
 
@@ -2210,6 +2314,78 @@ function nightOverlapHours(start, end, nightStart, nightEnd) {
   return total / 60;
 }
 
+// ----- Feiertags-Logik -----
+// Liefert das Feiertag-Objekt für ein Datum (YYYY-MM-DD) oder null.
+function findHoliday(dateStr) {
+  if (!dateStr) return null;
+  const hs = state.settings.holidays || [];
+  return hs.find(h => h && h.date === dateStr) || null;
+}
+
+// Liefert YYYY-MM-DD des Folgetags.
+function nextDayISO(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d) return null;
+  d.setDate(d.getDate() + 1);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// Bestimmt die Stunden einer Schicht, die in das Feiertags-Fenster fallen.
+// Berücksichtigt: das Eintragsdatum + den Folgetag (für Über-Mitternacht-Schichten).
+// Jeder Tag wird einzeln geprüft: ist er in der Feiertagsliste? Wenn ja: Überlappung mit dem
+// jeweiligen Tages-Fenster der Schicht.
+function holidayOverlapHours(workStart, workEnd, entryDate) {
+  if (!workStart || !workEnd || !entryDate) return 0;
+  const toMin = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  const s = toMin(workStart);
+  let e = toMin(workEnd);
+  const overnight = e <= s;
+  if (overnight) e += 24 * 60;  // Schicht-Ende in "Minuten ab Schichtbeginn-Tag 00:00"
+
+  let total = 0;
+  // Tag 1 = Eintragsdatum. Schicht-Anteil an diesem Tag: [s, min(e, 24*60)]
+  const h1 = findHoliday(entryDate);
+  if (h1) {
+    const hs1 = h1.allDay ? 0 : toMin(h1.startTime || '00:00');
+    const he1 = h1.allDay ? 24*60 : toMin(h1.endTime || '24:00');
+    const oS = Math.max(s, hs1);
+    const oE = Math.min(Math.min(e, 24*60), he1);
+    if (oE > oS) total += oE - oS;
+  }
+  // Tag 2 = Folgetag (nur falls Schicht über Mitternacht geht). Anteil: [24*60, e]
+  if (overnight) {
+    const nextDate = nextDayISO(entryDate);
+    const h2 = findHoliday(nextDate);
+    if (h2) {
+      // Im "Tag-1-Koordinatensystem" liegt Tag 2 zwischen 24*60 und 48*60.
+      const hs2 = (h2.allDay ? 0 : toMin(h2.startTime || '00:00')) + 24*60;
+      const he2 = (h2.allDay ? 24*60 : toMin(h2.endTime || '24:00')) + 24*60;
+      const oS = Math.max(24*60, hs2);
+      const oE = Math.min(e, he2);
+      if (oE > oS) total += oE - oS;
+    }
+  }
+  return total / 60;
+}
+
+// Variante von holidayOverlapHours, die NUR die Stunden am Eintragsdatum (Tag 1) zählt –
+// keine Folgetags-Stunden. Wird gebraucht, um die Sonntag/Feiertag-Überlappung zu bestimmen
+// (Sonntag gilt in dieser Iteration nur am Eintragsdatum).
+function holidayOverlapDay1(workStart, workEnd, entryDate) {
+  if (!workStart || !workEnd || !entryDate) return 0;
+  const h1 = findHoliday(entryDate);
+  if (!h1) return 0;
+  const toMin = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  const s = toMin(workStart);
+  let e = toMin(workEnd);
+  if (e <= s) e += 24 * 60;
+  const hs1 = h1.allDay ? 0 : toMin(h1.startTime || '00:00');
+  const he1 = h1.allDay ? 24*60 : toMin(h1.endTime || '24:00');
+  const oS = Math.max(s, hs1);
+  const oE = Math.min(Math.min(e, 24*60), he1);
+  return oE > oS ? (oE - oS) / 60 : 0;
+}
+
 function calcEntry(e) {
   // VMA-Pauschale aus Abwesenheitszeiten
   const hoursAway = hoursBetween(e.startTime, e.endTime);
@@ -2229,41 +2405,56 @@ function calcEntry(e) {
   const hourlyWage = +state.settings.hourlyWage || 0;
   const baseGross = workHours * hourlyWage;
 
-  // Tag-Typ
+  // Tag-Typ – Feiertag stundenweise, Sonntag wie vorher: ganzer Tag wenn Eintragsdatum ein Sonntag ist.
   const date = parseDate(e.date);
-  const isSunday = date ? date.getDay() === 0 : false;
-  const isHoliday = !!e.isHoliday;
+  const day1IsSunday = date ? date.getDay() === 0 : false;
+  const sundayHours = day1IsSunday ? workHours : 0;
+  const isSunday = day1IsSunday;
+  // Feiertagsstunden: nur Stunden, die in einem Feiertag-Fenster aus den Settings liegen.
+  const holidayHours = holidayOverlapHours(e.workStart, e.workEnd, e.date);
+  const isHoliday = holidayHours > 0;
+  // Überlappung Sonntag & Feiertag: wenn Eintragsdatum ein Sonntag ist, sind alle Feiertagsstunden des
+  // Tag-1-Fensters auch Sonntagsstunden. Folgetags-Feiertagsstunden (bei Über-Mitternacht-Schicht)
+  // sind nie Sonntag (weil Sonntag nur am Eintragsdatum gilt).
+  // Wir vereinfachen: bothHours = isSunday ? min(holidayHours_an_Tag1, sundayHours) -- aber holidayHours
+  // kann Folgetag-Anteile enthalten. Daher: berechne explizit den Anteil am Eintragsdatum.
+  const holidayHoursDay1 = day1IsSunday ? holidayOverlapDay1(e.workStart, e.workEnd, e.date) : 0;
+  const bothHours = day1IsSunday ? holidayHoursDay1 : 0;
 
-  // Tag-Zuschlag bestimmen
   const sundayPct  = +state.settings.sundayPremiumPercent  || 0;
   const holidayPct = +state.settings.holidayPremiumPercent || 0;
-  let dayPercent = 0;
-  let dayLabel = '';
   let sundayPremium = 0;
   let holidayPremium = 0;
+  let dayLabel = '';
+  let dayPercent = 0;
 
-  if (isSunday && isHoliday) {
-    if (state.settings.sundayHolidayStack) {
-      sundayPremium  = baseGross * (sundayPct  / 100);
-      holidayPremium = baseGross * (holidayPct / 100);
-      dayPercent = sundayPct + holidayPct;
-      dayLabel = 'S+F';
+  if (state.settings.sundayHolidayStack) {
+    // Beide addieren: jede Sonntagsstunde bekommt Sonntag-%, jede Feiertagsstunde bekommt Feiertag-%
+    sundayPremium  = sundayHours  * hourlyWage * sundayPct  / 100;
+    holidayPremium = holidayHours * hourlyWage * holidayPct / 100;
+  } else {
+    // Nur der höhere zählt – stundenweise.
+    // - Stunden mit BEIDEN: nur der höhere % (Sonntag oder Feiertag)
+    // - Stunden nur Sonntag: Sonntag-%
+    // - Stunden nur Feiertag: Feiertag-%
+    const sundayOnly  = Math.max(0, sundayHours  - bothHours);
+    const holidayOnly = Math.max(0, holidayHours - bothHours);
+    if (holidayPct >= sundayPct) {
+      sundayPremium  = sundayOnly                  * hourlyWage * sundayPct  / 100;
+      holidayPremium = (holidayOnly + bothHours)   * hourlyWage * holidayPct / 100;
     } else {
-      // Nur der höhere zählt
-      if (holidayPct >= sundayPct) {
-        holidayPremium = baseGross * (holidayPct / 100);
-        dayPercent = holidayPct; dayLabel = 'F';
-      } else {
-        sundayPremium = baseGross * (sundayPct / 100);
-        dayPercent = sundayPct; dayLabel = 'S';
-      }
+      sundayPremium  = (sundayOnly + bothHours)    * hourlyWage * sundayPct  / 100;
+      holidayPremium = holidayOnly                 * hourlyWage * holidayPct / 100;
     }
+  }
+  // Label & Prozent für Anzeige
+  if (isSunday && isHoliday) {
+    dayLabel = 'S+F';
+    dayPercent = state.settings.sundayHolidayStack ? (sundayPct + holidayPct) : Math.max(sundayPct, holidayPct);
   } else if (isHoliday) {
-    holidayPremium = baseGross * (holidayPct / 100);
-    dayPercent = holidayPct; dayLabel = 'F';
+    dayLabel = 'F'; dayPercent = holidayPct;
   } else if (isSunday) {
-    sundayPremium = baseGross * (sundayPct / 100);
-    dayPercent = sundayPct; dayLabel = 'S';
+    dayLabel = 'S'; dayPercent = sundayPct;
   }
 
   // Nachtschicht-Zuschlag (gilt immer zusätzlich)
@@ -2278,6 +2469,7 @@ function calcEntry(e) {
 
   return {
     hoursAway, workHours, nightHours,
+    sundayHours, holidayHours,
     isSunday, isHoliday, dayLabel, dayPercent,
     baseGross, sundayPremium, holidayPremium, nightPremium, totalPremiums,
     grossPauschale, mealDeduction, pauschale, eligible,
@@ -2463,7 +2655,7 @@ function renderEntries() {
     // Premium indicator (S/F/N)
     const premParts = [];
     if (c.sundayPremium  > 0) premParts.push(`<span class="p s" title="Sonntag ${fmtNum(state.settings.sundayPremiumPercent,0)}% = ${fmtEur(c.sundayPremium)}">S</span>`);
-    if (c.holidayPremium > 0) premParts.push(`<span class="p f" title="Feiertag ${fmtNum(state.settings.holidayPremiumPercent,0)}% = ${fmtEur(c.holidayPremium)}">F</span>`);
+    if (c.holidayPremium > 0) premParts.push(`<span class="p f" title="Feiertag ${fmtNum(c.holidayHours,1)} h × ${fmtNum(state.settings.holidayPremiumPercent,0)}% = ${fmtEur(c.holidayPremium)}">F</span>`);
     if (c.nightPremium   > 0) premParts.push(`<span class="p n" title="Nacht ${fmtNum(c.nightHours,1)} h × ${fmtNum(state.settings.nightPremiumPercent,0)}% = ${fmtEur(c.nightPremium)}">N</span>`);
     const premCell = premParts.length ? `<span class="premium-indicator">${premParts.join('')}</span>` : '';
 
@@ -2479,8 +2671,16 @@ function renderEntries() {
     let grossTitle = `Grundlohn: ${fmtEur(c.baseGross)}`;
     if (c.totalPremiums > 0) grossTitle += ` + Zuschläge ${fmtEur(c.totalPremiums)}`;
 
+    // Feiertag-Suffix im Datums-Header: Name + ggf. Stundenfenster
+    let holidayLabel = '';
+    if (c.isHoliday) {
+      const h = findHoliday(e.date);
+      const namePart = (h && h.name) ? h.name : 'Feiertag';
+      const hourPart = (h && !h.allDay) ? ` (${fmtNum(c.holidayHours,1)} h)` : '';
+      holidayLabel = ' · ' + namePart + hourPart;
+    }
     return `<tr class="${cls}" data-id="${e.id}">
-      <td class="date-cell ${dateCls}">${dateStr}<span class="weekday">${wd}${c.isHoliday ? ' · Feiertag' : ''}</span></td>
+      <td class="date-cell ${dateCls}">${dateStr}<span class="weekday">${wd}${holidayLabel}</span></td>
       <td class="site-cell">${escapeHtml(e.siteName || '—')}</td>
       <td class="address-cell">${escapeHtml(e.address || '')}</td>
       <td class="type-cell">${escapeHtml(e.assignmentType || '')}</td>
@@ -3088,8 +3288,6 @@ function openEntryModal(id) {
   document.getElementById('meal-breakfast-amt').textContent = '−' + fmtEur(state.settings.mealBreakfastDeduction || 0);
   document.getElementById('meal-lunch-amt').textContent     = '−' + fmtEur(state.settings.mealLunchDeduction || 0);
   document.getElementById('meal-dinner-amt').textContent    = '−' + fmtEur(state.settings.mealDinnerDeduction || 0);
-  // Holiday badge with current premium percent
-  document.getElementById('holiday-amt').textContent = '+' + fmtNum(state.settings.holidayPremiumPercent || 0, 0) + ' %';
 
   if (id) {
     const e = state.entries.find(x => x.id === id);
@@ -3108,7 +3306,6 @@ function openEntryModal(id) {
     document.getElementById('meal-breakfast').checked = !!e.mealBreakfast;
     document.getElementById('meal-lunch').checked     = !!e.mealLunch;
     document.getElementById('meal-dinner').checked    = !!e.mealDinner;
-    document.getElementById('entry-holiday').checked  = !!e.isHoliday;
     document.getElementById('entry-delete').hidden = false;
   } else {
     document.getElementById('entry-modal-title').textContent = 'Neuer Eintrag';
@@ -3127,11 +3324,9 @@ function openEntryModal(id) {
     document.getElementById('meal-breakfast').checked = false;
     document.getElementById('meal-lunch').checked = false;
     document.getElementById('meal-dinner').checked = false;
-    document.getElementById('entry-holiday').checked = false;
     document.getElementById('entry-delete').hidden = true;
   }
   updateMealCheckVisuals();
-  updateHolidayVisual();
   updateLiveCalc();
   entryModal.classList.add('open');
 }
@@ -3143,20 +3338,11 @@ function updateMealCheckVisuals() {
     if (cb && lab) lab.classList.toggle('checked', cb.checked);
   });
 }
-function updateHolidayVisual() {
-  const cb = document.getElementById('entry-holiday');
-  const lab = document.getElementById('holiday-label');
-  if (cb && lab) lab.classList.toggle('checked', cb.checked);
-}
 ['meal-breakfast','meal-lunch','meal-dinner'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
     updateMealCheckVisuals();
     updateLiveCalc();
   });
-});
-document.getElementById('entry-holiday').addEventListener('change', () => {
-  updateHolidayVisual();
-  updateLiveCalc();
 });
 document.getElementById('entry-date').addEventListener('change', updateLiveCalc);
 ['entry-work-start','entry-work-end'].forEach(id => {
@@ -3255,31 +3441,50 @@ function updateLiveCalc() {
   const hourlyWage = +state.settings.hourlyWage || 0;
   const baseGross = workHours * hourlyWage;
 
-  // Day type
+  // Tagestyp – nutzt dieselbe stundenweise Logik wie calcEntry, ohne Eintrag zu speichern
   const d = parseDate(dateStr);
-  const isSunday = d ? d.getDay() === 0 : false;
-  const isHoliday = document.getElementById('entry-holiday').checked;
+  const day1IsSunday = d ? d.getDay() === 0 : false;
+  const sundayHours = day1IsSunday ? workHours : 0;
+  const holidayHours = dateStr ? holidayOverlapHours(ws, we, dateStr) : 0;
+  const holidayHoursDay1 = (day1IsSunday && dateStr) ? holidayOverlapDay1(ws, we, dateStr) : 0;
+  const bothHours = day1IsSunday ? holidayHoursDay1 : 0;
+  const isSunday = sundayHours > 0;
+  const isHoliday = holidayHours > 0;
+
   const sundayPct = +state.settings.sundayPremiumPercent || 0;
   const holidayPct = +state.settings.holidayPremiumPercent || 0;
-  let sundayPrem = 0, holidayPrem = 0, dayLabel = '';
+  let sundayPrem = 0, holidayPrem = 0;
+  if (state.settings.sundayHolidayStack) {
+    sundayPrem  = sundayHours  * hourlyWage * sundayPct  / 100;
+    holidayPrem = holidayHours * hourlyWage * holidayPct / 100;
+  } else {
+    const sundayOnly  = Math.max(0, sundayHours  - bothHours);
+    const holidayOnly = Math.max(0, holidayHours - bothHours);
+    if (holidayPct >= sundayPct) {
+      sundayPrem  = sundayOnly                * hourlyWage * sundayPct  / 100;
+      holidayPrem = (holidayOnly + bothHours) * hourlyWage * holidayPct / 100;
+    } else {
+      sundayPrem  = (sundayOnly + bothHours)  * hourlyWage * sundayPct  / 100;
+      holidayPrem = holidayOnly               * hourlyWage * holidayPct / 100;
+    }
+  }
+
+  // Label für Hinweistext
+  let dayLabel = '';
   if (isSunday && isHoliday) {
     if (state.settings.sundayHolidayStack) {
-      sundayPrem  = baseGross * sundayPct / 100;
-      holidayPrem = baseGross * holidayPct / 100;
-      dayLabel = `Sonntag (${sundayPct} %) + Feiertag (${holidayPct} %)`;
+      dayLabel = `Sonntag (${sundayPct} %, ${fmtNum(sundayHours,1)} h) + Feiertag (${holidayPct} %, ${fmtNum(holidayHours,1)} h)`;
     } else if (holidayPct >= sundayPct) {
-      holidayPrem = baseGross * holidayPct / 100;
-      dayLabel = `Feiertag (${holidayPct} %) – höher als Sonntag`;
+      dayLabel = `Feiertag (${holidayPct} %, ${fmtNum(holidayHours,1)} h) – höher als Sonntag, restl. Sonntagsstunden mit ${sundayPct} %`;
     } else {
-      sundayPrem = baseGross * sundayPct / 100;
-      dayLabel = `Sonntag (${sundayPct} %) – höher als Feiertag`;
+      dayLabel = `Sonntag (${sundayPct} %, ${fmtNum(sundayHours,1)} h) – höher als Feiertag, restl. Feiertagsstunden mit ${holidayPct} %`;
     }
   } else if (isHoliday) {
-    holidayPrem = baseGross * holidayPct / 100;
-    dayLabel = `Feiertag (${holidayPct} %)`;
+    const h = findHoliday(dateStr);
+    const windowStr = h && !h.allDay ? ` (Fenster ${h.startTime}–${h.endTime})` : '';
+    dayLabel = `Feiertag${h && h.name ? ' „' + h.name + '"' : ''} (${holidayPct} %, ${fmtNum(holidayHours,1)} h)${windowStr}`;
   } else if (isSunday) {
-    sundayPrem = baseGross * sundayPct / 100;
-    dayLabel = `Sonntag (${sundayPct} %)`;
+    dayLabel = `Sonntag (${sundayPct} %, ${fmtNum(sundayHours,1)} h)`;
   }
 
   const nightStart = state.settings.nightStart || '20:00';
@@ -3320,7 +3525,7 @@ function updateLiveCalc() {
   if (isSunday || isHoliday) {
     hintEl.innerHTML = `<strong style="color:var(--teal-deep)">Erkannt:</strong> ${dayLabel}`;
   } else {
-    hintEl.textContent = 'Sonntag wird automatisch anhand des Datums erkannt.';
+    hintEl.textContent = 'Sonntag und Feiertage werden automatisch anhand des Datums erkannt. Feiertage werden in den Einstellungen gepflegt.';
   }
 }
 
@@ -3360,8 +3565,7 @@ document.getElementById('entry-save').addEventListener('click', async () => {
     kilometers: +document.getElementById('entry-km').value || 0,
     mealBreakfast: document.getElementById('meal-breakfast').checked,
     mealLunch:     document.getElementById('meal-lunch').checked,
-    mealDinner:    document.getElementById('meal-dinner').checked,
-    isHoliday:     document.getElementById('entry-holiday').checked
+    mealDinner:    document.getElementById('meal-dinner').checked
   };
 
   if (id) {
@@ -3413,9 +3617,12 @@ function openSettings() {
   document.getElementById('set-night-start').value     = s.nightStart || '20:00';
   document.getElementById('set-night-end').value       = s.nightEnd   || '06:00';
   document.getElementById('set-sunday-holiday-stack').checked = !!s.sundayHolidayStack;
+  // Vorlage-Jahr: zeige Anzeige-Jahr (oder aktuelles Jahr)
+  document.getElementById('holiday-template-year').value = viewYear || new Date().getFullYear();
   renderSitesList();
   renderTypesList();
   renderCategoriesList();
+  renderHolidaysList();
   // reset to first tab
   document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'personal'));
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === 'personal'));
@@ -3521,6 +3728,135 @@ document.getElementById('add-type').addEventListener('click', () => {
   state.settings.assignmentTypes.push(name);
   document.getElementById('new-type-name').value = '';
   renderTypesList();
+});
+
+// ----- Feiertage -----
+function holidayUuid() { return 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); }
+
+function renderHolidaysList() {
+  const list = document.getElementById('holidays-list');
+  const hs = (state.settings.holidays || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (hs.length === 0) {
+    list.innerHTML = '<div class="sub-list-empty">Noch keine Feiertage hinterlegt.</div>';
+    return;
+  }
+  list.innerHTML = hs.map(h => {
+    const d = parseDate(h.date);
+    const wd = d ? WEEKDAYS[d.getDay()] : '';
+    const dateStr = d ? String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + d.getFullYear() : '';
+    const allDay = h.allDay !== false;
+    return `
+      <div class="holiday-card ${allDay ? 'disabled-times' : ''}" data-holiday-id="${h.id}">
+        <div class="holiday-card-row">
+          <input type="date" class="holiday-date" value="${escapeHtml(h.date || '')}" data-holiday-field="date" title="${dateStr}${wd ? ' (' + wd + ')' : ''}">
+          <span class="holiday-wd">${wd}</span>
+          <input type="text" class="holiday-name" value="${escapeHtml(h.name || '')}" data-holiday-field="name" placeholder="Bezeichnung (optional)">
+          <button class="btn btn-danger btn-small" data-remove-holiday="${h.id}" title="Feiertag entfernen">✕</button>
+        </div>
+        <div class="holiday-mode">
+          <label>
+            <input type="radio" name="hmode-${h.id}" data-holiday-field="allDay" value="1" ${allDay ? 'checked' : ''}>
+            Ganzer Tag
+          </label>
+          <label>
+            <input type="radio" name="hmode-${h.id}" data-holiday-field="allDay" value="0" ${!allDay ? 'checked' : ''}>
+            Zeitfenster
+          </label>
+          <span class="holiday-times">
+            <input type="time" data-holiday-field="startTime" value="${escapeHtml(h.startTime || '14:00')}">
+            <span style="color:var(--muted)">–</span>
+            <input type="time" data-holiday-field="endTime" value="${escapeHtml(h.endTime || '24:00')}">
+          </span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('[data-holiday-field]').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const card = inp.closest('.holiday-card');
+      const id = card.dataset.holidayId;
+      const h = state.settings.holidays.find(x => x.id === id);
+      if (!h) return;
+      const f = inp.dataset.holidayField;
+      if (f === 'allDay') {
+        h.allDay = inp.value === '1';
+        card.classList.toggle('disabled-times', h.allDay);
+        return;
+      }
+      let v = inp.value;
+      if (typeof v === 'string') v = v.trim();
+      h[f] = v;
+      // Wenn Datum geändert: Wochentag aktualisieren
+      if (f === 'date') {
+        const d = parseDate(v);
+        const wdEl = card.querySelector('.holiday-wd');
+        if (wdEl) wdEl.textContent = d ? WEEKDAYS[d.getDay()] : '';
+      }
+    });
+  });
+  list.querySelectorAll('[data-remove-holiday]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.removeHoliday;
+      if (!confirm('Diesen Feiertag entfernen?')) return;
+      state.settings.holidays = state.settings.holidays.filter(h => h.id !== id);
+      renderHolidaysList();
+    });
+  });
+}
+
+document.getElementById('add-holiday').addEventListener('click', () => {
+  const date = document.getElementById('new-holiday-date').value;
+  const name = document.getElementById('new-holiday-name').value.trim();
+  if (!date) { alert('Bitte ein Datum wählen.'); return; }
+  if (!state.settings.holidays) state.settings.holidays = [];
+  // Doppelte verhindern: warnen, aber zulassen (User-Entscheidung)
+  if (state.settings.holidays.some(h => h.date === date)) {
+    if (!confirm('Es gibt bereits einen Feiertag mit diesem Datum. Trotzdem hinzufügen?')) return;
+  }
+  state.settings.holidays.push({
+    id: holidayUuid(),
+    date,
+    name,
+    allDay: true,
+    startTime: '14:00',
+    endTime: '24:00'
+  });
+  document.getElementById('new-holiday-date').value = '';
+  document.getElementById('new-holiday-name').value = '';
+  renderHolidaysList();
+});
+
+document.getElementById('holiday-template-add').addEventListener('click', () => {
+  const yr = +document.getElementById('holiday-template-year').value;
+  if (!yr || yr < 2020 || yr > 2099) { alert('Bitte ein gültiges Jahr (2020–2099) angeben.'); return; }
+  const templates = [
+    { md: '01-01', name: 'Neujahr' },
+    { md: '05-01', name: 'Tag der Arbeit' },
+    { md: '10-03', name: 'Tag der Deutschen Einheit' },
+    { md: '12-25', name: '1. Weihnachtstag' },
+    { md: '12-26', name: '2. Weihnachtstag' }
+  ];
+  if (!state.settings.holidays) state.settings.holidays = [];
+  let added = 0, skipped = 0;
+  for (const t of templates) {
+    const date = yr + '-' + t.md;
+    if (state.settings.holidays.some(h => h.date === date)) { skipped++; continue; }
+    state.settings.holidays.push({
+      id: holidayUuid(),
+      date,
+      name: t.name,
+      allDay: true,
+      startTime: '14:00',
+      endTime: '24:00'
+    });
+    added++;
+  }
+  renderHolidaysList();
+  const parts = [];
+  if (added) parts.push(added + ' hinzugefügt');
+  if (skipped) parts.push(skipped + ' übersprungen (bereits vorhanden)');
+  alert('Vorlage für ' + yr + ': ' + parts.join(', ') + '.');
 });
 
 document.getElementById('set-no-first-workplace').addEventListener('change', e => {
@@ -3653,7 +3989,7 @@ document.getElementById('print-btn-spesen').addEventListener('click', async () =
 
 function exportStundenCSV() {
   const entries = entriesForView();
-  const header = ['Datum','Wochentag','Einsatzort','Adresse','Art','Abw. von','Abw. bis','Außer Haus (Std)','Arbeitsbeginn','Arbeitsende','Arbeitsstunden','Nachtstunden','Sonntag','Feiertag','km','Frühstück','Mittag','Abend','Pauschale brutto (€)','Mahlzeitenkürzung (€)','Pauschale netto (€)','Grundlohn (€)','Sonntagszuschlag (€)','Feiertagszuschlag (€)','Nachtzuschlag (€)','Bruttolohn gesamt (€)'];
+  const header = ['Datum','Wochentag','Einsatzort','Adresse','Art','Abw. von','Abw. bis','Außer Haus (Std)','Arbeitsbeginn','Arbeitsende','Arbeitsstunden','Nachtstunden','Sonntag','Feiertagsstunden','km','Frühstück','Mittag','Abend','Pauschale brutto (€)','Mahlzeitenkürzung (€)','Pauschale netto (€)','Grundlohn (€)','Sonntagszuschlag (€)','Feiertagszuschlag (€)','Nachtzuschlag (€)','Bruttolohn gesamt (€)'];
   const rows = entries.map(e => {
     const c = calcEntry(e);
     const d = parseDate(e.date);
@@ -3671,7 +4007,7 @@ function exportStundenCSV() {
       fmtNum(c.workHours,2),
       fmtNum(c.nightHours,2),
       c.isSunday ? 'ja' : '',
-      c.isHoliday ? 'ja' : '',
+      c.isHoliday ? fmtNum(c.holidayHours,2) : '',
       e.kilometers || 0,
       e.mealBreakfast ? 'ja' : '',
       e.mealLunch ? 'ja' : '',
@@ -3960,7 +4296,14 @@ function generateStundenPDF() {
 
     const d = parseDate(e.date);
     const wd = WEEKDAYS[d.getDay()];
-    const dateCell = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.\n' + wd + (c.isHoliday ? ' · Feiertag' : '');
+    let holidaySuffix = '';
+    if (c.isHoliday) {
+      const h = findHoliday(e.date);
+      const namePart = (h && h.name) ? h.name : 'Feiertag';
+      const hourPart = (h && !h.allDay) ? ' (' + fmtNum(c.holidayHours,1) + ' h)' : '';
+      holidaySuffix = ' · ' + namePart + hourPart;
+    }
+    const dateCell = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.\n' + wd + holidaySuffix;
     const awayCell = (e.startTime && e.endTime)
       ? e.startTime + '–' + e.endTime + '\n' + fmtNum(c.hoursAway,1) + ' h' : '';
     const workCell = (e.workStart && e.workEnd)
