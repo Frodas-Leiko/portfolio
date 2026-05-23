@@ -2006,8 +2006,8 @@ function renderEntries() {
   }
   tfoot.innerHTML = `${subRows.join('')}<tr>
     <td colspan="5" style="text-align:right">Summen</td>
-    <td class="num">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? ` <span style="color:var(--muted); font-weight:400;">(${fmtNum(totalNight,1)} N)</span>` : ''}</td>
-    <td class="num">${fmtInt(totalKm)}</td>
+    <td class="num">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? ` <span style="color:var(--muted); font-weight:400; white-space:nowrap;">(${fmtNum(totalNight,1)} N)</span>` : ''}</td>
+    <td class="num">${fmtInt(totalKm)} km</td>
     <td></td>
     <td></td>
     <td class="num">${fmtEur(totalPauschale)}</td>
