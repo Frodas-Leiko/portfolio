@@ -2665,14 +2665,12 @@ function renderEntries() {
       : '';
     const workCell = e.workStart && e.workEnd
       ? (() => {
-          const nightHint  = c.nightHours   > 0 ? ` <span class="nighthint">(${fmtNum(c.nightHours,1)} h Nacht)</span>` : '';
+          const nightHint  = c.nightHours > 0 ? `<br><span class="nighthint">(${fmtNum(c.nightHours,1)} h Nacht)</span>` : '';
           let holidayHint = '';
           if (c.holidayHours > 0) {
             const h = findHoliday(e.date);
             const nm = (h && h.name) ? h.name : 'Feiertag';
-            // Wenn Nacht-Klammer existiert, Feiertag-Klammer optisch unter sie ausrichten.
-            const pad = c.nightHours > 0 ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' : '';
-            holidayHint = `<br>${pad}<span class="nighthint">(${fmtNum(c.holidayHours,1)} h ${escapeHtml(nm)})</span>`;
+            holidayHint = `<br><span class="nighthint">(${fmtNum(c.holidayHours,1)} h ${escapeHtml(nm)})</span>`;
           }
           return `<span class="time-range">${e.workStart}–${e.workEnd}<span class="dur">${fmtNum(c.workHours,2)} h${nightHint}${holidayHint}</span></span>`;
         })()
@@ -4320,14 +4318,11 @@ function generateStundenPDF() {
     const workCell = (() => {
       if (!e.workStart || !e.workEnd) return '';
       let s = e.workStart + '–' + e.workEnd + '\n' + fmtNum(c.workHours,2) + ' h';
-      if (c.nightHours > 0) s += ' (' + fmtNum(c.nightHours,1) + ' h Nacht)';
+      if (c.nightHours > 0) s += '\n(' + fmtNum(c.nightHours,1) + ' h Nacht)';
       if (c.holidayHours > 0) {
         const h = findHoliday(e.date);
         const nm = (h && h.name) ? h.name : 'Feiertag';
-        // Wenn eine Nacht-Klammer existiert, die Feiertag-Klammer mit Leerzeichen einrücken,
-        // damit sie ungefähr unter "(...) Nacht" beginnt (Helvetica ~8.5pt: "7,50 h " ≈ 10 Spaces).
-        const pad = c.nightHours > 0 ? '          ' : '';
-        s += '\n' + pad + '(' + fmtNum(c.holidayHours,1) + ' h ' + nm + ')';
+        s += '\n(' + fmtNum(c.holidayHours,1) + ' h ' + nm + ')';
       }
       return s;
     })();
