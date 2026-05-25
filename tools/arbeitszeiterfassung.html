@@ -1192,6 +1192,7 @@
           <div class="group-label">PDF</div>
           <button class="dropdown-item" id="pdf-download-stunden" type="button"><span class="icon">📄</span> PDF herunterladen</button>
           <button class="dropdown-item" id="pdf-print-stunden" type="button"><span class="icon">🖨</span> PDF drucken</button>
+          <button class="dropdown-item" id="pdf-download-stunden-simplified" type="button"><span class="icon">📃</span> Simplified PDF herunterladen</button>
           <div class="dropdown-separator"></div>
           <div class="group-label">Daten</div>
           <button class="dropdown-item" id="export-csv" type="button"><span class="icon">📊</span> CSV exportieren</button>
@@ -2621,7 +2622,7 @@ function renderEntries() {
     return;
   }
 
-  let totalWorkHours = 0, totalGross = 0, totalBaseGross = 0, totalPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0, totalNight = 0;
+  let totalWorkHours = 0, totalGross = 0, totalBaseGross = 0, totalPauschale = 0, totalMealDeduction = 0, totalKm = 0, totalAway = 0, totalNight = 0, totalHoliday = 0;
   let totalSundayPrem = 0, totalHolidayPrem = 0, totalNightPrem = 0;
   tbody.innerHTML = entries.map(e => {
     const c = calcEntry(e);
@@ -2633,6 +2634,7 @@ function renderEntries() {
     totalKm += (+e.kilometers || 0);
     totalAway += c.hoursAway;
     totalNight += c.nightHours;
+    totalHoliday += c.holidayHours;
     totalSundayPrem += c.sundayPremium;
     totalHolidayPrem += c.holidayPremium;
     totalNightPrem += c.nightPremium;
@@ -2721,7 +2723,7 @@ function renderEntries() {
   }
   tfoot.innerHTML = `${subRows.join('')}<tr>
     <td colspan="5" style="text-align:right">Summen</td>
-    <td><span class="time-range">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? `<span class="dur" style="font-weight:400;">(${fmtNum(totalNight,1)} N)</span>` : ''}</span></td>
+    <td><span class="time-range">${fmtNum(totalWorkHours,2)} h${totalNight > 0 ? `<span class="dur" style="font-weight:400;">(${fmtNum(totalNight,1)} N)</span>` : ''}${totalHoliday > 0 ? `<span class="dur" style="font-weight:400;">(${fmtNum(totalHoliday,1)} F)</span>` : ''}</span></td>
     <td class="num">${fmtInt(totalKm)}&nbsp;km</td>
     <td></td>
     <td></td>
@@ -4285,7 +4287,7 @@ function generateStundenPDF() {
   // Build body + totals
   let totalWorkHours = 0, totalGross = 0, totalBaseGross = 0, totalPauschale = 0;
   let totalGrossPauschale = 0, totalMealDeduction = 0, totalKm = 0;
-  let totalNight = 0, totalSundayPrem = 0, totalHolidayPrem = 0, totalNightPrem = 0;
+  let totalNight = 0, totalHoliday = 0, totalSundayPrem = 0, totalHolidayPrem = 0, totalNightPrem = 0;
   let pauschaleDays = 0;
 
   const body = entries.map(e => {
@@ -4300,6 +4302,7 @@ function generateStundenPDF() {
     totalHolidayPrem += c.holidayPremium;
     totalNightPrem += c.nightPremium;
     totalNight += c.nightHours;
+    totalHoliday += c.holidayHours;
     if (c.eligible) pauschaleDays++;
     totalKm += (+e.kilometers || 0);
 
@@ -4374,7 +4377,10 @@ function generateStundenPDF() {
   }
   foot.push([
     { content: 'Summen', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } },
-    { content: fmtNum(totalWorkHours,2) + ' h' + (totalNight > 0 ? '\n(' + fmtNum(totalNight,1) + ' N)' : ''), styles: { halign: 'left', fontStyle: 'bold' } },
+    { content: fmtNum(totalWorkHours,2) + ' h'
+        + (totalNight   > 0 ? '\n(' + fmtNum(totalNight,1)   + ' N)' : '')
+        + (totalHoliday > 0 ? '\n(' + fmtNum(totalHoliday,1) + ' F)' : ''),
+      styles: { halign: 'left', fontStyle: 'bold' } },
     { content: fmtInt(totalKm) + ' km', styles: { halign: 'right', fontStyle: 'bold' } },
     '', '',
     { content: fmtEur(totalPauschale), styles: { halign: 'right', fontStyle: 'bold' } },
@@ -4522,6 +4528,158 @@ function generateStundenPDF() {
   doc.setFontSize(9); doc.setTextColor(110);
   doc.text('€', rightX + sigColW - 4, sigY - 17.5);
   // Both signature lines
+  doc.setDrawColor(20); doc.setLineWidth(0.3);
+  doc.line(margin, sigY, margin + sigColW, sigY);
+  doc.line(rightX, sigY, rightX + sigColW, sigY);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7.5);
+  doc.setTextColor(110);
+  doc.text('Datum, Unterschrift Arbeitnehmer', margin, sigY + 4);
+  doc.text('Datum, Unterschrift Arbeitgeber', rightX, sigY + 4);
+
+  return doc;
+}
+
+// ----- Simplified Stunden PDF (portrait, reduced columns) -----
+function generateSimplifiedStundenPDF() {
+  const entries = entriesForView();
+  if (entries.length === 0) {
+    throw new Error('Keine Einträge für ' + MONTH_NAMES[viewMonth-1] + ' ' + viewYear);
+  }
+
+  const doc = new _jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 12;
+  const contentW = pageW - 2 * margin;
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Stundenaufstellung', margin, margin + 5.5);
+
+  // Meta block (5 columns — same info as the detailed version)
+  const s = state.settings;
+  const noFirst = s.noFirstWorkplace !== false;
+  const workplaceStatus = noFirst
+    ? 'Wechselnde Einsatzorte (keine feste)'
+    : (s.firstWorkplaceAddress || 'feste Tätigkeitsstätte (Adresse fehlt)');
+  const meta = [
+    ['MITARBEITER', s.employeeName || '—'],
+    ['PERSONALNR.', s.personalNumber || '—'],
+    ['WOHNORT', s.homeLocation || '—'],
+    ['ZEITRAUM', MONTH_NAMES[viewMonth-1] + ' ' + viewYear],
+    ['ERSTE TÄTIGKEITSSTÄTTE', workplaceStatus]
+  ];
+  const metaY = margin + 12;
+  const metaColW = contentW / 5;
+  doc.setFont('helvetica', 'normal');
+  meta.forEach((mv, i) => {
+    const x = margin + i * metaColW;
+    doc.setFontSize(5.8);
+    doc.setTextColor(110);
+    doc.text(mv[0], x, metaY);
+    doc.setFontSize(7.6);
+    doc.setTextColor(20);
+    doc.text(String(mv[1]), x, metaY + 4.2, { maxWidth: metaColW - 2 });
+  });
+  doc.setDrawColor(20);
+  doc.setLineWidth(0.35);
+  doc.line(margin, metaY + 9, pageW - margin, metaY + 9);
+
+  // Build body + total work hours
+  let totalWorkHours = 0;
+  const body = entries.map(e => {
+    const c = calcEntry(e);
+    totalWorkHours += c.workHours;
+
+    const d = parseDate(e.date);
+    const wd = WEEKDAYS[d.getDay()];
+    const dateCell = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.\n' + wd;
+    const workCell = (e.workStart && e.workEnd)
+      ? e.workStart + '–' + e.workEnd + '\n' + fmtNum(c.workHours,2) + ' h'
+      : '';
+
+    return [
+      dateCell,
+      e.siteName || '—',
+      e.assignmentType || '',
+      e.address || '',
+      workCell
+    ];
+  });
+
+  // Foot: only total work hours
+  const foot = [[
+    { content: 'Gesamtstunden', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+    { content: fmtNum(totalWorkHours,2) + ' h', styles: { halign: 'left', fontStyle: 'bold' } }
+  ]];
+
+  doc.autoTable({
+    head: [['Datum', 'Einsatzort', 'Einsatzart', 'Adresse', 'Arbeitszeit']],
+    body: body,
+    foot: foot,
+    startY: metaY + 11,
+    margin: { left: margin, right: margin, bottom: margin + 5 },
+    theme: 'plain',
+    styles: { fontSize: 8, cellPadding: 1.5, overflow: 'linebreak', valign: 'top' },
+    headStyles: { fillColor: [240,238,232], textColor: [20,20,20], fontStyle: 'bold', fontSize: 7, halign: 'left' },
+    footStyles: { fillColor: [255,255,255], textColor: [20,20,20] },
+    bodyStyles: { lineColor: [220,220,220], lineWidth: { bottom: 0.1 } },
+    columnStyles: {
+      0: { cellWidth: 20 },
+      1: { cellWidth: 42 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 'auto' },
+      4: { cellWidth: 30 }
+    },
+    showFoot: 'lastPage',
+    didDrawCell: (d) => {
+      if (d.section === 'head') {
+        doc.setDrawColor(0); doc.setLineWidth(0.4);
+        doc.line(d.cell.x, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height);
+      }
+      if (d.section === 'foot') {
+        doc.setDrawColor(0); doc.setLineWidth(0.5);
+        doc.line(d.cell.x, d.cell.y, d.cell.x + d.cell.width, d.cell.y);
+      }
+    }
+  });
+
+  // Single Gesamtstunden card
+  let cardY = doc.lastAutoTable.finalY + 5;
+  const cardH = 23;
+  const cardW = 75;
+  const cardX = margin;
+  if (cardY + cardH + 28 > pageH - margin) {
+    doc.addPage();
+    cardY = margin + 2;
+  }
+  doc.setDrawColor(20); doc.setLineWidth(0.6);
+  doc.rect(cardX, cardY, cardW, cardH);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(90);
+  doc.text('GESAMTSTUNDEN', cardX + 3.2, cardY + 5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(20);
+  doc.text(fmtNum(totalWorkHours,2) + ' h', cardX + 3.2, cardY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text(entries.length + ' ' + (entries.length === 1 ? 'Einsatztag' : 'Einsatztage'), cardX + 3.2, cardY + 19);
+
+  // Signature footer (no reimbursement box — simplified)
+  let sigY = cardY + cardH + 28;
+  if (sigY + 7 > pageH - margin) {
+    doc.addPage();
+    sigY = margin + 32;
+  } else {
+    sigY = Math.max(sigY, pageH - margin - 7);
+  }
+  const sigColW = (contentW - 10) / 2;
+  const rightX = margin + sigColW + 10;
   doc.setDrawColor(20); doc.setLineWidth(0.3);
   doc.line(margin, sigY, margin + sigColW, sigY);
   doc.line(rightX, sigY, rightX + sigColW, sigY);
@@ -4763,10 +4921,16 @@ async function runExport(action, view) {
     let doc;
     if (view === 'stunden') {
       doc = generateStundenPDF();
+    } else if (view === 'stunden-simplified') {
+      doc = generateSimplifiedStundenPDF();
     } else {
       doc = await generateSpesenPDF();
     }
-    const filename = pdfFilename(view === 'stunden' ? 'Arbeitszeiterfassung' : 'Spesenabrechnung');
+    const filename = pdfFilename(
+      view === 'spesen' ? 'Spesenabrechnung'
+      : view === 'stunden-simplified' ? 'Arbeitszeiterfassung-Kompakt'
+      : 'Arbeitszeiterfassung'
+    );
     if (action === 'download') {
       downloadPDFDoc(doc, filename);
     } else {
@@ -4806,6 +4970,7 @@ function setupDropdowns() {
 // Wire up new PDF buttons
 document.getElementById('pdf-download-stunden').addEventListener('click', () => runExport('download', 'stunden'));
 document.getElementById('pdf-print-stunden').addEventListener('click', () => runExport('print', 'stunden'));
+document.getElementById('pdf-download-stunden-simplified').addEventListener('click', () => runExport('download', 'stunden-simplified'));
 document.getElementById('pdf-download-spesen').addEventListener('click', () => runExport('download', 'spesen'));
 document.getElementById('pdf-print-spesen').addEventListener('click', () => runExport('print', 'spesen'));
 
