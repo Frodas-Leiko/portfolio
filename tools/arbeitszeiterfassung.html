@@ -1194,6 +1194,7 @@
           <button class="dropdown-item" id="pdf-print-stunden" type="button"><span class="icon">🖨</span> PDF drucken</button>
           <button class="dropdown-item" id="pdf-download-stunden-simplified" type="button"><span class="icon">📃</span> Simplified PDF herunterladen</button>
           <button class="dropdown-item" id="pdf-download-stunden-abwesenheit" type="button"><span class="icon">📃</span> Abwesenheits-PDF herunterladen</button>
+          <button class="dropdown-item" id="pdf-download-stunden-custom" type="button"><span class="icon">🧩</span> Custom PDF herunterladen</button>
           <div class="dropdown-separator"></div>
           <div class="group-label">Daten</div>
           <button class="dropdown-item" id="export-csv" type="button"><span class="icon">📊</span> CSV exportieren</button>
@@ -1467,6 +1468,7 @@
       <button class="settings-tab" data-tab="sites">Einsatzorte</button>
       <button class="settings-tab" data-tab="types">Einsatzarten</button>
       <button class="settings-tab" data-tab="categories">Spesen-Kategorien</button>
+      <button class="settings-tab" data-tab="customexport">Custom Export</button>
       <button class="settings-tab" data-tab="data">Daten</button>
     </div>
     <div class="modal-body">
@@ -1628,6 +1630,26 @@
             <input type="text" id="new-category-name" placeholder="Name der Kategorie">
             <button class="btn btn-primary" id="add-category">＋ Hinzufügen</button>
           </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" data-panel="customexport">
+        <div class="form-section">
+          <span class="help-text">Lege fest, welche Spalten im <strong>„Custom PDF"</strong>-Export erscheinen. Die Summenzeile zeigt automatisch nur die Summen aktiver Spalten (Stunden, km, Pauschale, Bruttolohn). Bei mehr als 6 aktiven Spalten wird automatisch Querformat verwendet, sonst Hochformat.</span>
+          <div id="cx-toggle-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.3rem .9rem; margin-top:.9rem;">
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-date" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Datum</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-siteName" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Einsatzort</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-address" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Adresse</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-assignmentType" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Einsatzart</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-away" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Abwesenheit</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-work" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Arbeitszeit</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-km" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Kilometer</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-meals" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Mahlzeiten</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-premiums" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Zuschläge</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-pauschale" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>VMA-Pauschale</span></label>
+            <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-gross" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Bruttolohn</span></label>
+          </div>
+          <span class="help-text" id="cx-warning" style="display:none; color:var(--red); margin-top:.6rem;">Mindestens eine Spalte muss aktiv sein.</span>
         </div>
       </div>
 
@@ -2163,7 +2185,13 @@ const DEFAULT_STATE = {
     holidays: [],
     sites: [],          // [{name, address, defaultKm, defaultHours, defaultStart, defaultEnd, defaultWorkStart, defaultWorkEnd}]
     assignmentTypes: [],// [name]
-    expenseCategories: ['Verpflegung','Fahrtkosten','Parkgebühren','Übernachtung','Sonstiges']
+    expenseCategories: ['Verpflegung','Fahrtkosten','Parkgebühren','Übernachtung','Sonstiges'],
+    // Custom-PDF-Export: An/Aus pro Spalte. Reihenfolge entspricht dem Vollexport.
+    customExport: {
+      date: true, siteName: true, address: true, assignmentType: true,
+      away: true, work: true, km: true, meals: true,
+      premiums: true, pauschale: true, gross: true
+    }
   },
   entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workStart, workEnd, kilometers, mealBreakfast, mealLunch, mealDinner}]
   expenses: []          // [{id, date, description, category, amount, notes}]
@@ -3629,6 +3657,16 @@ function openSettings() {
   document.getElementById('set-night-start').value     = s.nightStart || '20:00';
   document.getElementById('set-night-end').value       = s.nightEnd   || '06:00';
   document.getElementById('set-sunday-holiday-stack').checked = !!s.sundayHolidayStack;
+  // Custom-Export-Spalten
+  {
+    const cx = s.customExport || {};
+    ['date','siteName','address','assignmentType','away','work','km','meals','premiums','pauschale','gross'].forEach(k => {
+      const el = document.getElementById('cx-' + k);
+      if (el) el.checked = cx[k] !== false;
+    });
+    const warn = document.getElementById('cx-warning');
+    if (warn) warn.style.display = 'none';
+  }
   // Vorlage-Jahr: zeige Anzeige-Jahr (oder aktuelles Jahr)
   document.getElementById('holiday-template-year').value = viewYear || new Date().getFullYear();
   renderSitesList();
@@ -3896,6 +3934,15 @@ document.getElementById('settings-save').addEventListener('click', async () => {
   state.settings.nightStart            = document.getElementById('set-night-start').value || '20:00';
   state.settings.nightEnd              = document.getElementById('set-night-end').value   || '06:00';
   state.settings.sundayHolidayStack    = document.getElementById('set-sunday-holiday-stack').checked;
+  // Custom-Export-Spalten
+  {
+    const cx = {};
+    ['date','siteName','address','assignmentType','away','work','km','meals','premiums','pauschale','gross'].forEach(k => {
+      const el = document.getElementById('cx-' + k);
+      cx[k] = el ? el.checked : true;
+    });
+    state.settings.customExport = cx;
+  }
   // sites and types are already updated live
   await saveState();
   closeModals();
@@ -4845,6 +4892,203 @@ function generateAbwesenheitStundenPDF() {
   return doc;
 }
 
+// ----- Custom Stunden PDF (configurable columns) -----
+function generateCustomStundenPDF() {
+  const entries = entriesForView();
+  if (entries.length === 0) {
+    throw new Error('Keine Einträge für ' + MONTH_NAMES[viewMonth-1] + ' ' + viewYear);
+  }
+
+  const cx = state.settings.customExport || {};
+  const ALL_COLS = [
+    { key:'date',           header:'Datum',       w:16,   align:'left'   },
+    { key:'siteName',       header:'Einsatzort',  w:null, align:'left'   },
+    { key:'address',        header:'Adresse',     w:null, align:'left'   },
+    { key:'assignmentType', header:'Einsatzart',  w:null, align:'left'   },
+    { key:'away',           header:'Abwesenheit', w:24,   align:'left',  sum:'away'  },
+    { key:'work',           header:'Arbeitszeit', w:28,   align:'left',  sum:'work'  },
+    { key:'km',             header:'km',          w:12,   align:'right', sum:'km'    },
+    { key:'meals',          header:'Mahlz.',      w:13,   align:'center' },
+    { key:'premiums',       header:'Zuschl.',     w:13,   align:'center' },
+    { key:'pauschale',      header:'Pauschale',   w:18,   align:'right', sum:'pauschale' },
+    { key:'gross',          header:'Bruttolohn',  w:24,   align:'right', sum:'gross' }
+  ];
+  const cols = ALL_COLS.filter(c => cx[c.key] !== false);
+  if (cols.length === 0) {
+    throw new Error('Keine Spalten aktiviert. Bitte unter Einstellungen → Custom Export mindestens eine Spalte aktivieren.');
+  }
+
+  const landscape = cols.length > 6;
+  const doc = new _jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = landscape ? 10 : 12;
+  const contentW = pageW - 2 * margin;
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Stundenaufstellung', margin, margin + 5.5);
+
+  // Meta block (5 columns)
+  const s = state.settings;
+  const noFirst = s.noFirstWorkplace !== false;
+  const workplaceStatus = noFirst
+    ? 'Wechselnde Einsatzorte (keine feste)'
+    : (s.firstWorkplaceAddress || 'feste Tätigkeitsstätte (Adresse fehlt)');
+  const meta = [
+    ['MITARBEITER', s.employeeName || '—'],
+    ['PERSONALNR.', s.personalNumber || '—'],
+    ['WOHNORT', s.homeLocation || '—'],
+    ['ZEITRAUM', MONTH_NAMES[viewMonth-1] + ' ' + viewYear],
+    ['ERSTE TÄTIGKEITSSTÄTTE', workplaceStatus]
+  ];
+  const metaY = margin + 12;
+  const metaColW = contentW / 5;
+  doc.setFont('helvetica', 'normal');
+  meta.forEach((mv, i) => {
+    const x = margin + i * metaColW;
+    doc.setFontSize(5.8); doc.setTextColor(110);
+    doc.text(mv[0], x, metaY);
+    doc.setFontSize(7.6); doc.setTextColor(20);
+    doc.text(String(mv[1]), x, metaY + 4.2, { maxWidth: metaColW - 2 });
+  });
+  doc.setDrawColor(20); doc.setLineWidth(0.35);
+  doc.line(margin, metaY + 9, pageW - margin, metaY + 9);
+
+  // Totals
+  let totalWorkHours = 0, totalAwayHours = 0, totalKm = 0, totalPauschale = 0, totalGross = 0;
+
+  function cellFor(key, e, c, d, wd) {
+    switch (key) {
+      case 'date': {
+        let holidaySuffix = '';
+        if (c.isHoliday) {
+          const h = findHoliday(e.date);
+          const namePart = (h && h.name) ? h.name : 'Feiertag';
+          const hourPart = (h && !h.allDay) ? ' (' + fmtNum(c.holidayHours,1) + ' h)' : '';
+          holidaySuffix = ' · ' + namePart + hourPart;
+        }
+        return String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.\n' + wd + holidaySuffix;
+      }
+      case 'siteName': return e.siteName || '—';
+      case 'address': return e.address || '';
+      case 'assignmentType': return e.assignmentType || '';
+      case 'away': return (e.startTime && e.endTime) ? e.startTime + '–' + e.endTime + '\n' + fmtNum(c.hoursAway,1) + ' h' : '';
+      case 'work': {
+        if (!e.workStart || !e.workEnd) return '';
+        let str = e.workStart + '–' + e.workEnd + '\n' + fmtNum(c.workHours,2) + ' h';
+        if (c.nightHours > 0) str += '\n(' + fmtNum(c.nightHours,1) + ' h Nacht)';
+        if (c.holidayHours > 0) {
+          const h = findHoliday(e.date);
+          const nm = (h && h.name) ? h.name : 'Feiertag';
+          str += '\n(' + fmtNum(c.holidayHours,1) + ' h ' + nm + ')';
+        }
+        return str;
+      }
+      case 'km': return e.kilometers ? fmtInt(e.kilometers) : '';
+      case 'meals': {
+        const p = [];
+        if (e.mealBreakfast) p.push('F');
+        if (e.mealLunch) p.push('M');
+        if (e.mealDinner) p.push('A');
+        return p.join(' ');
+      }
+      case 'premiums': {
+        const p = [];
+        if (c.sundayPremium > 0) p.push('S');
+        if (c.holidayPremium > 0) p.push('F');
+        if (c.nightPremium > 0) p.push('N');
+        return p.join(' ');
+      }
+      case 'pauschale': return c.eligible ? fmtEur(c.pauschale) : '—';
+      case 'gross': return fmtEur(c.gross);
+    }
+    return '';
+  }
+
+  const body = entries.map(e => {
+    const c = calcEntry(e);
+    totalWorkHours += c.workHours;
+    totalAwayHours += (c.hoursAway || 0);
+    totalKm += (+e.kilometers || 0);
+    totalPauschale += c.pauschale;
+    totalGross += c.gross;
+    const d = parseDate(e.date);
+    const wd = WEEKDAYS[d.getDay()];
+    return cols.map(col => cellFor(col.key, e, c, d, wd));
+  });
+
+  // Summenwerte je Spalte (nur für Spalten mit Summe)
+  const sumValues = {
+    away: () => fmtNum(totalAwayHours,1) + ' h',
+    work: () => fmtNum(totalWorkHours,2) + ' h',
+    km:   () => fmtInt(totalKm) + ' km',
+    pauschale: () => fmtEur(totalPauschale),
+    gross: () => fmtEur(totalGross)
+  };
+  let labelPlaced = false;
+  const footRow = cols.map(col => {
+    if (col.sum && sumValues[col.sum]) {
+      return { content: sumValues[col.sum](), styles: { fontStyle:'bold', halign: col.align } };
+    }
+    if (!labelPlaced) {
+      labelPlaced = true;
+      return { content: 'Summen', styles: { fontStyle:'bold', halign:'left' } };
+    }
+    return '';
+  });
+
+  const columnStyles = {};
+  cols.forEach((col, i) => {
+    columnStyles[i] = { halign: col.align, cellWidth: col.w ? col.w : 'auto' };
+  });
+
+  doc.autoTable({
+    head: [cols.map(c => c.header)],
+    body: body,
+    foot: [footRow],
+    startY: metaY + 11,
+    margin: { left: margin, right: margin, bottom: margin + 5 },
+    theme: 'plain',
+    styles: { fontSize: landscape ? 7.5 : 8, cellPadding: 1.4, overflow: 'linebreak', valign: 'top' },
+    headStyles: { fillColor: [240,238,232], textColor: [20,20,20], fontStyle: 'bold', fontSize: 6.8, halign: 'left' },
+    footStyles: { fillColor: [255,255,255], textColor: [20,20,20] },
+    bodyStyles: { lineColor: [220,220,220], lineWidth: { bottom: 0.1 } },
+    columnStyles: columnStyles,
+    showFoot: 'lastPage',
+    didDrawCell: (dd) => {
+      if (dd.section === 'head') {
+        doc.setDrawColor(0); doc.setLineWidth(0.4);
+        doc.line(dd.cell.x, dd.cell.y + dd.cell.height, dd.cell.x + dd.cell.width, dd.cell.y + dd.cell.height);
+      }
+      if (dd.section === 'foot') {
+        doc.setDrawColor(0); doc.setLineWidth(0.5);
+        doc.line(dd.cell.x, dd.cell.y, dd.cell.x + dd.cell.width, dd.cell.y);
+      }
+    }
+  });
+
+  // Signature footer
+  let sigY = doc.lastAutoTable.finalY + 28;
+  if (sigY + 7 > pageH - margin) {
+    doc.addPage();
+    sigY = margin + 32;
+  } else {
+    sigY = Math.max(sigY, pageH - margin - 7);
+  }
+  const sigColW = (contentW - 10) / 2;
+  const rightX = margin + sigColW + 10;
+  doc.setDrawColor(20); doc.setLineWidth(0.3);
+  doc.line(margin, sigY, margin + sigColW, sigY);
+  doc.line(rightX, sigY, rightX + sigColW, sigY);
+  doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(110);
+  doc.text('Datum, Unterschrift Arbeitnehmer', margin, sigY + 4);
+  doc.text('Datum, Unterschrift Arbeitgeber', rightX, sigY + 4);
+
+  return doc;
+}
+
 // ----- Spesen PDF (async, fetches attachment blobs) -----
 async function generateSpesenPDF() {
   const expenses = expensesForView();
@@ -5078,6 +5322,8 @@ async function runExport(action, view) {
       doc = generateSimplifiedStundenPDF();
     } else if (view === 'stunden-abwesenheit') {
       doc = generateAbwesenheitStundenPDF();
+    } else if (view === 'stunden-custom') {
+      doc = generateCustomStundenPDF();
     } else {
       doc = await generateSpesenPDF();
     }
@@ -5085,6 +5331,7 @@ async function runExport(action, view) {
       view === 'spesen' ? 'Spesenabrechnung'
       : view === 'stunden-simplified' ? 'Arbeitszeiterfassung-Kompakt'
       : view === 'stunden-abwesenheit' ? 'Arbeitszeiterfassung-Abwesenheit'
+      : view === 'stunden-custom' ? 'Arbeitszeiterfassung-Custom'
       : 'Arbeitszeiterfassung'
     );
     if (action === 'download') {
@@ -5128,6 +5375,7 @@ document.getElementById('pdf-download-stunden').addEventListener('click', () => 
 document.getElementById('pdf-print-stunden').addEventListener('click', () => runExport('print', 'stunden'));
 document.getElementById('pdf-download-stunden-simplified').addEventListener('click', () => runExport('download', 'stunden-simplified'));
 document.getElementById('pdf-download-stunden-abwesenheit').addEventListener('click', () => runExport('download', 'stunden-abwesenheit'));
+document.getElementById('pdf-download-stunden-custom').addEventListener('click', () => runExport('download', 'stunden-custom'));
 document.getElementById('pdf-download-spesen').addEventListener('click', () => runExport('download', 'spesen'));
 document.getElementById('pdf-print-spesen').addEventListener('click', () => runExport('print', 'spesen'));
 
