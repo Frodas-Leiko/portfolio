@@ -1193,6 +1193,7 @@
           <button class="dropdown-item" id="pdf-download-stunden" type="button"><span class="icon">📄</span> PDF herunterladen</button>
           <button class="dropdown-item" id="pdf-print-stunden" type="button"><span class="icon">🖨</span> PDF drucken</button>
           <button class="dropdown-item" id="pdf-download-stunden-simplified" type="button"><span class="icon">📃</span> Simplified PDF herunterladen</button>
+          <button class="dropdown-item" id="pdf-download-stunden-abwesenheit" type="button"><span class="icon">📃</span> Abwesenheits-PDF herunterladen</button>
           <div class="dropdown-separator"></div>
           <div class="group-label">Daten</div>
           <button class="dropdown-item" id="export-csv" type="button"><span class="icon">📊</span> CSV exportieren</button>
@@ -4692,6 +4693,158 @@ function generateSimplifiedStundenPDF() {
   return doc;
 }
 
+// ----- Abwesenheits-Stunden PDF (portrait, only absence column) -----
+function generateAbwesenheitStundenPDF() {
+  const entries = entriesForView();
+  if (entries.length === 0) {
+    throw new Error('Keine Einträge für ' + MONTH_NAMES[viewMonth-1] + ' ' + viewYear);
+  }
+
+  const doc = new _jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 12;
+  const contentW = pageW - 2 * margin;
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Abwesenheitsaufstellung', margin, margin + 5.5);
+
+  // Meta block (5 columns — same info as the detailed version)
+  const s = state.settings;
+  const noFirst = s.noFirstWorkplace !== false;
+  const workplaceStatus = noFirst
+    ? 'Wechselnde Einsatzorte (keine feste)'
+    : (s.firstWorkplaceAddress || 'feste Tätigkeitsstätte (Adresse fehlt)');
+  const meta = [
+    ['MITARBEITER', s.employeeName || '—'],
+    ['PERSONALNR.', s.personalNumber || '—'],
+    ['WOHNORT', s.homeLocation || '—'],
+    ['ZEITRAUM', MONTH_NAMES[viewMonth-1] + ' ' + viewYear],
+    ['ERSTE TÄTIGKEITSSTÄTTE', workplaceStatus]
+  ];
+  const metaY = margin + 12;
+  const metaColW = contentW / 5;
+  doc.setFont('helvetica', 'normal');
+  meta.forEach((mv, i) => {
+    const x = margin + i * metaColW;
+    doc.setFontSize(5.8);
+    doc.setTextColor(110);
+    doc.text(mv[0], x, metaY);
+    doc.setFontSize(7.6);
+    doc.setTextColor(20);
+    doc.text(String(mv[1]), x, metaY + 4.2, { maxWidth: metaColW - 2 });
+  });
+  doc.setDrawColor(20);
+  doc.setLineWidth(0.35);
+  doc.line(margin, metaY + 9, pageW - margin, metaY + 9);
+
+  // Build body + total absence hours
+  let totalAwayHours = 0;
+  const body = entries.map(e => {
+    const c = calcEntry(e);
+    totalAwayHours += (c.hoursAway || 0);
+
+    const d = parseDate(e.date);
+    const wd = WEEKDAYS[d.getDay()];
+    const dateCell = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.\n' + wd;
+    const awayCell = (e.startTime && e.endTime)
+      ? e.startTime + '–' + e.endTime + '\n' + fmtNum(c.hoursAway,1) + ' h'
+      : '';
+
+    return [
+      dateCell,
+      e.siteName || '—',
+      e.assignmentType || '',
+      e.address || '',
+      awayCell
+    ];
+  });
+
+  // Foot: only total absence hours
+  const foot = [[
+    { content: 'Gesamt Abwesenheit', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+    { content: fmtNum(totalAwayHours,1) + ' h', styles: { halign: 'left', fontStyle: 'bold' } }
+  ]];
+
+  doc.autoTable({
+    head: [['Datum', 'Einsatzort', 'Einsatzart', 'Adresse', 'Abwesenheit']],
+    body: body,
+    foot: foot,
+    startY: metaY + 11,
+    margin: { left: margin, right: margin, bottom: margin + 5 },
+    theme: 'plain',
+    styles: { fontSize: 8, cellPadding: 1.5, overflow: 'linebreak', valign: 'top' },
+    headStyles: { fillColor: [240,238,232], textColor: [20,20,20], fontStyle: 'bold', fontSize: 7, halign: 'left' },
+    footStyles: { fillColor: [255,255,255], textColor: [20,20,20] },
+    bodyStyles: { lineColor: [220,220,220], lineWidth: { bottom: 0.1 } },
+    columnStyles: {
+      0: { cellWidth: 20 },
+      1: { cellWidth: 42 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 'auto' },
+      4: { cellWidth: 30 }
+    },
+    showFoot: 'lastPage',
+    didDrawCell: (d) => {
+      if (d.section === 'head') {
+        doc.setDrawColor(0); doc.setLineWidth(0.4);
+        doc.line(d.cell.x, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height);
+      }
+      if (d.section === 'foot') {
+        doc.setDrawColor(0); doc.setLineWidth(0.5);
+        doc.line(d.cell.x, d.cell.y, d.cell.x + d.cell.width, d.cell.y);
+      }
+    }
+  });
+
+  // Single Gesamt-Abwesenheit card
+  let cardY = doc.lastAutoTable.finalY + 5;
+  const cardH = 23;
+  const cardW = 75;
+  const cardX = margin;
+  if (cardY + cardH + 28 > pageH - margin) {
+    doc.addPage();
+    cardY = margin + 2;
+  }
+  doc.setDrawColor(20); doc.setLineWidth(0.6);
+  doc.rect(cardX, cardY, cardW, cardH);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(90);
+  doc.text('GESAMT ABWESENHEIT', cardX + 3.2, cardY + 5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(20);
+  doc.text(fmtNum(totalAwayHours,1) + ' h', cardX + 3.2, cardY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100);
+  doc.text(entries.length + ' ' + (entries.length === 1 ? 'Einsatztag' : 'Einsatztage'), cardX + 3.2, cardY + 19);
+
+  // Signature footer (no reimbursement box — simplified)
+  let sigY = cardY + cardH + 28;
+  if (sigY + 7 > pageH - margin) {
+    doc.addPage();
+    sigY = margin + 32;
+  } else {
+    sigY = Math.max(sigY, pageH - margin - 7);
+  }
+  const sigColW = (contentW - 10) / 2;
+  const rightX = margin + sigColW + 10;
+  doc.setDrawColor(20); doc.setLineWidth(0.3);
+  doc.line(margin, sigY, margin + sigColW, sigY);
+  doc.line(rightX, sigY, rightX + sigColW, sigY);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7.5);
+  doc.setTextColor(110);
+  doc.text('Datum, Unterschrift Arbeitnehmer', margin, sigY + 4);
+  doc.text('Datum, Unterschrift Arbeitgeber', rightX, sigY + 4);
+
+  return doc;
+}
+
 // ----- Spesen PDF (async, fetches attachment blobs) -----
 async function generateSpesenPDF() {
   const expenses = expensesForView();
@@ -4923,12 +5076,15 @@ async function runExport(action, view) {
       doc = generateStundenPDF();
     } else if (view === 'stunden-simplified') {
       doc = generateSimplifiedStundenPDF();
+    } else if (view === 'stunden-abwesenheit') {
+      doc = generateAbwesenheitStundenPDF();
     } else {
       doc = await generateSpesenPDF();
     }
     const filename = pdfFilename(
       view === 'spesen' ? 'Spesenabrechnung'
       : view === 'stunden-simplified' ? 'Arbeitszeiterfassung-Kompakt'
+      : view === 'stunden-abwesenheit' ? 'Arbeitszeiterfassung-Abwesenheit'
       : 'Arbeitszeiterfassung'
     );
     if (action === 'download') {
@@ -4971,6 +5127,7 @@ function setupDropdowns() {
 document.getElementById('pdf-download-stunden').addEventListener('click', () => runExport('download', 'stunden'));
 document.getElementById('pdf-print-stunden').addEventListener('click', () => runExport('print', 'stunden'));
 document.getElementById('pdf-download-stunden-simplified').addEventListener('click', () => runExport('download', 'stunden-simplified'));
+document.getElementById('pdf-download-stunden-abwesenheit').addEventListener('click', () => runExport('download', 'stunden-abwesenheit'));
 document.getElementById('pdf-download-spesen').addEventListener('click', () => runExport('download', 'spesen'));
 document.getElementById('pdf-print-spesen').addEventListener('click', () => runExport('print', 'spesen'));
 
