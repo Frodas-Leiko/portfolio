@@ -1635,7 +1635,7 @@
 
       <div class="settings-panel" data-panel="customexport">
         <div class="form-section">
-          <span class="help-text">Lege fest, welche Spalten im <strong>„Custom PDF"</strong>-Export erscheinen. Die Summenzeile zeigt automatisch nur die Summen aktiver Spalten (Stunden, km, Pauschale, Bruttolohn). Bei mehr als 6 aktiven Spalten wird automatisch Querformat verwendet, sonst Hochformat.</span>
+          <span class="help-text">Lege fest, welche Spalten im <strong>„Custom PDF"</strong>-Export erscheinen. Die Summenzeile zeigt automatisch nur die Summen aktiver Spalten (Stunden, km, Pauschale, Bruttolohn).</span>
           <div id="cx-toggle-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.3rem .9rem; margin-top:.9rem;">
             <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-date" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Datum</span></label>
             <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-siteName" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Einsatzort</span></label>
@@ -1648,6 +1648,14 @@
             <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-premiums" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Zuschläge</span></label>
             <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-pauschale" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>VMA-Pauschale</span></label>
             <label class="cx-toggle" style="display:flex; gap:.55rem; align-items:center; padding:.4rem 0; cursor:pointer;"><input type="checkbox" id="cx-gross" style="width:18px;height:18px;accent-color:var(--teal-deep);"><span>Bruttolohn</span></label>
+          </div>
+          <div style="margin-top:1rem; padding-top:.9rem; border-top:1px solid var(--line-soft);">
+            <label style="display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); margin-bottom:.5rem;">Seitenformat</label>
+            <div style="display:flex; gap:1.2rem; flex-wrap:wrap;">
+              <label style="display:flex; gap:.5rem; align-items:center; cursor:pointer;"><input type="radio" name="cx-orientation" value="auto" style="width:16px;height:16px;accent-color:var(--teal-deep);"><span>Automatisch (&gt;6 Spalten = quer)</span></label>
+              <label style="display:flex; gap:.5rem; align-items:center; cursor:pointer;"><input type="radio" name="cx-orientation" value="portrait" style="width:16px;height:16px;accent-color:var(--teal-deep);"><span>Hochformat</span></label>
+              <label style="display:flex; gap:.5rem; align-items:center; cursor:pointer;"><input type="radio" name="cx-orientation" value="landscape" style="width:16px;height:16px;accent-color:var(--teal-deep);"><span>Querformat</span></label>
+            </div>
           </div>
           <span class="help-text" id="cx-warning" style="display:none; color:var(--red); margin-top:.6rem;">Mindestens eine Spalte muss aktiv sein.</span>
         </div>
@@ -2190,7 +2198,8 @@ const DEFAULT_STATE = {
     customExport: {
       date: true, siteName: true, address: true, assignmentType: true,
       away: true, work: true, km: true, meals: true,
-      premiums: true, pauschale: true, gross: true
+      premiums: true, pauschale: true, gross: true,
+      orientation: 'auto'   // 'auto' | 'portrait' | 'landscape'
     }
   },
   entries: [],          // [{id, date, siteName, address, assignmentType, startTime, endTime, workStart, workEnd, kilometers, mealBreakfast, mealLunch, mealDinner}]
@@ -3666,6 +3675,9 @@ function openSettings() {
     });
     const warn = document.getElementById('cx-warning');
     if (warn) warn.style.display = 'none';
+    const orient = (cx.orientation === 'portrait' || cx.orientation === 'landscape') ? cx.orientation : 'auto';
+    const rb = document.querySelector('input[name="cx-orientation"][value="' + orient + '"]');
+    if (rb) rb.checked = true;
   }
   // Vorlage-Jahr: zeige Anzeige-Jahr (oder aktuelles Jahr)
   document.getElementById('holiday-template-year').value = viewYear || new Date().getFullYear();
@@ -3941,6 +3953,8 @@ document.getElementById('settings-save').addEventListener('click', async () => {
       const el = document.getElementById('cx-' + k);
       cx[k] = el ? el.checked : true;
     });
+    const orientEl = document.querySelector('input[name="cx-orientation"]:checked');
+    cx.orientation = orientEl ? orientEl.value : 'auto';
     state.settings.customExport = cx;
   }
   // sites and types are already updated live
@@ -4918,7 +4932,10 @@ function generateCustomStundenPDF() {
     throw new Error('Keine Spalten aktiviert. Bitte unter Einstellungen → Custom Export mindestens eine Spalte aktivieren.');
   }
 
-  const landscape = cols.length > 6;
+  const orientPref = (cx.orientation === 'portrait' || cx.orientation === 'landscape')
+    ? cx.orientation
+    : (cols.length > 6 ? 'landscape' : 'portrait');
+  const landscape = orientPref === 'landscape';
   const doc = new _jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
