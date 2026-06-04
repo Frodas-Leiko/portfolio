@@ -1051,7 +1051,46 @@ const CARDS = [
 { topic:"Adjektive", ru:"медленный", translit:"mJEdliny", de:"langsam" },
 { topic:"Adjektive", ru:"вкусный", translit:"fkUßny", de:"lecker" },
 { topic:"Adjektive", ru:"русский", translit:"rUßkij", de:"russisch" },
-{ topic:"Adjektive", ru:"немецкий", translit:"nimJEzkij", de:"deutsch" }
+{ topic:"Adjektive", ru:"немецкий", translit:"nimJEzkij", de:"deutsch" },
+
+// =========================================================
+// KYRILLISCHES ALPHABET (Buchstaben, beide Richtungen)
+// Felder: cyr (Anzeige Groß+klein), cyrMatch (Kleinbuchstabe fürs Tippen),
+//         latDe (deutsch-lesbar), latInt (international)
+// =========================================================
+{ topic:"Alphabet", isLetter:true, cyr:"А а", cyrMatch:"а", latDe:"a", latInt:"a", note:"Wie deutsches a." },
+{ topic:"Alphabet", isLetter:true, cyr:"Б б", cyrMatch:"б", latDe:"b", latInt:"b", note:"Stimmhaftes b. Am Wortende wie p." },
+{ topic:"Alphabet", isLetter:true, cyr:"В в", cyrMatch:"в", latDe:"w", latInt:"v", note:"Wie deutsches w. Am Wortende wie f." },
+{ topic:"Alphabet", isLetter:true, cyr:"Г г", cyrMatch:"г", latDe:"g", latInt:"g", note:"Wie g in „gut“. Am Wortende wie k." },
+{ topic:"Alphabet", isLetter:true, cyr:"Д д", cyrMatch:"д", latDe:"d", latInt:"d", note:"Wie d. Am Wortende wie t." },
+{ topic:"Alphabet", isLetter:true, cyr:"Е е", cyrMatch:"е", latDe:"je", latInt:"je", note:"Betont „je“ wie in „jetzt“; unbetont eher „i“." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ё ё", cyrMatch:"ё", latDe:"jo", latInt:"jo", note:"Wie „jo“ in „Jod“. Immer betont; in Texten oft ohne Punkte als е geschrieben." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ж ж", cyrMatch:"ж", latDe:"sch", latInt:"zh", note:"Stimmhaftes sch — wie das „J“ in französisch „Journal“." },
+{ topic:"Alphabet", isLetter:true, cyr:"З з", cyrMatch:"з", latDe:"s", latInt:"z", note:"Stimmhaftes s wie in „Sonne“." },
+{ topic:"Alphabet", isLetter:true, cyr:"И и", cyrMatch:"и", latDe:"i", latInt:"i", note:"Wie deutsches i." },
+{ topic:"Alphabet", isLetter:true, cyr:"Й й", cyrMatch:"й", latDe:"j", latInt:"j", note:"Kurzes j (Halbvokal), „i kratkoje“. Bildet Diphthonge: ой, ай." },
+{ topic:"Alphabet", isLetter:true, cyr:"К к", cyrMatch:"к", latDe:"k", latInt:"k", note:"Wie k." },
+{ topic:"Alphabet", isLetter:true, cyr:"Л л", cyrMatch:"л", latDe:"l", latInt:"l", note:"Wie l, etwas dunkler als im Deutschen." },
+{ topic:"Alphabet", isLetter:true, cyr:"М м", cyrMatch:"м", latDe:"m", latInt:"m", note:"Wie m." },
+{ topic:"Alphabet", isLetter:true, cyr:"Н н", cyrMatch:"н", latDe:"n", latInt:"n", note:"Wie n. Achtung: sieht aus wie lateinisches H, ist aber n." },
+{ topic:"Alphabet", isLetter:true, cyr:"О о", cyrMatch:"о", latDe:"o", latInt:"o", note:"Betont o; unbetont klingt es wie a." },
+{ topic:"Alphabet", isLetter:true, cyr:"П п", cyrMatch:"п", latDe:"p", latInt:"p", note:"Wie p." },
+{ topic:"Alphabet", isLetter:true, cyr:"Р р", cyrMatch:"р", latDe:"r", latInt:"r", note:"Gerolltes Zungenspitzen-r. Achtung: sieht aus wie lateinisches P, ist aber r." },
+{ topic:"Alphabet", isLetter:true, cyr:"С с", cyrMatch:"с", latDe:"ß", latInt:"s", note:"Stimmloses s wie in „Straße“. Achtung: sieht aus wie lateinisches C, ist aber s." },
+{ topic:"Alphabet", isLetter:true, cyr:"Т т", cyrMatch:"т", latDe:"t", latInt:"t", note:"Wie t." },
+{ topic:"Alphabet", isLetter:true, cyr:"У у", cyrMatch:"у", latDe:"u", latInt:"u", note:"Wie u." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ф ф", cyrMatch:"ф", latDe:"f", latInt:"f", note:"Wie f." },
+{ topic:"Alphabet", isLetter:true, cyr:"Х х", cyrMatch:"х", latDe:"ch", latInt:"kh", note:"Wie „ch“ in „Bach“." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ц ц", cyrMatch:"ц", latDe:"z", latInt:"ts", note:"Wie „z“ in „Zar“." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ч ч", cyrMatch:"ч", latDe:"tsch", latInt:"ch", note:"Wie „tsch“ in „Tschüss“." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ш ш", cyrMatch:"ш", latDe:"sch", latInt:"sh", note:"Hartes sch wie in „Schule“." },
+{ topic:"Alphabet", isLetter:true, cyr:"Щ щ", cyrMatch:"щ", latDe:"schtsch", latInt:"shch", note:"Weiches, langes sch — Zunge weiter vorne als bei ш." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ъ ъ", cyrMatch:"ъ", latDe:"hartes Zeichen", latInt:"ʺ", note:"Kein eigener Laut. Härtezeichen — trennt Vorsilbe und Stamm (z. B. объект)." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ы ы", cyrMatch:"ы", latDe:"y", latInt:"y", note:"Dumpfes, hartes i — Zunge nach hinten. Kein deutsches Pendant." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ь ь", cyrMatch:"ь", latDe:"weiches Zeichen", latInt:"ʹ", note:"Kein eigener Laut. Erweicht den vorigen Konsonanten (z. B. день)." },
+{ topic:"Alphabet", isLetter:true, cyr:"Э э", cyrMatch:"э", latDe:"e", latInt:"e", note:"Offenes e wie in „Bett“, ohne vorangestelltes j (anders als е)." },
+{ topic:"Alphabet", isLetter:true, cyr:"Ю ю", cyrMatch:"ю", latDe:"ju", latInt:"yu", note:"Wie „ju“ in „Jubel“." },
+{ topic:"Alphabet", isLetter:true, cyr:"Я я", cyrMatch:"я", latDe:"ja", latInt:"ya", note:"Wie „ja“." }
 
 ];
 
@@ -1130,6 +1169,12 @@ function buildItems() {
       notes: card.notes,
       examples: card.examples,
       isVariant: false,
+      isLetter: card.isLetter,
+      cyr: card.cyr,
+      cyrMatch: card.cyrMatch,
+      latDe: card.latDe,
+      latInt: card.latInt,
+      note: card.note,
     });
     // Aktive Subkarten dazumischen
     if (card.variants) {
@@ -1372,7 +1417,18 @@ function renderCard() {
     expectedTranslit = item.translit;
     placeholder = 'auf Russisch (kyrillisch oder Translit)';
 
-    if (item.isVariant) {
+    if (item.isLetter) {
+      // Buchstabe: Latein zeigen, kyrillischen Buchstaben abfragen
+      directionLabel = 'LATEIN → KYRILLISCH';
+      expectedRu = item.cyr;
+      expectedTranslit = item.cyrMatch;
+      placeholder = 'kyrillischer Buchstabe';
+      const latShow = item.latDe === item.latInt ? item.latDe : `${item.latDe} · ${item.latInt}`;
+      questionHtml = `
+        <div class="question">${latShow}</div>
+        <div class="question-hint">deutsch-lesbar · international</div>
+      `;
+    } else if (item.isVariant) {
       // Subkarte: Grundform + Hinweis welche Form
       questionHtml = `
         <div class="question-sub">Grundform: ${item.baseCard.de} (${item.baseCard.ru})</div>
@@ -1391,7 +1447,17 @@ function renderCard() {
     expectedTranslit = null; // bei RU→DE keine Alternative
     placeholder = 'auf Deutsch';
 
-    if (item.isVariant) {
+    if (item.isLetter) {
+      // Buchstabe: kyrillisch zeigen, lateinischen Laut abfragen.
+      // Hinweis (Lautschrift) wird bewusst NICHT angezeigt — echtes Abfragen.
+      directionLabel = 'KYRILLISCH → LATEIN';
+      expectedRu = item.latDe;
+      expectedTranslit = item.latInt; // beide Umschrift-Systeme gelten als richtig
+      placeholder = 'lateinischer Laut';
+      questionHtml = `
+        <div class="question cyrillic">${item.cyr}</div>
+      `;
+    } else if (item.isVariant) {
       questionHtml = `
         <div class="question-sub">Grundform: ${item.baseCard.ru} (${item.baseCard.de})</div>
         <div class="question cyrillic ${item.ru.length > 20 ? 'smaller' : ''}">${item.ru}</div>
@@ -1441,7 +1507,20 @@ function renderCard() {
 
     // Reveal-Inhalte je nach Richtung
     let revealHtml;
-    if (isDe2Ru) {
+    if (item.isLetter) {
+      // Buchstabe: Kyrillisch + beide Umschriften + Hinweis
+      const latLine = item.latDe === item.latInt
+        ? `<div class="reveal-translit">Latein: ${item.latDe}</div>`
+        : `<div class="reveal-translit">deutsch-lesbar: ${item.latDe} · international: ${item.latInt}</div>`;
+      revealHtml = `
+        <div class="reveal">
+          <div class="reveal-label">Antwort</div>
+          <div class="reveal-term ${verdict === 'green' ? 'green' : ''}">${item.cyr}</div>
+          ${latLine}
+          ${item.note ? `<div class="reveal-desc">${item.note}</div>` : ''}
+        </div>
+      `;
+    } else if (isDe2Ru) {
       // Antwort: kyrillisch + translit
       const examples = (item.examples || []).map(ex => `
         <div class="ex-row"><span class="ex-ru">${ex.ru}</span> · <span style="font-style:italic">${ex.translit}</span> — ${ex.de}</div>
