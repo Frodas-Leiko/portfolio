@@ -546,6 +546,57 @@ main {
 }
 .legend-content strong { color: var(--text); }
 
+/* Toggle-Switch (Lautschrift an/aus) */
+.setting-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-family: var(--mono);
+}
+.setting-toggle .toggle-label {
+  font-size: 12px;
+  color: var(--text);
+  text-align: left;
+}
+.setting-toggle .toggle-sub {
+  display: block;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  transition: background 0.15s ease;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.setting-toggle.on .switch { background: var(--accent); }
+.setting-toggle.on .switch::after { transform: translateX(18px); background: var(--bg); }
+
 @media (min-width: 600px) {
   body { max-width: 540px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
 }
@@ -585,6 +636,12 @@ main {
   <div class="chip-row" id="subkat-chips"></div>
 
   <div class="section-label">Lautschrift</div>
+  <button class="setting-toggle" id="translit-toggle" role="switch" aria-checked="true">
+    <span class="toggle-label">Lautschrift-Hinweis anzeigen
+      <span class="toggle-sub">In Frage und Antwort</span>
+    </span>
+    <span class="switch" aria-hidden="true"></span>
+  </button>
   <button class="legend-toggle" id="legend-toggle">
     <span>Aussprache-Legende</span>
     <span id="legend-arrow">▾</span>
@@ -1111,6 +1168,7 @@ function loadState() {
       mode: 'de2ru',           // 'de2ru' | 'ru2de' | 'both'
       topics: null,            // null = all on first run
       subkats: { praesens: false }, // welche Subkarten-Kategorien aktiv sind
+      showTranslit: true,      // Lautschrift-Hinweis in Frage & Antwort anzeigen
     },
     todayCount: 0,
     todayDate: new Date().toDateString(),
@@ -1130,6 +1188,10 @@ if (!state.settings.topics || !Array.isArray(state.settings.topics)) {
 }
 if (!state.settings.subkats) {
   state.settings.subkats = { praesens: false };
+  saveState();
+}
+if (typeof state.settings.showTranslit !== 'boolean') {
+  state.settings.showTranslit = true;
   saveState();
 }
 
@@ -1461,12 +1523,12 @@ function renderCard() {
       questionHtml = `
         <div class="question-sub">Grundform: ${item.baseCard.ru} (${item.baseCard.de})</div>
         <div class="question cyrillic ${item.ru.length > 20 ? 'smaller' : ''}">${item.ru}</div>
-        <div class="question-sub">${item.translit}</div>
+        ${state.settings.showTranslit ? `<div class="question-sub">${item.translit}</div>` : ''}
       `;
     } else {
       questionHtml = `
         <div class="question cyrillic ${item.ru.length > 20 ? 'smaller' : ''}">${item.ru}</div>
-        <div class="question-sub">${item.translit}</div>
+        ${state.settings.showTranslit ? `<div class="question-sub">${item.translit}</div>` : ''}
       `;
     }
   }
@@ -1529,7 +1591,7 @@ function renderCard() {
         <div class="reveal">
           <div class="reveal-label">Antwort</div>
           <div class="reveal-term ${verdict === 'green' ? 'green' : ''}">${item.ru}</div>
-          <div class="reveal-translit">${item.translit}</div>
+          ${state.settings.showTranslit ? `<div class="reveal-translit">${item.translit}</div>` : ''}
           ${item.notes ? `<div class="reveal-desc">${item.notes}</div>` : ''}
           ${examples ? `<div class="reveal-examples"><div class="ex-label">Beispiele</div>${examples}</div>` : ''}
         </div>
@@ -1719,6 +1781,7 @@ function refreshChips() {
   document.querySelectorAll('#subkat-chips [data-subkat]').forEach(c => {
     c.classList.toggle('active', !!state.settings.subkats[c.dataset.subkat]);
   });
+  if (document.getElementById('translit-toggle')) syncTranslitToggle();
 }
 
 document.querySelectorAll('#mode-chips .chip').forEach(c => {
@@ -1730,6 +1793,20 @@ document.querySelectorAll('#mode-chips .chip').forEach(c => {
     queue = [];
     renderCard();
   });
+});
+
+// Lautschrift-Hinweis an/aus
+function syncTranslitToggle() {
+  const t = document.getElementById('translit-toggle');
+  const on = !!state.settings.showTranslit;
+  t.classList.toggle('on', on);
+  t.setAttribute('aria-checked', on ? 'true' : 'false');
+}
+document.getElementById('translit-toggle').addEventListener('click', () => {
+  state.settings.showTranslit = !state.settings.showTranslit;
+  saveState();
+  syncTranslitToggle();
+  renderCard();
 });
 
 // Lautschrift-Legende auf-/zuklappen
