@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Noten Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Noto+Music&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0d0d0c; --bg-card: #161614; --bg-elev: #1f1f1c; --line: #2a2a26;
+  --text: #f0ebe0; --text-dim: #8a8676; --text-faint: #56544a;
+  --accent: #c9844a; --green: #7fb069; --yellow: #e8b339; --red: #c95a4f;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --serif: 'Fraunces', Georgia, serif;
+}
+html, body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 16px; height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.brand { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+.brand .ampersand { color: var(--accent); font-style: italic; }
+.stats { display: flex; gap: 14px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.stat-num { color: var(--text); font-weight: 700; }
+.stat-num.due { color: var(--accent); }
+.icon-btn { background: none; border: 1px solid var(--line); color: var(--text-dim); width: 36px; height: 36px; border-radius: 6px; font-family: inherit; font-size: 18px; cursor: pointer; display: grid; place-items: center; transition: all 0.15s; }
+.icon-btn:active { background: var(--bg-elev); color: var(--text); }
+.header-stats { display: flex; justify-content: flex-end; padding: 8px 18px; border-bottom: 1px solid var(--line); }
+main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 22px 22px 22px; -webkit-overflow-scrolling: touch; }
+.deck-tag { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 8px; display: flex; justify-content: space-between; }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 6px; padding: 3px; }
+.tab { background: none; border: none; color: var(--text-dim); font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 10px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+.tab.active { background: var(--accent); color: var(--bg); }
+.tab:active { transform: scale(0.96); }
+
+/* STAFF */
+.staff-wrap { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; margin-bottom: 14px; }
+.staff-wrap svg { display: block; width: 100%; height: auto; max-height: 190px; margin: 0 auto; }
+.clef-glyph { font-family: 'Noto Music', serif; }
+
+/* ANSWER INPUT */
+.sel-display { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; min-height: 40px; }
+.sel-name { font-family: var(--serif); font-size: 34px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
+.sel-name.empty { color: var(--text-faint); }
+.sel-hint { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
+.tone-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px; }
+.note-btn { background: var(--bg-card); border: 1px solid var(--line); color: var(--text); padding: 14px 0; font-family: var(--mono); font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.12s; }
+.note-btn:active { transform: scale(0.94); }
+.note-btn.selected { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.note-btn:disabled { opacity: 0.45; }
+.acc-row, .oct-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.acc-row .note-btn { flex: 1; padding: 10px 0; font-size: 16px; }
+.oct-row .note-btn { flex: 1; padding: 10px 4px; font-size: 13px; min-width: 56px; }
+.quiz-controls { display: flex; gap: 8px; margin-top: 10px; }
+.primary-btn { width: 100%; background: var(--accent); color: var(--bg); border: none; padding: 16px; font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: opacity 0.15s; }
+.primary-btn:active { opacity: 0.8; }
+.primary-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.skip-btn { background: transparent; border: 1px solid var(--line); color: var(--text-dim); padding: 16px; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 6px; cursor: pointer; min-width: 100px; }
+.skip-btn:active { background: var(--bg-elev); }
+
+/* FEEDBACK */
+.quiz-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
+.quiz-feedback.correct { background: rgba(127, 176, 105, 0.12); border: 1px solid var(--green); color: var(--green); }
+.quiz-feedback.incorrect { background: rgba(201, 90, 79, 0.12); border: 1px solid var(--red); color: var(--red); }
+.quiz-feedback .verdict { font-family: var(--serif); font-size: 18px; font-weight: 600; display: block; margin-bottom: 2px; }
+.quiz-feedback .big-name { font-family: var(--serif); font-weight: 700; }
+
+.done-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 20px; }
+.done-state h2 { font-family: var(--serif); font-size: 28px; margin-bottom: 12px; font-weight: 600; letter-spacing: -0.02em; }
+.done-state p { color: var(--text-dim); font-size: 14px; line-height: 1.5; }
+
+/* SHEET */
+.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.sheet-bg.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; padding: 14px 22px calc(28px + env(safe-area-inset-bottom)); z-index: 11; transform: translateY(100%); transition: transform 0.25s ease-out; max-height: 88vh; overflow-y: auto; }
+.sheet.open { transform: translateY(0); }
+.sheet-handle { width: 38px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 18px; }
+.sheet h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; margin-bottom: 22px; letter-spacing: -0.01em; }
+.section-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin: 16px 0 8px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: transparent; border: 1px solid var(--line); color: var(--text-dim); padding: 8px 12px; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+.chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chip:active { transform: scale(0.96); }
+.detail-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 8px 0 14px; }
+.detail-stat { background: var(--bg-card); border: 1px solid var(--line); padding: 10px 12px; border-radius: 6px; }
+.detail-stat .label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; }
+.detail-stat .value { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--text); }
+.weak-list { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+.weak-list .w-name { font-family: var(--serif); font-weight: 700; color: var(--text); }
+.danger-btn { width: 100%; background: transparent; border: 1px solid var(--red); color: var(--red); padding: 12px; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+.danger-btn:active { background: rgba(201, 90, 79, 0.1); }
+.hidden { display: none !important; }
+
+@media (min-width: 720px) {
+  main { padding: 36px 64px 32px; max-width: 720px; width: 100%; margin: 0 auto; }
+  .sheet { max-width: 540px; margin: 0 auto; right: auto; left: 50%; transform: translate(-50%, 100%); border-radius: 16px 16px 0 0; }
+  .sheet.open { transform: translate(-50%, 0); }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Noten <span class="ampersand">·</span> Trainer</div>
+  <div class="tabs">
+    <button class="tab active" data-tab="single">Einzeln</button>
+    <button class="tab" data-tab="seq">Folge</button>
+  </div>
+  <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⚙</button>
+</header>
+<div class="header-stats">
+  <div class="stats">
+    <div><span class="stat-num due" id="stat-correct">0</span> richtig</div>
+    <div><span class="stat-num" id="stat-total">0</span> versucht</div>
+    <div><span class="stat-num" id="stat-streak">0</span> streak</div>
+  </div>
+</div>
+<main id="main"></main>
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <h2>Einstellungen</h2>
+
+  <div class="section-label">Notenschlüssel</div>
+  <div class="chip-row" id="clef-chips">
+    <button class="chip" data-clef="violin">Violinschlüssel</button>
+    <button class="chip" data-clef="bass">Bassschlüssel</button>
+    <button class="chip" data-clef="both">Beide</button>
+  </div>
+
+  <div class="section-label">Vorzeichen</div>
+  <div class="chip-row" id="acc-chips">
+    <button class="chip" data-acc="off">Nur Stammtöne</button>
+    <button class="chip" data-acc="on">Mit ♯ und ♭</button>
+  </div>
+
+  <div class="section-label">Tonumfang</div>
+  <div class="chip-row" id="ledger-chips">
+    <button class="chip" data-ledger="off">Ohne Hilfslinien</button>
+    <button class="chip" data-ledger="on">Mit Hilfslinien</button>
+  </div>
+
+  <div class="section-label">Länge der Notenfolge</div>
+  <div class="chip-row" id="seqlen-chips">
+    <button class="chip" data-len="3">3 Noten</button>
+    <button class="chip" data-len="4">4 Noten</button>
+    <button class="chip" data-len="5">5 Noten</button>
+  </div>
+
+  <div class="section-label">Statistik</div>
+  <div class="detail-stats">
+    <div class="detail-stat"><div class="label">Versucht</div><div class="value" id="d-tried">0</div></div>
+    <div class="detail-stat"><div class="label">Richtig</div><div class="value" id="d-correct">0</div></div>
+    <div class="detail-stat"><div class="label">Quote</div><div class="value" id="d-rate">—</div></div>
+    <div class="detail-stat"><div class="label">Heute</div><div class="value" id="d-today">0</div></div>
+  </div>
+
+  <div class="section-label">Schwächste Noten</div>
+  <div class="weak-list" id="weak-list">Noch keine Daten.</div>
+
+  <div class="section-label">Reset</div>
+  <button class="danger-btn" id="reset-btn">Statistik zurücksetzen</button>
+</div>
+
+<script>
+/* =========================================================
+   NOTEN-TRAINER
+   Diatonisches System: dia = oktave*7 + stufe
+   Oktaven: 0=Großoktave (C), 1=klein (c), 2=c′, 3=c′′, 4=c′′′
+   Stufen: 0=C 1=D 2=E 3=F 4=G 5=A 6=H
+   ========================================================= */
+
+const STEP_NAMES = ['C','D','E','F','G','A','H'];
+const SHARP_NAMES = ['Cis','Dis','Eis','Fis','Gis','Ais','His'];
+const FLAT_NAMES  = ['Ces','Des','Es','Fes','Ges','As','B'];
+
+// acc: 0 = ohne, 1 = ♯, -1 = ♭
+function noteName(dia, acc) {
+  const oct = Math.floor(dia / 7);
+  const step = dia % 7;
+  let base = acc === 1 ? SHARP_NAMES[step] : acc === -1 ? FLAT_NAMES[step] : STEP_NAMES[step];
+  if (oct === 0) return base; // Großoktave: groß geschrieben
+  base = base.toLowerCase();
+  return base + '\u2032'.repeat(oct - 1); // ′ pro Oktave ab eingestrichen
+}
+
+/* Schlüssel-Konfiguration
+   base = dia der untersten Notenlinie
+   glyphDia = Linie, auf der der Schlüssel registriert ist (G- bzw. F-Linie) */
+const CLEFS = {
+  violin: { label: 'Violinschlüssel', base: 16, glyph: '\u{1D11E}', glyphDia: 18,
+            range: { off: [16, 24], on: [12, 28] } },
+  bass:   { label: 'Bassschlüssel',   base: 4,  glyph: '\u{1D122}', glyphDia: 10,
+            range: { off: [4, 12],  on: [0, 16] } },
+};
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const KEY = 'noten_trainer_v1';
+function defaultState() {
+  return {
+    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4 },
+    tried: 0, correct: 0, streak: 0,
+    todayDate: new Date().toDateString(), todayTried: 0, todayCorrect: 0,
+    seen: {},   // id -> { tried, correct, lastVerdict }
+  };
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+  } catch (e) {}
+  return defaultState();
+}
+function saveState() { localStorage.setItem(KEY, JSON.stringify(state)); }
+let state = loadState();
+
+// Tages-Reset
+if (state.todayDate !== new Date().toDateString()) {
+  state.todayDate = new Date().toDateString();
+  state.todayTried = 0; state.todayCorrect = 0;
+  saveState();
+}
+
+/* =========================================================
+   FRAGEN-AUSWAHL (adaptiv: ungesehen oder zuletzt falsch bevorzugt)
+   ========================================================= */
+function noteId(clef, dia, acc) { return clef + ':' + dia + ':' + acc; }
+
+function pickClef() {
+  const c = state.settings.clef;
+  return c === 'both' ? (Math.random() < 0.5 ? 'violin' : 'bass') : c;
+}
+
+let lastPickedId = null;
+function pickNote(clef) {
+  const [lo, hi] = CLEFS[clef].range[state.settings.ledger ? 'on' : 'off'];
+  // Vorzeichen-Wahrscheinlichkeit: 55 % Stammton, je 22,5 % ♯/♭
+  let acc = 0;
+  if (state.settings.acc) {
+    const r = Math.random();
+    if (r > 0.55) acc = r > 0.775 ? 1 : -1;
+  }
+  const pool = [];
+  for (let d = lo; d <= hi; d++) pool.push(d);
+
+  // Bevorzuge ungesehene oder zuletzt falsche Noten
+  const fresh = pool.filter(d => {
+    const s = state.seen[noteId(clef, d, acc)];
+    return !s || s.lastVerdict === 'red';
+  });
+  const candidates = fresh.length > 0 ? fresh : pool;
+
+  let dia = candidates[Math.floor(Math.random() * candidates.length)];
+  // Direkte Wiederholung vermeiden
+  if (noteId(clef, dia, acc) === lastPickedId && candidates.length > 1) {
+    dia = candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  lastPickedId = noteId(clef, dia, acc);
+  return { clef, dia, acc };
+}
+
+/* =========================================================
+   SVG-NOTENSYSTEM
+   notes: [{ dia, acc, status }]
+   status: 'plain' | 'pending' | 'current' | 'green' | 'red'
+   ========================================================= */
+const COLORS = {
+  plain: '#f0ebe0', pending: '#56544a', current: '#c9844a',
+  green: '#7fb069', red: '#c95a4f',
+};
+
+function renderStaffSVG(clef, notes) {
+  const S = 16;                 // Linienabstand
+  const half = S / 2;
+  const bottomY = 132;          // unterste Linie
+  const cfg = CLEFS[clef];
+  const yOf = dia => bottomY - (dia - cfg.base) * half;
+
+  const noteSpacing = 80;
+  const x0 = 130;
+  const width = x0 + notes.length * noteSpacing + 10;
+
+  let out = '';
+  // Notenlinien
+  for (let k = 0; k < 5; k++) {
+    const y = bottomY - k * S;
+    out += `<line x1="14" y1="${y}" x2="${width - 14}" y2="${y}" stroke="#3a3a34" stroke-width="1.4"/>`;
+  }
+  // Schlüssel
+  out += `<text x="22" y="${yOf(cfg.glyphDia)}" font-size="${4 * S}" fill="#8a8676" class="clef-glyph">${cfg.glyph}</text>`;
+
+  notes.forEach((n, i) => {
+    const x = x0 + i * noteSpacing;
+    const y = yOf(n.dia);
+    const col = COLORS[n.status] || COLORS.plain;
+    const off = n.dia - cfg.base;
+
+    // Hilfslinien
+    if (off < 0) {
+      for (let L = -2; L >= off; L -= 2)
+        out += `<line x1="${x - 16}" y1="${bottomY - L * half}" x2="${x + 16}" y2="${bottomY - L * half}" stroke="${col}" stroke-width="1.6"/>`;
+    } else if (off > 8) {
+      for (let L = 10; L <= off; L += 2)
+        out += `<line x1="${x - 16}" y1="${bottomY - L * half}" x2="${x + 16}" y2="${bottomY - L * half}" stroke="${col}" stroke-width="1.6"/>`;
+    }
+
+    // Hals (Mittellinie und höher: nach unten)
+    if (off >= 4) {
+      out += `<line x1="${x - 8.5}" y1="${y + 2}" x2="${x - 8.5}" y2="${y + 50}" stroke="${col}" stroke-width="1.8"/>`;
+    } else {
+      out += `<line x1="${x + 8.5}" y1="${y - 2}" x2="${x + 8.5}" y2="${y - 50}" stroke="${col}" stroke-width="1.8"/>`;
+    }
+
+    // Notenkopf
+    out += `<ellipse cx="${x}" cy="${y}" rx="9.2" ry="6.4" transform="rotate(-18 ${x} ${y})" fill="${col}"/>`;
+
+    // Vorzeichen
+    if (n.acc === 1) {
+      const a = x - 26;
+      out += `<g stroke="${col}" stroke-width="1.6">`
+           + `<line x1="${a - 3}" y1="${y - 10}" x2="${a - 3}" y2="${y + 11}"/>`
+           + `<line x1="${a + 3}" y1="${y - 11}" x2="${a + 3}" y2="${y + 10}"/>`
+           + `</g><g stroke="${col}" stroke-width="3.4">`
+           + `<line x1="${a - 7}" y1="${y - 3}" x2="${a + 7}" y2="${y - 6}"/>`
+           + `<line x1="${a - 7}" y1="${y + 6}" x2="${a + 7}" y2="${y + 3}"/>`
+           + `</g>`;
+    } else if (n.acc === -1) {
+      const a = x - 24;
+      out += `<line x1="${a}" y1="${y - 18}" x2="${a}" y2="${y + 6}" stroke="${col}" stroke-width="1.6"/>`
+           + `<path d="M ${a} ${y + 6} C ${a + 10} ${y + 2} ${a + 10} ${y - 7} ${a} ${y - 4} Z" fill="${col}"/>`;
+    }
+  });
+
+  return `<svg viewBox="0 0 ${width} 200" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+}
+
+/* =========================================================
+   ANTWORT-EINGABE (Tonname + Vorzeichen + Oktave)
+   ========================================================= */
+let sel = { step: null, acc: 0, oct: null };
+let locked = false;
+
+function selName() {
+  if (sel.step === null || sel.oct === null) return null;
+  return noteName(sel.oct * 7 + sel.step, sel.acc);
+}
+
+function octavesInRange(clef) {
+  const [lo, hi] = CLEFS[clef].range[state.settings.ledger ? 'on' : 'off'];
+  const set = new Set();
+  for (let d = lo; d <= hi; d++) set.add(Math.floor(d / 7));
+  return [...set].sort((a, b) => a - b);
+}
+const OCT_LABELS = { 0: 'C (groß)', 1: 'c (klein)', 2: 'c\u2032', 3: 'c\u2032\u2032', 4: 'c\u2032\u2032\u2032' };
+
+function inputHTML(clef) {
+  const octs = octavesInRange(clef);
+  let html = `
+    <div class="sel-display">
+      <div class="sel-name empty" id="sel-name">—</div>
+      <div class="sel-hint">Deine Antwort</div>
+    </div>
+    <div class="tone-grid" id="tone-grid">
+      ${STEP_NAMES.map((n, i) => `<button class="note-btn" data-step="${i}">${n}</button>`).join('')}
+    </div>`;
+  if (state.settings.acc) {
+    html += `
+    <div class="acc-row" id="acc-row">
+      <button class="note-btn selected" data-accv="0">♮</button>
+      <button class="note-btn" data-accv="1">♯</button>
+      <button class="note-btn" data-accv="-1">♭</button>
+    </div>`;
+  }
+  html += `
+    <div class="oct-row" id="oct-row">
+      ${octs.map(o => `<button class="note-btn" data-oct="${o}">${OCT_LABELS[o]}</button>`).join('')}
+    </div>`;
+  return html;
+}
+
+function bindInput(onReady) {
+  const upd = () => {
+    const nameEl = document.getElementById('sel-name');
+    const name = selName();
+    nameEl.textContent = name || '—';
+    nameEl.classList.toggle('empty', !name);
+    document.getElementById('check-btn').disabled = !name;
+    if (onReady) onReady();
+  };
+  document.querySelectorAll('#tone-grid .note-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      if (locked) return;
+      sel.step = parseInt(b.dataset.step, 10);
+      document.querySelectorAll('#tone-grid .note-btn').forEach(x => x.classList.toggle('selected', x === b));
+      upd();
+    });
+  });
+  document.querySelectorAll('#acc-row .note-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      if (locked) return;
+      sel.acc = parseInt(b.dataset.accv, 10);
+      document.querySelectorAll('#acc-row .note-btn').forEach(x => x.classList.toggle('selected', x === b));
+      upd();
+    });
+  });
+  document.querySelectorAll('#oct-row .note-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      if (locked) return;
+      sel.oct = parseInt(b.dataset.oct, 10);
+      document.querySelectorAll('#oct-row .note-btn').forEach(x => x.classList.toggle('selected', x === b));
+      upd();
+    });
+  });
+}
+
+function resetSel() {
+  sel = { step: null, acc: 0, oct: null };
+  locked = false;
+}
+
+function disableInput() {
+  document.querySelectorAll('.note-btn').forEach(b => b.disabled = true);
+}
+
+/* =========================================================
+   STATISTIK
+   ========================================================= */
+function recordAnswer(note, isRight) {
+  state.tried++; state.todayTried++;
+  if (isRight) { state.correct++; state.todayCorrect++; state.streak++; }
+  else state.streak = 0;
+  const id = noteId(note.clef, note.dia, note.acc);
+  const s = state.seen[id] || { tried: 0, correct: 0 };
+  s.tried++;
+  if (isRight) s.correct++;
+  s.lastVerdict = isRight ? 'green' : 'red';
+  state.seen[id] = s;
+  saveState();
+  refreshStats();
+}
+
+function refreshStats() {
+  document.getElementById('stat-correct').textContent = state.correct;
+  document.getElementById('stat-total').textContent = state.tried;
+  document.getElementById('stat-streak').textContent = state.streak;
+  document.getElementById('d-tried').textContent = state.tried;
+  document.getElementById('d-correct').textContent = state.correct;
+  document.getElementById('d-rate').textContent = state.tried > 0 ? Math.round(100 * state.correct / state.tried) + '%' : '—';
+  document.getElementById('d-today').textContent = state.todayTried;
+  // Schwächste Noten
+  const entries = Object.entries(state.seen)
+    .filter(([, s]) => s.tried >= 2 && s.correct < s.tried)
+    .map(([id, s]) => ({ id, rate: s.correct / s.tried, tried: s.tried }))
+    .sort((a, b) => a.rate - b.rate)
+    .slice(0, 5);
+  const wl = document.getElementById('weak-list');
+  if (!entries.length) { wl.textContent = 'Noch keine Daten.'; return; }
+  wl.innerHTML = entries.map(e => {
+    const [clef, dia, acc] = e.id.split(':');
+    const name = noteName(parseInt(dia, 10), parseInt(acc, 10));
+    const cl = clef === 'violin' ? 'Violin' : 'Bass';
+    return `<div><span class="w-name">${name}</span> (${cl}) · ${Math.round(e.rate * 100)}% richtig</div>`;
+  }).join('');
+}
+
+/* =========================================================
+   MODUS: EINZELNOTE
+   ========================================================= */
+const main = document.getElementById('main');
+let currentNote = null;
+
+function renderSingle() {
+  currentNote = pickNote(pickClef());
+  resetSel();
+  const cfg = CLEFS[currentNote.clef];
+  main.innerHTML = `
+    <div class="deck-tag"><span>${cfg.label}</span><span>Wie heißt diese Note?</span></div>
+    <div class="staff-wrap" id="staff">${renderStaffSVG(currentNote.clef, [{ ...currentNote, status: 'plain' }])}</div>
+    ${inputHTML(currentNote.clef)}
+    <div id="feedback"></div>
+    <div class="quiz-controls">
+      <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
+      <button class="skip-btn" id="skip-btn">Zeigen</button>
+    </div>
+  `;
+  bindInput();
+  document.getElementById('check-btn').addEventListener('click', () => {
+    if (!locked) checkSingle();
+    else renderSingle();
+  });
+  document.getElementById('skip-btn').addEventListener('click', () => {
+    if (locked) { renderSingle(); return; }
+    // Zeigen = zählt als falsch
+    finishSingle(false, true);
+  });
+}
+
+function checkSingle() {
+  const isRight = sel.step === currentNote.dia % 7
+               && sel.oct === Math.floor(currentNote.dia / 7)
+               && sel.acc === currentNote.acc;
+  finishSingle(isRight, false);
+}
+
+function finishSingle(isRight, revealed) {
+  locked = true;
+  recordAnswer(currentNote, isRight);
+  disableInput();
+  const correct = noteName(currentNote.dia, currentNote.acc);
+  document.getElementById('staff').innerHTML =
+    renderStaffSVG(currentNote.clef, [{ ...currentNote, status: isRight ? 'green' : 'red' }]);
+  document.getElementById('feedback').innerHTML = `
+    <div class="quiz-feedback ${isRight ? 'correct' : 'incorrect'}">
+      <span class="verdict">${isRight ? '✓ Richtig' : '✗ ' + (revealed ? 'Aufgedeckt' : 'Falsch')}</span>
+      Diese Note ist <span class="big-name">${correct}</span>${!isRight && selName() && !revealed ? ` — du hattest <span class="big-name">${selName()}</span>` : ''}.
+    </div>`;
+  document.getElementById('check-btn').disabled = false;
+  document.getElementById('check-btn').textContent = 'Nächste Note';
+  document.getElementById('skip-btn').classList.add('hidden');
+}
+
+/* =========================================================
+   MODUS: NOTENFOLGE
+   ========================================================= */
+let seq = [];
+let seqIdx = 0;
+let seqClef = 'violin';
+let seqResults = [];
+
+function newSequence() {
+  seqClef = pickClef();
+  seq = [];
+  for (let i = 0; i < state.settings.seqLen; i++) {
+    let n, guard = 0;
+    do { n = pickNote(seqClef); guard++; }
+    while (guard < 10 && seq.length && n.dia === seq[seq.length - 1].dia && n.acc === seq[seq.length - 1].acc);
+    seq.push(n);
+  }
+  seqIdx = 0;
+  seqResults = [];
+  renderSeq();
+}
+
+function seqStatuses() {
+  return seq.map((n, i) => ({
+    ...n,
+    status: i < seqIdx ? (seqResults[i] ? 'green' : 'red')
+          : i === seqIdx ? 'current' : 'pending',
+  }));
+}
+
+function renderSeq() {
+  resetSel();
+  const cfg = CLEFS[seqClef];
+  main.innerHTML = `
+    <div class="deck-tag"><span>${cfg.label}</span><span>Note ${seqIdx + 1} von ${seq.length}</span></div>
+    <div class="staff-wrap" id="staff">${renderStaffSVG(seqClef, seqStatuses())}</div>
+    ${inputHTML(seqClef)}
+    <div id="feedback"></div>
+    <div class="quiz-controls">
+      <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
+    </div>
+  `;
+  bindInput();
+  document.getElementById('check-btn').addEventListener('click', () => {
+    if (!locked) checkSeq();
+    else advanceSeq();
+  });
+}
+
+function checkSeq() {
+  const note = seq[seqIdx];
+  const isRight = sel.step === note.dia % 7
+               && sel.oct === Math.floor(note.dia / 7)
+               && sel.acc === note.acc;
+  recordAnswer(note, isRight);
+  seqResults.push(isRight);
+  locked = true;
+  disableInput();
+  seqIdx++;
+  document.getElementById('staff').innerHTML = renderStaffSVG(seqClef, seqStatuses());
+  if (isRight) {
+    // Richtig: kurz grün zeigen, dann automatisch weiter
+    setTimeout(advanceSeq, 550);
+  } else {
+    const correct = noteName(note.dia, note.acc);
+    document.getElementById('feedback').innerHTML = `
+      <div class="quiz-feedback incorrect">
+        <span class="verdict">✗ Falsch</span>
+        Diese Note ist <span class="big-name">${correct}</span>${selName() ? ` — du hattest <span class="big-name">${selName()}</span>` : ''}.
+      </div>`;
+    document.getElementById('check-btn').disabled = false;
+    document.getElementById('check-btn').textContent = 'Weiter';
+  }
+}
+
+function advanceSeq() {
+  if (seqIdx >= seq.length) {
+    const right = seqResults.filter(Boolean).length;
+    const cfg = CLEFS[seqClef];
+    main.innerHTML = `
+      <div class="deck-tag"><span>${cfg.label}</span><span>Folge beendet</span></div>
+      <div class="staff-wrap">${renderStaffSVG(seqClef, seqStatuses())}</div>
+      <div class="quiz-feedback ${right === seq.length ? 'correct' : 'incorrect'}">
+        <span class="verdict">${right} von ${seq.length} richtig</span>
+        ${right === seq.length ? 'Fehlerfrei — stark!' : 'Die rot markierten Noten kommen bald wieder dran.'}
+      </div>
+      <div class="quiz-controls">
+        <button class="primary-btn" id="next-seq">Nächste Folge</button>
+      </div>`;
+    document.getElementById('next-seq').addEventListener('click', newSequence);
+    return;
+  }
+  renderSeq();
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
+let activeTab = 'single';
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    activeTab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+    startMode();
+  });
+});
+
+function startMode() {
+  if (activeTab === 'single') renderSingle();
+  else newSequence();
+}
+
+/* =========================================================
+   SETTINGS-SHEET
+   ========================================================= */
+const sheet = document.getElementById('sheet');
+const sheetBg = document.getElementById('sheet-bg');
+document.getElementById('open-settings').addEventListener('click', () => {
+  refreshStats(); syncChips();
+  sheet.classList.add('open'); sheetBg.classList.add('open');
+});
+sheetBg.addEventListener('click', closeSheet);
+function closeSheet() {
+  sheet.classList.remove('open'); sheetBg.classList.remove('open');
+}
+
+function syncChips() {
+  document.querySelectorAll('#clef-chips .chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.clef === state.settings.clef));
+  document.querySelectorAll('#acc-chips .chip').forEach(c =>
+    c.classList.toggle('active', (c.dataset.acc === 'on') === state.settings.acc));
+  document.querySelectorAll('#ledger-chips .chip').forEach(c =>
+    c.classList.toggle('active', (c.dataset.ledger === 'on') === state.settings.ledger));
+  document.querySelectorAll('#seqlen-chips .chip').forEach(c =>
+    c.classList.toggle('active', parseInt(c.dataset.len, 10) === state.settings.seqLen));
+}
+
+document.querySelectorAll('#clef-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.clef = c.dataset.clef; applySettings(); }));
+document.querySelectorAll('#acc-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.acc = c.dataset.acc === 'on'; applySettings(); }));
+document.querySelectorAll('#ledger-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.ledger = c.dataset.ledger === 'on'; applySettings(); }));
+document.querySelectorAll('#seqlen-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.seqLen = parseInt(c.dataset.len, 10); applySettings(); }));
+
+function applySettings() {
+  saveState(); syncChips(); startMode();
+}
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('Gesamte Statistik wirklich zurücksetzen?')) return;
+  const s = state.settings;
+  state = defaultState();
+  state.settings = s;
+  saveState(); refreshStats(); closeSheet(); startMode();
+});
+
+/* =========================================================
+   START
+   ========================================================= */
+refreshStats();
+startMode();
+</script>
+</body>
+</html>
