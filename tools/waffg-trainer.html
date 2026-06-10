@@ -23,7 +23,15 @@ html, body { background: var(--bg); color: var(--text); font-family: var(--mono)
 body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
 .header-left { display: flex; align-items: center; gap: 10px; }
-a.back-btn { text-decoration: none; }
+a.back-btn {
+  text-decoration: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .brand { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
 .brand .ampersand { color: var(--accent); font-style: italic; }
 .stats { display: flex; gap: 14px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
