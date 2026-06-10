@@ -72,6 +72,19 @@
     gap: 1rem;
     flex-wrap: wrap;
   }
+  .back-link {
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .back-link:hover { background: var(--cream); }
   .brand { display: flex; align-items: baseline; gap: .6rem; }
   .brand-mark {
     width: 28px; height: 28px;
@@ -1145,6 +1158,7 @@
 <body>
 
 <header class="topbar">
+  <a class="back-link" href="../index.html" aria-label="Zur Startseite" title="Zur Startseite">←</a>
   <div class="brand">
     <div class="brand-mark"></div>
     <div>

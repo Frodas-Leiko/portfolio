@@ -57,6 +57,9 @@ header {
   min-height: 56px;
 }
 
+.header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+a.back-btn { text-decoration: none; flex-shrink: 0; }
+
 .tabs { display: flex; gap: 18px; }
 
 .tab {
@@ -1248,9 +1251,12 @@ const headerEl = document.getElementById('header');
 function renderHeader() {
   if (screen === 'home') {
     headerEl.innerHTML = `
-      <div class="tabs">
-        <button class="tab ${activeTab === 'timer' ? 'active' : ''}" data-tab="timer">Timer</button>
-        <button class="tab ${activeTab === 'workouts' ? 'active' : ''}" data-tab="workouts">Workouts</button>
+      <div class="header-left">
+        <a class="icon-btn back-btn" href="../index.html" aria-label="Zur Startseite">←</a>
+        <div class="tabs">
+          <button class="tab ${activeTab === 'timer' ? 'active' : ''}" data-tab="timer">Timer</button>
+          <button class="tab ${activeTab === 'workouts' ? 'active' : ''}" data-tab="workouts">Workouts</button>
+        </div>
       </div>
       <button class="icon-btn" id="header-plus" aria-label="Neu">+</button>
     `;

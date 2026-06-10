@@ -22,6 +22,8 @@
 html, body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 16px; height: 100%; overflow: hidden; overscroll-behavior: none; }
 body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+a.back-btn { text-decoration: none; }
 .brand { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
 .brand .ampersand { color: var(--accent); font-style: italic; }
 .stats { display: flex; gap: 14px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
@@ -134,7 +136,10 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
 </head>
 <body>
 <header>
-  <div class="brand">WaffG <span class="ampersand">·</span> Trainer</div>
+  <div class="header-left">
+    <a class="icon-btn back-btn" href="../index.html" aria-label="Zur Startseite">←</a>
+    <div class="brand">WaffG <span class="ampersand">·</span> Trainer</div>
+  </div>
   <div class="tabs">
     <button class="tab active" data-tab="cards">Karten</button>
     <button class="tab" data-tab="quiz">Quiz</button>
