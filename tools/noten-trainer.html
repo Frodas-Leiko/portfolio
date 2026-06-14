@@ -29,7 +29,11 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 .stat-num.due { color: var(--accent); }
 .icon-btn { background: none; border: 1px solid var(--line); color: var(--text-dim); width: 36px; height: 36px; border-radius: 6px; font-family: inherit; font-size: 18px; cursor: pointer; display: grid; place-items: center; transition: all 0.15s; }
 .icon-btn:active { background: var(--bg-elev); color: var(--text); }
-.header-stats { display: flex; justify-content: flex-end; padding: 8px 18px; border-bottom: 1px solid var(--line); }
+.header-stats { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px; border-bottom: 1px solid var(--line); }
+.midi-status { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+.midi-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transition: background 0.2s; }
+.midi-status.on .midi-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.midi-status.err .midi-dot { background: var(--red); }
 main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 22px 22px 22px; -webkit-overflow-scrolling: touch; }
 .deck-tag { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 8px; display: flex; justify-content: space-between; }
 
@@ -114,6 +118,9 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
   <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⚙</button>
 </header>
 <div class="header-stats">
+  <div class="midi-status" id="midi-status" title="MIDI-Verbindung">
+    <span class="midi-dot"></span><span id="midi-label">MIDI …</span>
+  </div>
   <div class="stats">
     <div><span class="stat-num due" id="stat-correct">0</span> richtig</div>
     <div><span class="stat-num" id="stat-total">0</span> versucht</div>
@@ -347,6 +354,40 @@ function renderStaffSVG(clef, notes) {
 let sel = { step: null, acc: 0, oct: null };
 let locked = false;
 
+// --- MIDI: zuletzt gespielte Note (null = per Button geantwortet) ---
+let playedMidi = null;   // MIDI-Notennummer der gespielten Taste
+let playedName = null;   // lesbarer Name der gespielten Taste (für Feedback)
+
+// Halbton-Offset je Stammton-Stufe: C D E F G A H
+const STEP_SEMI = [0, 2, 4, 5, 7, 9, 11];
+// Tonhöhenklasse -> [Stufe, Vorzeichen] (Schwarze Tasten als ♯ benannt)
+const PC_SPELL = [[0,0],[0,1],[1,0],[1,1],[2,0],[3,0],[3,1],[4,0],[4,1],[5,0],[5,1],[6,0]];
+
+// Angezeigte Note -> erwartete MIDI-Notennummer
+function noteToMidi(note) {
+  const oct = Math.floor(note.dia / 7);
+  const step = note.dia % 7;
+  return (oct + 3) * 12 + STEP_SEMI[step] + note.acc;
+}
+
+// Gespielte MIDI-Note -> lesbarer deutscher Name (für jede Oktave sicher)
+function midiToName(midi) {
+  const oct = Math.floor(midi / 12) - 3;        // deutsche Oktav-Stufe
+  const pc = ((midi % 12) + 12) % 12;
+  const [step, acc] = PC_SPELL[pc];
+  let base = acc === 1 ? SHARP_NAMES[step] : STEP_NAMES[step];
+  if (oct <= 0) return base;                    // Große-/Kontra-Oktave: groß
+  return base.toLowerCase() + '\u2032'.repeat(oct - 1);
+}
+
+// Wertung: MIDI prüft Tonhöhe (richtige Taste), Buttons prüfen Schreibweise
+function isCorrect(note) {
+  if (playedMidi != null) return playedMidi === noteToMidi(note);
+  return sel.step === note.dia % 7
+      && sel.oct === Math.floor(note.dia / 7)
+      && sel.acc === note.acc;
+}
+
 function selName() {
   if (sel.step === null || sel.oct === null) return null;
   return noteName(sel.oct * 7 + sel.step, sel.acc);
@@ -423,6 +464,8 @@ function bindInput(onReady) {
 function resetSel() {
   sel = { step: null, acc: 0, oct: null };
   locked = false;
+  playedMidi = null;
+  playedName = null;
 }
 
 function disableInput() {
@@ -503,10 +546,7 @@ function renderSingle() {
 }
 
 function checkSingle() {
-  const isRight = sel.step === currentNote.dia % 7
-               && sel.oct === Math.floor(currentNote.dia / 7)
-               && sel.acc === currentNote.acc;
-  finishSingle(isRight, false);
+  finishSingle(isCorrect(currentNote), false);
 }
 
 function finishSingle(isRight, revealed) {
@@ -519,7 +559,7 @@ function finishSingle(isRight, revealed) {
   document.getElementById('feedback').innerHTML = `
     <div class="quiz-feedback ${isRight ? 'correct' : 'incorrect'}">
       <span class="verdict">${isRight ? '✓ Richtig' : '✗ ' + (revealed ? 'Aufgedeckt' : 'Falsch')}</span>
-      Diese Note ist <span class="big-name">${correct}</span>${!isRight && selName() && !revealed ? ` — du hattest <span class="big-name">${selName()}</span>` : ''}.
+      Diese Note ist <span class="big-name">${correct}</span>${!isRight && (playedName || selName()) && !revealed ? ` — du hattest <span class="big-name">${playedName || selName()}</span>` : ''}.
     </div>`;
   document.getElementById('check-btn').disabled = false;
   document.getElementById('check-btn').textContent = 'Nächste Note';
@@ -577,9 +617,7 @@ function renderSeq() {
 
 function checkSeq() {
   const note = seq[seqIdx];
-  const isRight = sel.step === note.dia % 7
-               && sel.oct === Math.floor(note.dia / 7)
-               && sel.acc === note.acc;
+  const isRight = isCorrect(note);
   recordAnswer(note, isRight);
   seqResults.push(isRight);
   locked = true;
@@ -594,7 +632,7 @@ function checkSeq() {
     document.getElementById('feedback').innerHTML = `
       <div class="quiz-feedback incorrect">
         <span class="verdict">✗ Falsch</span>
-        Diese Note ist <span class="big-name">${correct}</span>${selName() ? ` — du hattest <span class="big-name">${selName()}</span>` : ''}.
+        Diese Note ist <span class="big-name">${correct}</span>${(playedName || selName()) ? ` — du hattest <span class="big-name">${playedName || selName()}</span>` : ''}.
       </div>`;
     document.getElementById('check-btn').disabled = false;
     document.getElementById('check-btn').textContent = 'Weiter';
@@ -685,10 +723,60 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 });
 
 /* =========================================================
+   WEB MIDI (Eingabe per Klavier, additiv zu den Buttons)
+   ========================================================= */
+function setMidiStatus(text, cls) {
+  const el = document.getElementById('midi-status');
+  document.getElementById('midi-label').textContent = 'MIDI ' + text;
+  el.classList.remove('on', 'err');
+  if (cls) el.classList.add(cls);
+}
+
+// Gespielte Taste als Antwort verarbeiten
+function onMidiAnswer(midi) {
+  if (locked) return;
+  if (sheet.classList.contains('open')) return;   // während Einstellungen ignorieren
+  playedMidi = midi;
+  playedName = midiToName(midi);
+  if (activeTab === 'single') {
+    if (currentNote) checkSingle();
+  } else {
+    if (seq[seqIdx]) checkSeq();
+  }
+}
+
+function onMidiMessage(e) {
+  const status = e.data[0] & 0xf0;
+  const note = e.data[1];
+  const velocity = e.data[2];
+  // Note-On mit Anschlag > 0 (Note-Off und vel 0 ignorieren)
+  if (status === 0x90 && velocity > 0) onMidiAnswer(note);
+}
+
+let midiAccess = null;
+function bindMidiInputs() {
+  if (!midiAccess) return;
+  let count = 0;
+  midiAccess.inputs.forEach(input => { input.onmidimessage = onMidiMessage; count++; });
+  if (count > 0) setMidiStatus('verbunden', 'on');
+  else setMidiStatus('kein Gerät', null);
+}
+
+function initMIDI() {
+  if (!navigator.requestMIDIAccess) { setMidiStatus('n. unterstützt', 'err'); return; }
+  navigator.requestMIDIAccess({ sysex: false }).then(access => {
+    midiAccess = access;
+    bindMidiInputs();
+    access.onstatechange = bindMidiInputs;
+  }).catch(() => setMidiStatus('kein Zugriff', 'err'));
+}
+
+/* =========================================================
    START
    ========================================================= */
 refreshStats();
 startMode();
+initMIDI();
 </script>
 </body>
 </html>
