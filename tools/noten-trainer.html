@@ -46,6 +46,13 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
 /* STAFF */
 .staff-wrap { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; margin-bottom: 14px; }
 .staff-wrap svg { display: block; width: 100%; height: auto; max-height: 190px; margin: 0 auto; }
+.serie-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.serie-row { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 2px 8px; }
+.serie-row svg { display: block; width: 100%; height: auto; margin: 0 auto; }
+.serie-row.active { border-color: var(--accent); }
+.serie-row.active svg { max-height: 120px; }
+.serie-row.preview { opacity: 0.5; }
+.serie-row.preview svg { max-height: 80px; }
 .clef-glyph { font-family: 'Noto Music', serif; }
 
 /* ANSWER INPUT */
@@ -114,6 +121,7 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
   <div class="tabs">
     <button class="tab active" data-tab="single">Einzeln</button>
     <button class="tab" data-tab="seq">Folge</button>
+    <button class="tab" data-tab="serie">Serie</button>
   </div>
   <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⚙</button>
 </header>
@@ -159,6 +167,14 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
     <button class="chip" data-len="5">5 Noten</button>
   </div>
 
+  <div class="section-label">Serie · Noten pro Reihe</div>
+  <div class="chip-row" id="serierow-chips">
+    <button class="chip" data-srow="2">2</button>
+    <button class="chip" data-srow="3">3</button>
+    <button class="chip" data-srow="4">4</button>
+    <button class="chip" data-srow="5">5</button>
+  </div>
+
   <div class="section-label">Statistik</div>
   <div class="detail-stats">
     <div class="detail-stat"><div class="label">Versucht</div><div class="value" id="d-tried">0</div></div>
@@ -169,6 +185,9 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
 
   <div class="section-label">Schwächste Noten</div>
   <div class="weak-list" id="weak-list">Noch keine Daten.</div>
+
+  <div class="section-label">Schwächste Abfolgen (Serie)</div>
+  <div class="weak-list" id="weak-seq">Noch keine Daten.</div>
 
   <div class="section-label">Reset</div>
   <button class="danger-btn" id="reset-btn">Statistik zurücksetzen</button>
@@ -212,10 +231,11 @@ const CLEFS = {
 const KEY = 'noten_trainer_v1';
 function defaultState() {
   return {
-    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4 },
+    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4 },
     tried: 0, correct: 0, streak: 0,
     todayDate: new Date().toDateString(), todayTried: 0, todayCorrect: 0,
     seen: {},   // id -> { tried, correct, lastVerdict }
+    patterns: {}, // muster-id (3 noten) -> { tried, correct }
   };
 }
 function loadState() {
@@ -511,6 +531,19 @@ function refreshStats() {
     const cl = clef === 'violin' ? 'Violin' : 'Bass';
     return `<div><span class="w-name">${name}</span> (${cl}) · ${Math.round(e.rate * 100)}% richtig</div>`;
   }).join('');
+
+  // Schwächste Abfolgen (Serie)
+  const wsEl = document.getElementById('weak-seq');
+  if (wsEl) {
+    const pats = Object.entries(state.patterns)
+      .filter(([, s]) => s.tried >= 2 && s.correct < s.tried)
+      .map(([k, s]) => ({ k, rate: s.correct / s.tried, tried: s.tried }))
+      .sort((a, b) => a.rate - b.rate || b.tried - a.tried)
+      .slice(0, 5);
+    if (!pats.length) wsEl.textContent = 'Noch keine Daten.';
+    else wsEl.innerHTML = pats.map(e =>
+      `<div><span class="w-name">${patternLabel(e.k)}</span> · ${Math.round(e.rate * 100)}% sauber</div>`).join('');
+  }
 }
 
 /* =========================================================
@@ -553,9 +586,17 @@ function finishSingle(isRight, revealed) {
   locked = true;
   recordAnswer(currentNote, isRight);
   disableInput();
-  const correct = noteName(currentNote.dia, currentNote.acc);
   document.getElementById('staff').innerHTML =
     renderStaffSVG(currentNote.clef, [{ ...currentNote, status: isRight ? 'green' : 'red' }]);
+
+  // MIDI-Eingabe: nur Färbung der Note, kein Textfeedback, automatisch weiter
+  if (playedMidi != null && !revealed) {
+    setTimeout(renderSingle, isRight ? 550 : 1100);
+    return;
+  }
+
+  // Button-Eingabe (oder „Zeigen"): Textfeedback + Weiter-Button wie bisher
+  const correct = noteName(currentNote.dia, currentNote.acc);
   document.getElementById('feedback').innerHTML = `
     <div class="quiz-feedback ${isRight ? 'correct' : 'incorrect'}">
       <span class="verdict">${isRight ? '✓ Richtig' : '✗ ' + (revealed ? 'Aufgedeckt' : 'Falsch')}</span>
@@ -660,6 +701,146 @@ function advanceSeq() {
 }
 
 /* =========================================================
+   MODUS: SERIE (3 Reihen, adaptiv, Muster-bewusst)
+   3 Reihen übereinander; oberste ist aktiv und wird links→rechts gespielt.
+   Ist sie fertig, rutscht alles hoch und unten kommt eine neue Reihe.
+   Muster = eine ganze Reihe (N Noten, N = Einstellung "Noten pro Reihe").
+   "Sauber" = alle N Noten der Reihe richtig. Schwache Reihen werden
+   gezielt wieder eingestreut.
+   ========================================================= */
+const SERIE_ROWS = 3;    // feste Reihenanzahl
+const INJECT_PROB = 0.4; // Wahrscheinlichkeit, eine schwache Reihe einzustreuen
+
+let serieClef = 'violin';
+let serieRows = [];      // [{ notes:[{clef,dia,acc}], res:[null|true|false] }]
+let serieCol = 0;        // Spaltenindex in der aktiven (obersten) Reihe
+
+function parseNoteId(id) {
+  const [clef, dia, acc] = id.split(':');
+  return { clef, dia: parseInt(dia, 10), acc: parseInt(acc, 10) };
+}
+
+function patternMatchesSettings(key, clef) {
+  const [lo, hi] = CLEFS[clef].range[state.settings.ledger ? 'on' : 'off'];
+  return key.split('>').every(id => {
+    const n = parseNoteId(id);
+    if (n.clef !== clef) return false;
+    if (!state.settings.acc && n.acc !== 0) return false;
+    return n.dia >= lo && n.dia <= hi;
+  });
+}
+
+// Schwache Reihe passender Länge zum aktuellen Schlüssel/Einstellungen
+function pickWeakPattern(clef, len) {
+  const cand = Object.entries(state.patterns)
+    .map(([k, s]) => ({ k, rate: s.correct / s.tried, tried: s.tried, len: k.split('>').length }))
+    .filter(o => o.len === len && o.tried >= 2 && o.rate < 1)
+    .filter(o => patternMatchesSettings(o.k, clef))
+    .sort((a, b) => a.rate - b.rate || b.tried - a.tried)
+    .slice(0, 5);
+  if (!cand.length) return null;
+  const chosen = cand[Math.floor(Math.random() * cand.length)];
+  return chosen.k.split('>').map(parseNoteId);
+}
+
+function makeSerieRow() {
+  const N = state.settings.serieRow;
+  let notes = null;
+  if (Math.random() < INJECT_PROB) {
+    const pat = pickWeakPattern(serieClef, N);
+    if (pat) notes = pat;
+  }
+  if (!notes) {
+    notes = [];
+    for (let i = 0; i < N; i++) notes.push(pickNote(serieClef));
+  }
+  return { notes, res: notes.map(() => null) };
+}
+
+function startSerie() {
+  serieClef = pickClef();   // bei "Beide" einmal pro Lauf gewählt (Reihen bleiben kohärent)
+  serieRows = [];
+  for (let r = 0; r < SERIE_ROWS; r++) serieRows.push(makeSerieRow());
+  serieCol = 0;
+  renderSerie();
+}
+
+// Status je Note: bereits gespielt -> grün/rot, aktuell -> orange, Rest -> normal
+function rowStatuses(row, active) {
+  return row.notes.map((n, i) => {
+    let status;
+    if (!active) status = 'pending';
+    else if (row.res[i] != null) status = row.res[i] ? 'green' : 'red';
+    else if (i === serieCol) status = 'current';
+    else status = 'plain';
+    return { ...n, status };
+  });
+}
+
+function serieRowsHTML() {
+  return serieRows.map((row, r) =>
+    `<div class="serie-row ${r === 0 ? 'active' : 'preview'}">${renderStaffSVG(serieClef, rowStatuses(row, r === 0))}</div>`
+  ).join('');
+}
+
+function updateSerieRows() {
+  const el = document.getElementById('serie-rows');
+  if (el) el.innerHTML = serieRowsHTML();
+}
+
+function renderSerie() {
+  resetSel();
+  const cfg = CLEFS[serieClef];
+  main.innerHTML = `
+    <div class="deck-tag"><span>${cfg.label}</span><span>Serie · oberste Reihe (${state.settings.serieRow} Noten)</span></div>
+    <div class="serie-rows" id="serie-rows">${serieRowsHTML()}</div>
+    ${inputHTML(serieClef)}
+    <div id="feedback"></div>
+    <div class="quiz-controls">
+      <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
+    </div>
+  `;
+  bindInput();
+  document.getElementById('check-btn').addEventListener('click', () => { if (!locked) checkSerie(); });
+}
+
+function recordRowPattern(row) {
+  const key = row.notes.map(n => noteId(n.clef, n.dia, n.acc)).join('>');
+  const allOk = row.res.every(x => x === true);
+  const p = state.patterns[key] || { tried: 0, correct: 0 };
+  p.tried++; if (allOk) p.correct++;
+  state.patterns[key] = p;
+  saveState();
+}
+
+function checkSerie() {
+  const row = serieRows[0];
+  const note = row.notes[serieCol];
+  const ok = isCorrect(note);
+  row.res[serieCol] = ok;
+  recordAnswer(note, ok);
+  locked = true;
+  disableInput();
+  updateSerieRows();   // gespielte Note sofort einfärben
+  setTimeout(() => advanceSerie(), ok ? 450 : 950);
+}
+
+function advanceSerie() {
+  serieCol++;
+  if (serieCol >= serieRows[0].notes.length) {
+    recordRowPattern(serieRows[0]);   // fertige Reihe als Muster werten
+    serieRows.shift();                // oberste Reihe entfernen
+    serieRows.push(makeSerieRow());   // unten neue Reihe erzeugen
+    serieCol = 0;
+  }
+  renderSerie();
+}
+
+function patternLabel(key) {
+  return key.split('>').map(id => { const n = parseNoteId(id); return noteName(n.dia, n.acc); }).join(' → ');
+}
+
+/* =========================================================
    TABS
    ========================================================= */
 let activeTab = 'single';
@@ -673,7 +854,8 @@ document.querySelectorAll('.tab').forEach(t => {
 
 function startMode() {
   if (activeTab === 'single') renderSingle();
-  else newSequence();
+  else if (activeTab === 'seq') newSequence();
+  else startSerie();
 }
 
 /* =========================================================
@@ -699,6 +881,8 @@ function syncChips() {
     c.classList.toggle('active', (c.dataset.ledger === 'on') === state.settings.ledger));
   document.querySelectorAll('#seqlen-chips .chip').forEach(c =>
     c.classList.toggle('active', parseInt(c.dataset.len, 10) === state.settings.seqLen));
+  document.querySelectorAll('#serierow-chips .chip').forEach(c =>
+    c.classList.toggle('active', parseInt(c.dataset.srow, 10) === state.settings.serieRow));
 }
 
 document.querySelectorAll('#clef-chips .chip').forEach(c =>
@@ -709,6 +893,8 @@ document.querySelectorAll('#ledger-chips .chip').forEach(c =>
   c.addEventListener('click', () => { state.settings.ledger = c.dataset.ledger === 'on'; applySettings(); }));
 document.querySelectorAll('#seqlen-chips .chip').forEach(c =>
   c.addEventListener('click', () => { state.settings.seqLen = parseInt(c.dataset.len, 10); applySettings(); }));
+document.querySelectorAll('#serierow-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.serieRow = parseInt(c.dataset.srow, 10); applySettings(); }));
 
 function applySettings() {
   saveState(); syncChips(); startMode();
@@ -740,8 +926,10 @@ function onMidiAnswer(midi) {
   playedName = midiToName(midi);
   if (activeTab === 'single') {
     if (currentNote) checkSingle();
-  } else {
+  } else if (activeTab === 'seq') {
     if (seq[seqIdx]) checkSeq();
+  } else {
+    if (serieRows.length) checkSerie();
   }
 }
 
