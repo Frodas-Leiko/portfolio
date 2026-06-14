@@ -53,6 +53,12 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
 .serie-row.active svg { max-height: 120px; }
 .serie-row.preview { opacity: 0.5; }
 .serie-row.preview svg { max-height: 80px; }
+.midi-display { display: flex; align-items: center; gap: 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
+.midi-staff { flex: 0 0 auto; width: 140px; }
+.midi-staff svg { display: block; width: 100%; height: auto; max-height: 96px; }
+.midi-readout { flex: 1; min-width: 0; }
+.midi-readname { font-family: var(--serif); font-size: 36px; font-weight: 600; line-height: 1; color: var(--text); }
+.midi-readname.empty { color: var(--text-faint); }
 .clef-glyph { font-family: 'Noto Music', serif; }
 
 /* ANSWER INPUT */
@@ -408,6 +414,51 @@ function isCorrect(note) {
       && sel.acc === note.acc;
 }
 
+// --- MIDI-Modus: Anzeige der zuletzt gespielten Note statt Buttons ---
+let midiConnected = false;   // true, sobald ein MIDI-Gerät verbunden ist
+let lastPlayed = null;       // { dia, acc, name } der zuletzt gespielten Taste
+
+// Gespielte MIDI-Note -> diatonische Position + Vorzeichen (für die Anzeige)
+function midiToDiaAcc(midi) {
+  const oct = Math.floor(midi / 12) - 3;
+  const pc = ((midi % 12) + 12) % 12;
+  const [step, acc] = PC_SPELL[pc];
+  return { dia: oct * 7 + step, acc };
+}
+
+// Welcher Schlüssel gilt im aktuellen Modus (für die Anzeige der gespielten Note)
+function currentClef() {
+  if (activeTab === 'serie') return serieClef;
+  if (activeTab === 'seq') return seqClef;
+  return (currentNote && currentNote.clef) || 'violin';
+}
+
+// Mini-Notensystem mit gespielter Note + Buchstabenname
+function playedDisplayHTML(clef) {
+  const staff = lastPlayed
+    ? renderStaffSVG(clef, [{ dia: lastPlayed.dia, acc: lastPlayed.acc, status: 'plain' }])
+    : renderStaffSVG(clef, []);
+  const name = lastPlayed ? lastPlayed.name : '—';
+  return `
+    <div class="midi-display">
+      <div class="midi-staff" id="midi-staff">${staff}</div>
+      <div class="midi-readout">
+        <div class="midi-readname ${lastPlayed ? '' : 'empty'}" id="midi-readname">${name}</div>
+        <div class="sel-hint">zuletzt gespielt</div>
+      </div>
+    </div>`;
+}
+
+// Anzeige sofort beim Tastendruck aktualisieren (ohne kompletten Neuaufbau)
+function updatePlayedDisplay() {
+  const staffEl = document.getElementById('midi-staff');
+  const nameEl = document.getElementById('midi-readname');
+  if (!staffEl || !nameEl || !lastPlayed) return;
+  staffEl.innerHTML = renderStaffSVG(currentClef(), [{ dia: lastPlayed.dia, acc: lastPlayed.acc, status: 'plain' }]);
+  nameEl.textContent = lastPlayed.name;
+  nameEl.classList.remove('empty');
+}
+
 function selName() {
   if (sel.step === null || sel.oct === null) return null;
   return noteName(sel.oct * 7 + sel.step, sel.acc);
@@ -559,23 +610,26 @@ function renderSingle() {
   main.innerHTML = `
     <div class="deck-tag"><span>${cfg.label}</span><span>Wie heißt diese Note?</span></div>
     <div class="staff-wrap" id="staff">${renderStaffSVG(currentNote.clef, [{ ...currentNote, status: 'plain' }])}</div>
-    ${inputHTML(currentNote.clef)}
+    ${midiConnected ? playedDisplayHTML(currentNote.clef) : inputHTML(currentNote.clef)}
     <div id="feedback"></div>
+    ${midiConnected ? '' : `
     <div class="quiz-controls">
       <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
       <button class="skip-btn" id="skip-btn">Zeigen</button>
-    </div>
+    </div>`}
   `;
-  bindInput();
-  document.getElementById('check-btn').addEventListener('click', () => {
-    if (!locked) checkSingle();
-    else renderSingle();
-  });
-  document.getElementById('skip-btn').addEventListener('click', () => {
-    if (locked) { renderSingle(); return; }
-    // Zeigen = zählt als falsch
-    finishSingle(false, true);
-  });
+  if (!midiConnected) {
+    bindInput();
+    document.getElementById('check-btn').addEventListener('click', () => {
+      if (!locked) checkSingle();
+      else renderSingle();
+    });
+    document.getElementById('skip-btn').addEventListener('click', () => {
+      if (locked) { renderSingle(); return; }
+      // Zeigen = zählt als falsch
+      finishSingle(false, true);
+    });
+  }
 }
 
 function checkSingle() {
@@ -643,17 +697,20 @@ function renderSeq() {
   main.innerHTML = `
     <div class="deck-tag"><span>${cfg.label}</span><span>Note ${seqIdx + 1} von ${seq.length}</span></div>
     <div class="staff-wrap" id="staff">${renderStaffSVG(seqClef, seqStatuses())}</div>
-    ${inputHTML(seqClef)}
+    ${midiConnected ? playedDisplayHTML(seqClef) : inputHTML(seqClef)}
     <div id="feedback"></div>
+    ${midiConnected ? '' : `
     <div class="quiz-controls">
       <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
-    </div>
+    </div>`}
   `;
-  bindInput();
-  document.getElementById('check-btn').addEventListener('click', () => {
-    if (!locked) checkSeq();
-    else advanceSeq();
-  });
+  if (!midiConnected) {
+    bindInput();
+    document.getElementById('check-btn').addEventListener('click', () => {
+      if (!locked) checkSeq();
+      else advanceSeq();
+    });
+  }
 }
 
 function checkSeq() {
@@ -665,6 +722,11 @@ function checkSeq() {
   disableInput();
   seqIdx++;
   document.getElementById('staff').innerHTML = renderStaffSVG(seqClef, seqStatuses());
+  // MIDI: nur Färbung, automatisch weiter (richtig wie falsch)
+  if (playedMidi != null) {
+    setTimeout(advanceSeq, isRight ? 550 : 950);
+    return;
+  }
   if (isRight) {
     // Richtig: kurz grün zeigen, dann automatisch weiter
     setTimeout(advanceSeq, 550);
@@ -794,14 +856,17 @@ function renderSerie() {
   main.innerHTML = `
     <div class="deck-tag"><span>${cfg.label}</span><span>Serie · oberste Reihe (${state.settings.serieRow} Noten)</span></div>
     <div class="serie-rows" id="serie-rows">${serieRowsHTML()}</div>
-    ${inputHTML(serieClef)}
+    ${midiConnected ? playedDisplayHTML(serieClef) : inputHTML(serieClef)}
     <div id="feedback"></div>
+    ${midiConnected ? '' : `
     <div class="quiz-controls">
       <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
-    </div>
+    </div>`}
   `;
-  bindInput();
-  document.getElementById('check-btn').addEventListener('click', () => { if (!locked) checkSerie(); });
+  if (!midiConnected) {
+    bindInput();
+    document.getElementById('check-btn').addEventListener('click', () => { if (!locked) checkSerie(); });
+  }
 }
 
 function recordRowPattern(row) {
@@ -924,6 +989,9 @@ function onMidiAnswer(midi) {
   if (sheet.classList.contains('open')) return;   // während Einstellungen ignorieren
   playedMidi = midi;
   playedName = midiToName(midi);
+  const da = midiToDiaAcc(midi);
+  lastPlayed = { dia: da.dia, acc: da.acc, name: playedName };
+  updatePlayedDisplay();   // Erkennungs-Anzeige sofort aktualisieren
   if (activeTab === 'single') {
     if (currentNote) checkSingle();
   } else if (activeTab === 'seq') {
@@ -946,8 +1014,10 @@ function bindMidiInputs() {
   if (!midiAccess) return;
   let count = 0;
   midiAccess.inputs.forEach(input => { input.onmidimessage = onMidiMessage; count++; });
-  if (count > 0) setMidiStatus('verbunden', 'on');
-  else setMidiStatus('kein Gerät', null);
+  const was = midiConnected;
+  midiConnected = count > 0;
+  setMidiStatus(midiConnected ? 'verbunden' : 'kein Gerät', midiConnected ? 'on' : null);
+  if (midiConnected !== was) startMode();   // UI umschalten: Buttons <-> Anzeige
 }
 
 function initMIDI() {
