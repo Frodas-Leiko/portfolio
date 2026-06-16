@@ -30,7 +30,8 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 .icon-btn { background: none; border: 1px solid var(--line); color: var(--text-dim); width: 36px; height: 36px; border-radius: 6px; font-family: inherit; font-size: 18px; cursor: pointer; display: grid; place-items: center; transition: all 0.15s; }
 .icon-btn:active { background: var(--bg-elev); color: var(--text); }
 .header-stats { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px; border-bottom: 1px solid var(--line); }
-.midi-status { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+.midi-status { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); cursor: pointer; user-select: none; -webkit-user-select: none; padding: 4px 6px; margin: -4px -6px; border-radius: 6px; transition: background 0.15s; }
+.midi-status:active { background: var(--bg-elev); }
 .midi-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transition: background 0.2s; }
 .midi-status.on .midi-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .midi-status.err .midi-dot { background: var(--red); }
@@ -133,7 +134,7 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
   <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⚙</button>
 </header>
 <div class="header-stats">
-  <div class="midi-status" id="midi-status" title="MIDI-Verbindung">
+  <div class="midi-status" id="midi-status" title="Tippen, um die MIDI-Verbindung neu zu prüfen">
     <span class="midi-dot"></span><span id="midi-label">MIDI …</span>
   </div>
   <div class="stats">
@@ -1014,7 +1015,10 @@ let midiAccess = null;
 function bindMidiInputs() {
   if (!midiAccess) return;
   let count = 0;
-  midiAccess.inputs.forEach(input => { input.onmidimessage = onMidiMessage; count++; });
+  midiAccess.inputs.forEach(input => {
+    input.onmidimessage = onMidiMessage;
+    if (input.state === 'connected') count++;   // getrennte Geräte nicht mitzählen
+  });
   const was = midiConnected;
   midiConnected = count > 0;
   setMidiStatus(midiConnected ? 'verbunden' : 'kein Gerät', midiConnected ? 'on' : null);
@@ -1029,6 +1033,16 @@ function initMIDI() {
     access.onstatechange = bindMidiInputs;
   }).catch(() => setMidiStatus('kein Zugriff', 'err'));
 }
+
+// Manuell auslösbar: Tipp auf den MIDI-Status prüft die Verbindung neu,
+// falls der Status z.B. fälschlich auf "verbunden" hängenbleibt.
+function refreshMidi() {
+  if (!navigator.requestMIDIAccess) { setMidiStatus('n. unterstützt', 'err'); return; }
+  setMidiStatus('prüfe …', null);
+  if (midiAccess) bindMidiInputs();   // liest den aktuellen Gerätestatus neu ein
+  else initMIDI();                    // noch kein Zugriff -> erneut anfragen
+}
+document.getElementById('midi-status').addEventListener('click', refreshMidi);
 
 /* =========================================================
    START
