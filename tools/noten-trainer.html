@@ -52,7 +52,7 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
 .serie-row svg { display: block; width: 100%; height: auto; margin: 0 auto; }
 .serie-row.active { border-color: var(--accent); }
 .serie-row.active svg { max-height: 120px; }
-.serie-row.preview { opacity: 0.5; }
+.serie-row.preview { opacity: 0.8; }
 .serie-row.preview svg { max-height: 80px; }
 .midi-display { display: flex; align-items: center; gap: 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
 .midi-staff { flex: 0 0 auto; width: 140px; }
@@ -183,6 +183,12 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
     <button class="chip" data-srow="5">5</button>
   </div>
 
+  <div class="section-label">Serie · Bei falschem Anschlag</div>
+  <div class="chip-row" id="serierepeat-chips">
+    <button class="chip" data-repeat="off">Überspringen</button>
+    <button class="chip" data-repeat="on">Wiederholen</button>
+  </div>
+
   <div class="section-label">Statistik</div>
   <div class="detail-stats">
     <div class="detail-stat"><div class="label">Versucht</div><div class="value" id="d-tried">0</div></div>
@@ -239,7 +245,7 @@ const CLEFS = {
 const KEY = 'noten_trainer_v1';
 function defaultState() {
   return {
-    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4 },
+    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4, serieRepeat: false },
     tried: 0, correct: 0, streak: 0,
     todayDate: new Date().toDateString(), todayTried: 0, todayCorrect: 0,
     seen: {},   // id -> { tried, correct, lastVerdict }
@@ -249,7 +255,13 @@ function defaultState() {
 function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const st = Object.assign(defaultState(), parsed);
+      // Einstellungen tief mergen, damit neu hinzugekommene Optionen ihren Standard behalten
+      st.settings = Object.assign(defaultState().settings, parsed.settings || {});
+      return st;
+    }
   } catch (e) {}
   return defaultState();
 }
@@ -818,7 +830,7 @@ function makeSerieRow() {
     notes = [];
     for (let i = 0; i < N; i++) notes.push(pickNote(serieClef));
   }
-  return { notes, res: notes.map(() => null) };
+  return { notes, res: notes.map(() => null), hadError: false };
 }
 
 function startSerie() {
@@ -833,7 +845,7 @@ function startSerie() {
 function rowStatuses(row, active) {
   return row.notes.map((n, i) => {
     let status;
-    if (!active) status = 'pending';
+    if (!active) status = 'plain';
     else if (row.res[i] != null) status = row.res[i] ? 'green' : 'red';
     else if (i === serieCol) status = 'current';
     else status = 'plain';
@@ -873,7 +885,7 @@ function renderSerie() {
 
 function recordRowPattern(row) {
   const key = row.notes.map(n => noteId(n.clef, n.dia, n.acc)).join('>');
-  const allOk = row.res.every(x => x === true);
+  const allOk = row.res.every(x => x === true) && !row.hadError;
   const p = state.patterns[key] || { tried: 0, correct: 0 };
   p.tried++; if (allOk) p.correct++;
   state.patterns[key] = p;
@@ -884,11 +896,27 @@ function checkSerie() {
   const row = serieRows[0];
   const note = row.notes[serieCol];
   const ok = isCorrect(note);
-  row.res[serieCol] = ok;
-  recordAnswer(note, ok);
+  recordAnswer(note, ok);          // jeder Anschlag zählt in die Statistik
   locked = true;
   disableInput();
-  updateSerieRows();   // gespielte Note sofort einfärben
+
+  // Wiederhol-Modus: falsch -> kurz rot, dann gleiche Note erneut fordern
+  if (!ok && state.settings.serieRepeat) {
+    row.hadError = true;           // Reihe gilt dadurch als "nicht sauber"
+    row.res[serieCol] = false;     // kurz rot einfärben
+    updateSerieRows();
+    setTimeout(() => {
+      row.res[serieCol] = null;    // zurück auf "aktuell" (orange)
+      locked = false;
+      renderSerie();               // Eingabe zurücksetzen, Note bleibt dran
+    }, 950);
+    return;
+  }
+
+  // Standard: richtig -> grün und weiter, oder falsch ohne Wiederholung -> rot und weiter
+  if (!ok) row.hadError = true;
+  row.res[serieCol] = ok;
+  updateSerieRows();               // gespielte Note sofort einfärben
   setTimeout(() => advanceSerie(), ok ? 450 : 950);
 }
 
@@ -950,6 +978,8 @@ function syncChips() {
     c.classList.toggle('active', parseInt(c.dataset.len, 10) === state.settings.seqLen));
   document.querySelectorAll('#serierow-chips .chip').forEach(c =>
     c.classList.toggle('active', parseInt(c.dataset.srow, 10) === state.settings.serieRow));
+  document.querySelectorAll('#serierepeat-chips .chip').forEach(c =>
+    c.classList.toggle('active', (c.dataset.repeat === 'on') === state.settings.serieRepeat));
 }
 
 document.querySelectorAll('#clef-chips .chip').forEach(c =>
@@ -962,6 +992,8 @@ document.querySelectorAll('#seqlen-chips .chip').forEach(c =>
   c.addEventListener('click', () => { state.settings.seqLen = parseInt(c.dataset.len, 10); applySettings(); }));
 document.querySelectorAll('#serierow-chips .chip').forEach(c =>
   c.addEventListener('click', () => { state.settings.serieRow = parseInt(c.dataset.srow, 10); applySettings(); }));
+document.querySelectorAll('#serierepeat-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.serieRepeat = c.dataset.repeat === 'on'; applySettings(); }));
 
 function applySettings() {
   saveState(); syncChips(); startMode();
