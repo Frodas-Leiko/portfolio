@@ -54,6 +54,14 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
 .serie-row.active svg { max-height: 120px; }
 .serie-row.preview { opacity: 0.8; }
 .serie-row.preview svg { max-height: 80px; }
+
+/* MELODIE — eine horizontal scrollende Notenzeile (Klaviersystem) */
+.mel-scroll { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 0; margin-bottom: 14px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.mel-scroll::-webkit-scrollbar { height: 6px; }
+.mel-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.mel-scroll svg { display: block; height: 230px; width: auto; }
+.mel-name { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--text); }
+.mel-progress { font-size: 11px; letter-spacing: 0.06em; color: var(--text-dim); }
 .midi-display { display: flex; align-items: center; gap: 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
 .midi-staff { flex: 0 0 auto; width: 140px; }
 .midi-staff svg { display: block; width: 100%; height: auto; max-height: 96px; }
@@ -130,6 +138,7 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
     <button class="tab active" data-tab="single">Einzeln</button>
     <button class="tab" data-tab="seq">Folge</button>
     <button class="tab" data-tab="serie">Serie</button>
+    <button class="tab" data-tab="melodie">Melodie</button>
   </div>
   <button class="icon-btn" id="open-settings" aria-label="Einstellungen">⚙</button>
 </header>
@@ -189,6 +198,21 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
     <button class="chip" data-repeat="on">Wiederholen</button>
   </div>
 
+  <div class="section-label">Melodie · Oktaven</div>
+  <div class="chip-row" id="meloct-chips">
+    <button class="chip" data-moct="1">1</button>
+    <button class="chip" data-moct="2">2</button>
+    <button class="chip" data-moct="3">3</button>
+  </div>
+
+  <div class="section-label">Melodie · Übungstypen</div>
+  <div class="chip-row" id="meltype-chips">
+    <button class="chip" data-mtype="scale">Tonleitern</button>
+    <button class="chip" data-mtype="arp">Arpeggien</button>
+    <button class="chip" data-mtype="broken">Gebr. Akkorde</button>
+    <button class="chip" data-mtype="chrom">Chromatisch</button>
+  </div>
+
   <div class="section-label">Statistik</div>
   <div class="detail-stats">
     <div class="detail-stat"><div class="label">Versucht</div><div class="value" id="d-tried">0</div></div>
@@ -245,7 +269,8 @@ const CLEFS = {
 const KEY = 'noten_trainer_v1';
 function defaultState() {
   return {
-    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4, serieRepeat: false },
+    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4, serieRepeat: false,
+                melOct: 1, melTypes: { scale: true, arp: true, broken: true, chrom: true } },
     tried: 0, correct: 0, streak: 0,
     todayDate: new Date().toDateString(), todayTried: 0, todayCorrect: 0,
     seen: {},   // id -> { tried, correct, lastVerdict }
@@ -442,6 +467,7 @@ function midiToDiaAcc(midi) {
 
 // Welcher Schlüssel gilt im aktuellen Modus (für die Anzeige der gespielten Note)
 function currentClef() {
+  if (activeTab === 'melodie') return clefForDia((melMelody && melMelody.notes[melIdx]) ? melMelody.notes[melIdx].dia : 14);
   if (activeTab === 'serie') return serieClef;
   if (activeTab === 'seq') return seqClef;
   return (currentNote && currentNote.clef) || 'violin';
@@ -486,8 +512,8 @@ function octavesInRange(clef) {
 }
 const OCT_LABELS = { 0: 'C (groß)', 1: 'c (klein)', 2: 'c\u2032', 3: 'c\u2032\u2032', 4: 'c\u2032\u2032\u2032' };
 
-function inputHTML(clef) {
-  const octs = octavesInRange(clef);
+function inputHTML(clef, octsOverride) {
+  const octs = octsOverride || octavesInRange(clef);
   let html = `
     <div class="sel-display">
       <div class="sel-name empty" id="sel-name">—</div>
@@ -936,6 +962,277 @@ function patternLabel(key) {
 }
 
 /* =========================================================
+   MODUS: MELODIE
+   Eine horizontal scrollende Notenzeile im Klaviersystem
+   (Violin oben, Bass unten). Eine feste Bibliothek liefert
+   Tonleitern, Arpeggien, gebrochene Akkorde und die
+   chromatische Tonleiter — jeweils rauf und runter.
+   Gespielt wird eine Melodie nach der anderen; die aktuelle
+   Note bleibt durch Auto-Scroll immer im Blick.
+   Tonband: dia 0..26 (Große Oktave C bis a″) — deckt Bass-
+   und Violinbereich lesbar ab. Erweiterung nach unten
+   (Kontra) / oben mit 8va ist ein kleiner Folgeschritt.
+   ========================================================= */
+const MEL_X0 = 150, MEL_SPACING = 52, MEL_VBH = 300, MEL_H = 230;
+const MEL_LO = 0, MEL_HI = 26;
+function melRand(n) { return Math.floor(Math.random() * n); }
+function clefForDia(dia) { return dia >= 13 ? 'violin' : 'bass'; }
+
+/* --- Klaviersystem-SVG: durchgehende dia-Achse über beide Systeme --- */
+function renderGrandStaffSVG(notes) {
+  const half = 8;
+  const yOf = d => 272 - d * half;                 // dia -> y (kontinuierlich)
+  const trebleLines = [16, 18, 20, 22, 24];
+  const bassLines = [4, 6, 8, 10, 12];
+  const x0 = MEL_X0, sp = MEL_SPACING;
+  const width = x0 + notes.length * sp + 30;
+  const lineX1 = 78, lineX2 = width - 16;
+  let out = '';
+  // Notenlinien beider Systeme
+  [...trebleLines, ...bassLines].forEach(d => {
+    out += `<line x1="${lineX1}" y1="${yOf(d)}" x2="${lineX2}" y2="${yOf(d)}" stroke="#3a3a34" stroke-width="1.4"/>`;
+  });
+  // Verbindungs-Barline links (fasst die Systeme zusammen)
+  out += `<line x1="${lineX1}" y1="${yOf(24)}" x2="${lineX1}" y2="${yOf(4)}" stroke="#56544a" stroke-width="1.6"/>`;
+  // Akkolade (schlichte Klammer)
+  out += `<line x1="40" y1="${yOf(24)}" x2="40" y2="${yOf(4)}" stroke="#8a8676" stroke-width="2.4"/>`
+       + `<line x1="40" y1="${yOf(24)}" x2="47" y2="${yOf(24)}" stroke="#8a8676" stroke-width="2.4"/>`
+       + `<line x1="40" y1="${yOf(4)}" x2="47" y2="${yOf(4)}" stroke="#8a8676" stroke-width="2.4"/>`;
+  // Schlüssel (G auf der G-Linie, F auf der F-Linie)
+  out += `<text x="52" y="${yOf(18)}" font-size="64" fill="#8a8676" class="clef-glyph">\u{1D11E}</text>`;
+  out += `<text x="52" y="${yOf(10)}" font-size="64" fill="#8a8676" class="clef-glyph">\u{1D122}</text>`;
+  // Noten
+  notes.forEach((n, i) => {
+    const x = x0 + i * sp, y = yOf(n.dia);
+    const col = COLORS[n.status] || COLORS.plain;
+    // Hilfslinien: über Violin, mittleres c′, unter Bass
+    const L = [];
+    if (n.dia >= 26) { for (let d = 26; d <= n.dia; d += 2) L.push(d); }
+    else if (n.dia === 14) { L.push(14); }
+    else if (n.dia <= 2) { for (let d = 2; d >= n.dia; d -= 2) L.push(d); }
+    L.forEach(d => { out += `<line x1="${x - 15}" y1="${yOf(d)}" x2="${x + 15}" y2="${yOf(d)}" stroke="${col}" stroke-width="1.6"/>`; });
+    // Hals: je System an der Mittellinie gespiegelt
+    const down = (n.dia >= 16) ? (n.dia >= 20) : (n.dia <= 12) ? (n.dia >= 8) : false;
+    if (down) out += `<line x1="${x - 8.5}" y1="${y + 2}" x2="${x - 8.5}" y2="${y + 48}" stroke="${col}" stroke-width="1.8"/>`;
+    else      out += `<line x1="${x + 8.5}" y1="${y - 2}" x2="${x + 8.5}" y2="${y - 48}" stroke="${col}" stroke-width="1.8"/>`;
+    // Notenkopf
+    out += `<ellipse cx="${x}" cy="${y}" rx="9.2" ry="6.4" transform="rotate(-18 ${x} ${y})" fill="${col}"/>`;
+    // Vorzeichen (gleiche Zeichnung wie im Einzelsystem)
+    if (n.acc === 1) {
+      const a = x - 26;
+      out += `<g stroke="${col}" stroke-width="1.6">`
+           + `<line x1="${a - 3}" y1="${y - 10}" x2="${a - 3}" y2="${y + 11}"/>`
+           + `<line x1="${a + 3}" y1="${y - 11}" x2="${a + 3}" y2="${y + 10}"/></g>`
+           + `<g stroke="${col}" stroke-width="3.4">`
+           + `<line x1="${a - 7}" y1="${y - 3}" x2="${a + 7}" y2="${y - 6}"/>`
+           + `<line x1="${a - 7}" y1="${y + 6}" x2="${a + 7}" y2="${y + 3}"/></g>`;
+    } else if (n.acc === -1) {
+      const a = x - 24;
+      out += `<line x1="${a}" y1="${y - 18}" x2="${a}" y2="${y + 6}" stroke="${col}" stroke-width="1.6"/>`
+           + `<path d="M ${a} ${y + 6} C ${a + 10} ${y + 2} ${a + 10} ${y - 7} ${a} ${y - 4} Z" fill="${col}"/>`;
+    }
+  });
+  return `<svg viewBox="0 0 ${width} ${MEL_VBH}" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+}
+
+/* --- Bibliothek: Skalen-/Akkord-Muster (Wurzel = [Stufe, Vorzeichen]) --- */
+const MAJOR = [0, 2, 4, 5, 7, 9, 11];
+const MINOR_NAT = [0, 2, 3, 5, 7, 8, 10];
+// vorzeichenfrei (bei "Nur Stammtöne")
+const SCALE_NAT = [{ root: [0, 0], q: 'major' }, { root: [5, 0], q: 'minor' }];           // C-Dur, a-Moll
+const TRIAD_NAT = [{ root: [0, 0], q: 'major' }, { root: [3, 0], q: 'major' }, { root: [4, 0], q: 'major' },
+                   { root: [5, 0], q: 'minor' }, { root: [1, 0], q: 'minor' }, { root: [2, 0], q: 'minor' }]; // C F G Dur; a d e Moll
+// mit Vorzeichen (zusätzlich bei "mit ♯ und ♭")
+const SCALE_ACC = [{ root: [4, 0], q: 'major' }, { root: [1, 0], q: 'major' }, { root: [5, 0], q: 'major' },
+                   { root: [2, 0], q: 'major' }, { root: [3, 0], q: 'major' }, { root: [6, -1], q: 'major' },
+                   { root: [2, 0], q: 'minor' }, { root: [1, 0], q: 'minor' }, { root: [4, 0], q: 'minor' }];  // G D A E F B Dur; e d g Moll
+const TRIAD_ACC = [{ root: [1, 0], q: 'major' }, { root: [5, 0], q: 'major' }, { root: [2, 0], q: 'major' },
+                   { root: [6, -1], q: 'major' }, { root: [4, 0], q: 'minor' }, { root: [6, 0], q: 'minor' }]; // D A E B Dur; g h Moll
+const CHROM_SPECS = [{ root: [0, 0] }, { root: [4, 0] }];                                    // ab C, ab G
+const CHROM_UP = [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [3, 0], [3, 1], [4, 0], [4, 1], [5, 0], [5, 1], [6, 0]];
+const CHROM_DOWN = [[6, 0], [6, -1], [5, 0], [5, -1], [4, 0], [4, -1], [3, 0], [2, 0], [2, -1], [1, 0], [1, -1]];
+
+function melName(type, step, acc, q, oct) {
+  const base = acc === 1 ? SHARP_NAMES[step] : acc === -1 ? FLAT_NAMES[step] : STEP_NAMES[step];
+  const minor = q === 'minor';
+  const disp = minor ? base.toLowerCase() : base;
+  const suf = ` · ${oct} Okt`;
+  if (type === 'scale') return `${disp}-${minor ? 'Moll' : 'Dur'} Tonleiter${suf}`;
+  if (type === 'arp') return `${disp}-${minor ? 'Moll' : 'Dur'} Dreiklang${suf}`;
+  if (type === 'broken') return `${disp} gebr. Akkord${suf}`;
+  if (type === 'chrom') return `Chromatisch ab ${base}${suf}`;
+  return `Übung${suf}`;
+}
+
+function scaleUpDown(rootDia, rootPC, q, oct) {
+  const pat = q === 'minor' ? MINOR_NAT : MAJOR;
+  const asc = [], M = 7 * oct;
+  for (let i = 0; i <= M; i++) {
+    const dia = rootDia + i, letter = ((dia % 7) + 7) % 7, natPC = STEP_SEMI[letter];
+    let a = (((rootPC + pat[i % 7]) - natPC) % 12 + 12) % 12; if (a > 6) a -= 12;
+    asc.push({ dia, acc: a });
+  }
+  return asc.concat(asc.slice(0, -1).reverse());
+}
+
+function triadUpDown(rootDia, rootPC, q, oct, broken) {
+  const iv = q === 'minor' ? [0, 3, 7] : [0, 4, 7];
+  const spell = (dia, semi) => {
+    const letter = ((dia % 7) + 7) % 7, natPC = STEP_SEMI[letter];
+    let a = ((rootPC + semi - natPC) % 12 + 12) % 12; if (a > 6) a -= 12;
+    return { dia, acc: a };
+  };
+  const asc = [];
+  if (!broken) {
+    for (let o = 0; o < oct; o++) for (let j = 0; j < 3; j++) asc.push(spell(rootDia + 7 * o + 2 * j, iv[j]));
+  } else {
+    const fig = [[0, 0], [1, 1], [2, 2], [1, 1]];   // Grundton–Terz–Quinte–Terz
+    for (let o = 0; o < oct; o++) fig.forEach(([lo, ii]) => asc.push(spell(rootDia + 7 * o + 2 * lo, iv[ii])));
+  }
+  asc.push(spell(rootDia + 7 * oct, 0));            // Top-Grundton
+  return asc.concat(asc.slice(0, -1).reverse());
+}
+
+function chromUpDown(rootDia, oct) {
+  const asc = [];
+  for (let o = 0; o < oct; o++) CHROM_UP.forEach(([lo, a]) => asc.push({ dia: rootDia + 7 * o + lo, acc: a }));
+  asc.push({ dia: rootDia + 7 * oct, acc: 0 });     // Top-c
+  const down = [];
+  for (let o = oct - 1; o >= 0; o--) CHROM_DOWN.forEach(([lo, a]) => down.push({ dia: rootDia + 7 * o + lo, acc: a }));
+  down.push({ dia: rootDia, acc: 0 });              // Grundton unten
+  return asc.concat(down);
+}
+
+function genNotes(type, step, acc, rootDia, oct, q) {
+  const rootPC = ((STEP_SEMI[step] + acc) % 12 + 12) % 12;
+  if (type === 'chrom') return chromUpDown(rootDia, oct);
+  if (type === 'arp') return triadUpDown(rootDia, rootPC, q, oct, false);
+  if (type === 'broken') return triadUpDown(rootDia, rootPC, q, oct, true);
+  return scaleUpDown(rootDia, rootPC, q, oct);
+}
+
+// passende Startlage im lesbaren Band finden, sonst Oktaven reduzieren
+function buildMelody(type, spec, wantOct) {
+  const [step, acc] = spec.root, q = spec.q;
+  for (let oct = wantOct; oct >= 1; oct--) {
+    const cands = [];
+    for (let o = 0; o <= 3; o++) { const rd = o * 7 + step; if (rd >= MEL_LO && rd + 7 * oct <= MEL_HI) cands.push(rd); }
+    if (cands.length) {
+      const rootDia = cands[melRand(cands.length)];
+      return { notes: genNotes(type, step, acc, rootDia, oct, q), name: melName(type, step, acc, q, oct) };
+    }
+  }
+  return { notes: genNotes('scale', 0, 0, 7, 1, 'major'), name: melName('scale', 0, 0, 'major', 1) }; // Fallback C-Dur
+}
+
+function melPools() {
+  const acc = state.settings.acc, t = state.settings.melTypes || {}, pools = {};
+  if (t.scale) pools.scale = acc ? SCALE_NAT.concat(SCALE_ACC) : SCALE_NAT.slice();
+  if (t.arp) pools.arp = acc ? TRIAD_NAT.concat(TRIAD_ACC) : TRIAD_NAT.slice();
+  if (t.broken) pools.broken = acc ? TRIAD_NAT.concat(TRIAD_ACC) : TRIAD_NAT.slice();
+  if (t.chrom && acc) pools.chrom = CHROM_SPECS.slice();
+  return pools;
+}
+
+let melMelody = null, melIdx = 0, melResults = [], lastMelName = null;
+
+function newMelodie() {
+  const pools = melPools();
+  const keys = Object.keys(pools).filter(k => pools[k].length);
+  let type, spec;
+  if (!keys.length) { type = 'scale'; spec = { root: [0, 0], q: 'major' }; }
+  else { type = keys[melRand(keys.length)]; const p = pools[type]; spec = p[melRand(p.length)]; }
+  let m = buildMelody(type, spec, state.settings.melOct || 1);
+  // direkte Wiederholung derselben Melodie vermeiden, wenn Auswahl größer ist
+  let guard = 0;
+  while (m.name === lastMelName && guard < 6 && keys.length) {
+    type = keys[melRand(keys.length)]; const p = pools[type]; spec = p[melRand(p.length)];
+    m = buildMelody(type, spec, state.settings.melOct || 1); guard++;
+  }
+  lastMelName = m.name;
+  melMelody = m; melIdx = 0; melResults = [];
+  renderMelodie();
+}
+
+function melStatuses() {
+  return melMelody.notes.map((n, i) => ({
+    dia: n.dia, acc: n.acc,
+    status: i < melIdx ? (melResults[i] ? 'green' : 'red') : i === melIdx ? 'current' : 'plain',
+  }));
+}
+function melOctaveList() {
+  return [...new Set(melMelody.notes.map(n => Math.floor(n.dia / 7)))].sort((a, b) => a - b);
+}
+
+function scrollMelToCurrent() {
+  const sc = document.getElementById('mel-scroll'); if (!sc) return;
+  const scale = MEL_H / MEL_VBH;
+  const x = (MEL_X0 + melIdx * MEL_SPACING) * scale;
+  requestAnimationFrame(() => sc.scrollTo({ left: Math.max(0, x - sc.clientWidth * 0.38), behavior: 'smooth' }));
+}
+
+function renderMelodie() {
+  resetSel();
+  const clef = clefForDia(melMelody.notes[melIdx] ? melMelody.notes[melIdx].dia : 14);
+  const total = melMelody.notes.length;
+  main.innerHTML = `
+    <div class="deck-tag"><span class="mel-name">${melMelody.name}</span><span class="mel-progress">Note ${Math.min(melIdx + 1, total)} / ${total}</span></div>
+    <div class="mel-scroll" id="mel-scroll">${renderGrandStaffSVG(melStatuses())}</div>
+    ${midiConnected ? playedDisplayHTML(clef) : inputHTML(clef, melOctaveList())}
+    <div id="feedback"></div>
+    ${midiConnected ? '' : `
+    <div class="quiz-controls">
+      <button class="primary-btn" id="check-btn" disabled>Prüfen</button>
+    </div>`}
+  `;
+  if (!midiConnected) {
+    bindInput();
+    document.getElementById('check-btn').addEventListener('click', () => { if (!locked) checkMelodie(); else advanceMelodie(); });
+  }
+  scrollMelToCurrent();
+}
+
+function checkMelodie() {
+  const raw = melMelody.notes[melIdx];
+  const note = { clef: clefForDia(raw.dia), dia: raw.dia, acc: raw.acc };
+  const ok = isCorrect(note);
+  recordAnswer(note, ok);
+  melResults[melIdx] = ok;
+  locked = true; disableInput(); melIdx++;
+  const sc = document.getElementById('mel-scroll'); if (sc) sc.innerHTML = renderGrandStaffSVG(melStatuses());
+  scrollMelToCurrent();
+  if (playedMidi != null) { setTimeout(advanceMelodie, ok ? 450 : 850); return; }
+  if (ok) { setTimeout(advanceMelodie, 420); return; }
+  const correct = noteName(raw.dia, raw.acc);
+  document.getElementById('feedback').innerHTML = `
+    <div class="quiz-feedback incorrect">
+      <span class="verdict">✗ Falsch</span>
+      Diese Note ist <span class="big-name">${correct}</span>${(playedName || selName()) ? ` — du hattest <span class="big-name">${playedName || selName()}</span>` : ''}.
+    </div>`;
+  const cb = document.getElementById('check-btn'); cb.disabled = false; cb.textContent = 'Weiter';
+}
+
+function advanceMelodie() {
+  if (melIdx >= melMelody.notes.length) { finishMelodie(); return; }
+  renderMelodie();
+}
+
+function finishMelodie() {
+  const right = melResults.filter(Boolean).length, total = melMelody.notes.length;
+  main.innerHTML = `
+    <div class="deck-tag"><span class="mel-name">${melMelody.name}</span><span class="mel-progress">fertig</span></div>
+    <div class="mel-scroll" id="mel-scroll">${renderGrandStaffSVG(melStatuses())}</div>
+    <div class="quiz-feedback ${right === total ? 'correct' : 'incorrect'}">
+      <span class="verdict">${right} von ${total} richtig</span>
+      ${right === total ? 'Sauber gespielt — weiter so!' : 'Die roten Noten kommen als neue Melodie wieder dran.'}
+    </div>
+    <div class="quiz-controls"><button class="primary-btn" id="next-mel">Nächste Melodie</button></div>`;
+  document.getElementById('next-mel').addEventListener('click', newMelodie);
+  const sc = document.getElementById('mel-scroll'); if (sc) requestAnimationFrame(() => sc.scrollTo({ left: sc.scrollWidth, behavior: 'smooth' }));
+  if (midiConnected) setTimeout(() => { if (document.getElementById('next-mel')) newMelodie(); }, 1400);
+}
+
+/* =========================================================
    TABS
    ========================================================= */
 let activeTab = 'single';
@@ -950,7 +1247,8 @@ document.querySelectorAll('.tab').forEach(t => {
 function startMode() {
   if (activeTab === 'single') renderSingle();
   else if (activeTab === 'seq') newSequence();
-  else startSerie();
+  else if (activeTab === 'serie') startSerie();
+  else newMelodie();
 }
 
 /* =========================================================
@@ -980,6 +1278,10 @@ function syncChips() {
     c.classList.toggle('active', parseInt(c.dataset.srow, 10) === state.settings.serieRow));
   document.querySelectorAll('#serierepeat-chips .chip').forEach(c =>
     c.classList.toggle('active', (c.dataset.repeat === 'on') === state.settings.serieRepeat));
+  document.querySelectorAll('#meloct-chips .chip').forEach(c =>
+    c.classList.toggle('active', parseInt(c.dataset.moct, 10) === state.settings.melOct));
+  document.querySelectorAll('#meltype-chips .chip').forEach(c =>
+    c.classList.toggle('active', !!(state.settings.melTypes || {})[c.dataset.mtype]));
 }
 
 document.querySelectorAll('#clef-chips .chip').forEach(c =>
@@ -994,6 +1296,14 @@ document.querySelectorAll('#serierow-chips .chip').forEach(c =>
   c.addEventListener('click', () => { state.settings.serieRow = parseInt(c.dataset.srow, 10); applySettings(); }));
 document.querySelectorAll('#serierepeat-chips .chip').forEach(c =>
   c.addEventListener('click', () => { state.settings.serieRepeat = c.dataset.repeat === 'on'; applySettings(); }));
+document.querySelectorAll('#meloct-chips .chip').forEach(c =>
+  c.addEventListener('click', () => { state.settings.melOct = parseInt(c.dataset.moct, 10); applySettings(); }));
+document.querySelectorAll('#meltype-chips .chip').forEach(c =>
+  c.addEventListener('click', () => {
+    const t = state.settings.melTypes = Object.assign({ scale: true, arp: true, broken: true, chrom: true }, state.settings.melTypes);
+    t[c.dataset.mtype] = !t[c.dataset.mtype];
+    applySettings();
+  }));
 
 function applySettings() {
   saveState(); syncChips(); startMode();
@@ -1030,8 +1340,10 @@ function onMidiAnswer(midi) {
     if (currentNote) checkSingle();
   } else if (activeTab === 'seq') {
     if (seq[seqIdx]) checkSeq();
-  } else {
+  } else if (activeTab === 'serie') {
     if (serieRows.length) checkSerie();
+  } else {
+    if (melMelody && melMelody.notes[melIdx]) checkMelodie();
   }
 }
 
