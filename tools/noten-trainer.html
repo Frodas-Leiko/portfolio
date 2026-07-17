@@ -192,7 +192,7 @@ main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding
     <button class="chip" data-srow="5">5</button>
   </div>
 
-  <div class="section-label">Serie · Bei falschem Anschlag</div>
+  <div class="section-label">Serie & Melodie · Bei falschem Anschlag</div>
   <div class="chip-row" id="serierepeat-chips">
     <button class="chip" data-repeat="off">Überspringen</button>
     <button class="chip" data-repeat="on">Wiederholen</button>
@@ -269,7 +269,7 @@ const CLEFS = {
 const KEY = 'noten_trainer_v1';
 function defaultState() {
   return {
-    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4, serieRepeat: false,
+    settings: { clef: 'violin', acc: false, ledger: false, seqLen: 4, serieRow: 4, serieRepeat: true,
                 melOct: 1, melTypes: { scale: true, arp: true, broken: true, chrom: true } },
     tried: 0, correct: 0, streak: 0,
     todayDate: new Date().toDateString(), todayTried: 0, todayCorrect: 0,
@@ -1134,7 +1134,7 @@ function melPools() {
   return pools;
 }
 
-let melMelody = null, melIdx = 0, melResults = [], lastMelName = null;
+let melMelody = null, melIdx = 0, melResults = [], melHadError = [], lastMelName = null;
 
 function newMelodie() {
   const pools = melPools();
@@ -1150,15 +1150,19 @@ function newMelodie() {
     m = buildMelody(type, spec, state.settings.melOct || 1); guard++;
   }
   lastMelName = m.name;
-  melMelody = m; melIdx = 0; melResults = [];
+  melMelody = m; melIdx = 0; melResults = []; melHadError = [];
   renderMelodie();
 }
 
-function melStatuses() {
-  return melMelody.notes.map((n, i) => ({
-    dia: n.dia, acc: n.acc,
-    status: i < melIdx ? (melResults[i] ? 'green' : 'red') : i === melIdx ? 'current' : 'plain',
-  }));
+function melStatuses(flashWrongIdx) {
+  return melMelody.notes.map((n, i) => {
+    let status;
+    if (i === flashWrongIdx) status = 'red';                 // kurzes Rot beim Wiederholen
+    else if (i < melIdx) status = melResults[i] ? 'green' : 'red';
+    else if (i === melIdx) status = 'current';
+    else status = 'plain';
+    return { dia: n.dia, acc: n.acc, status };
+  });
 }
 function melOctaveList() {
   return [...new Set(melMelody.notes.map(n => Math.floor(n.dia / 7)))].sort((a, b) => a - b);
@@ -1196,18 +1200,39 @@ function checkMelodie() {
   const raw = melMelody.notes[melIdx];
   const note = { clef: clefForDia(raw.dia), dia: raw.dia, acc: raw.acc };
   const ok = isCorrect(note);
-  recordAnswer(note, ok);
+  recordAnswer(note, ok);          // jeder Anschlag zählt in die Statistik
+  locked = true; disableInput();
+  const correct = noteName(raw.dia, raw.acc);
+  const hadName = (playedName || selName()) ? ` — du hattest <span class="big-name">${playedName || selName()}</span>` : '';
+
+  // Wiederhol-Modus: falsche Note bleibt dran und muss erneut gespielt werden
+  if (!ok && state.settings.serieRepeat) {
+    melHadError[melIdx] = true;
+    const sc = document.getElementById('mel-scroll'); if (sc) sc.innerHTML = renderGrandStaffSVG(melStatuses(melIdx));
+    const cb = document.getElementById('check-btn'); if (cb) cb.disabled = true;   // während des Blitzens keine Aktion
+    const fb = document.getElementById('feedback');
+    if (fb) fb.innerHTML = `
+      <div class="quiz-feedback incorrect">
+        <span class="verdict">✗ Nochmal</span>
+        Diese Note ist <span class="big-name">${correct}</span>${hadName}.
+      </div>`;
+    setTimeout(() => renderMelodie(), 950);   // gleiche Note (melIdx unverändert), Eingabe zurückgesetzt
+    return;
+  }
+
+  // Überspringen (oder richtig): Ergebnis festhalten und weiter
+  if (!ok) melHadError[melIdx] = true;
   melResults[melIdx] = ok;
-  locked = true; disableInput(); melIdx++;
+  melIdx++;
   const sc = document.getElementById('mel-scroll'); if (sc) sc.innerHTML = renderGrandStaffSVG(melStatuses());
   scrollMelToCurrent();
   if (playedMidi != null) { setTimeout(advanceMelodie, ok ? 450 : 850); return; }
   if (ok) { setTimeout(advanceMelodie, 420); return; }
-  const correct = noteName(raw.dia, raw.acc);
-  document.getElementById('feedback').innerHTML = `
+  const fb = document.getElementById('feedback');
+  if (fb) fb.innerHTML = `
     <div class="quiz-feedback incorrect">
       <span class="verdict">✗ Falsch</span>
-      Diese Note ist <span class="big-name">${correct}</span>${(playedName || selName()) ? ` — du hattest <span class="big-name">${playedName || selName()}</span>` : ''}.
+      Diese Note war <span class="big-name">${correct}</span>${hadName}.
     </div>`;
   const cb = document.getElementById('check-btn'); cb.disabled = false; cb.textContent = 'Weiter';
 }
@@ -1218,13 +1243,14 @@ function advanceMelodie() {
 }
 
 function finishMelodie() {
-  const right = melResults.filter(Boolean).length, total = melMelody.notes.length;
+  const total = melMelody.notes.length;
+  const clean = melMelody.notes.reduce((n, _, i) => n + (melHadError[i] ? 0 : 1), 0);
   main.innerHTML = `
     <div class="deck-tag"><span class="mel-name">${melMelody.name}</span><span class="mel-progress">fertig</span></div>
     <div class="mel-scroll" id="mel-scroll">${renderGrandStaffSVG(melStatuses())}</div>
-    <div class="quiz-feedback ${right === total ? 'correct' : 'incorrect'}">
-      <span class="verdict">${right} von ${total} richtig</span>
-      ${right === total ? 'Sauber gespielt — weiter so!' : 'Die roten Noten kommen als neue Melodie wieder dran.'}
+    <div class="quiz-feedback ${clean === total ? 'correct' : 'incorrect'}">
+      <span class="verdict">${clean} von ${total} auf Anhieb richtig</span>
+      ${clean === total ? 'Sauber gespielt — weiter so!' : `${total - clean} Stelle${total - clean === 1 ? '' : 'n'} noch üben.`}
     </div>
     <div class="quiz-controls"><button class="primary-btn" id="next-mel">Nächste Melodie</button></div>`;
   document.getElementById('next-mel').addEventListener('click', newMelodie);
