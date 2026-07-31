@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diatonischer Spiegel</title>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@3.0.9/releases/vexflow-min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --panel: #141414;
+            --text: #e0e0e0;
+            --dim: #666;
+            --accent: #00ffcc;
+            --error: #ff3366;
+            --warning: #ff9900;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 { font-weight: 200; letter-spacing: 3px; color: var(--dim); margin-bottom: 30px; }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        select, label {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid #333;
+            padding: 10px 15px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        label { cursor: default; border: none; color: var(--dim); }
+
+        #mirror-area {
+            width: 100%;
+            max-width: 800px;
+            background: var(--panel);
+            border: 1px solid #222;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        #verdict {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            min-height: 40px;
+            transition: color 0.2s;
+        }
+        
+        #chord-detail {
+            font-size: 1.2rem;
+            color: var(--dim);
+            text-align: center;
+            min-height: 24px;
+        }
+
+        #staff-container {
+            width: 100%;
+            background: #fff;
+            padding: 15px;
+            box-sizing: border-box;
+            border-radius: 4px;
+        }
+
+        #raw-data {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #444;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>DIATONISCHER SPIEGEL</h1>
+
+    <div class="controls">
+        <label>Ziel-Tonart:</label>
+        <select id="key-select">
+            <!-- Dur -->
+            <option value="0-major">C-Dur</option>
+            <option value="7-major">G-Dur</option>
+            <option value="2-major">D-Dur</option>
+            <option value="5-major">F-Dur</option>
+            <option value="10-major">B-Dur</option>
+            <option value="3-major">Es-Dur</option>
+            <option value="9-major">A-Dur</option>
+            <option value="4-major">E-Dur</option>
+            <option value="11-major">H-Dur</option>
+            <!-- Moll -->
+            <option value="9-minor">a-Moll</option>
+            <option value="4-minor">e-Moll</option>
+            <option value="11-minor">h-Moll</option>
+            <option value="2-minor">d-Moll</option>
+            <option value="7-minor">g-Moll</option>
+            <option value="3-minor">c-Moll</option>
+            <option value="5-minor">f-Moll</option>
+        </select>
+    </div>
+
+    <div id="mirror-area">
+        <div id="verdict">Warte auf Eingabe...</div>
+        <div id="chord-detail">&nbsp;</div>
+
+        <div id="staff-container">
+            <div id="staff"></div>
+        </div>
+        
+        <div id="raw-data">Pitch Classes: --</div>
+    </div>
+
+    <script>
+        // --- KONSTANTEN ---
+        const noteNames = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+        const vexFlowNames = ['c', 'c#', 'd', 'eb', 'e', 'f', 'f#', 'g', 'ab', 'a', 'bb', 'b'];
+        
+        // Diatonische Strukturen
+        const STEPS_MAJOR = ['Dur', 'Moll', 'Moll', 'Dur', 'Dur', 'Moll', 'dim'];
+        const STEPS_MINOR = ['Moll', 'dim', 'Dur', 'Moll', 'Moll', 'Dur', 'Dur'];
+        const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+        
+        const SCALE_INTERVALS_MAJOR = [0, 2, 4, 5, 7, 9, 11];
+        const SCALE_INTERVALS_MINOR = [0, 2, 3, 5, 7, 8, 10];
+
+        // --- ZUSTAND ---
+        let activeNotes = new Set();
+        let currentKeyRoot = 0; // C
+        let currentKeyIsMajor = true;
+        let vfFactory = null;
+
+        // --- UI ---
+        const keySelect = document.getElementById('key-select');
+        const verdictEl = document.getElementById('verdict');
+        const detailEl = document.getElementById('chord-detail');
+        const rawDataEl = document.getElementById('raw-data');
+
+        // --- VEXFLOW ---
+        function initVexFlow() {
+            const container = document.getElementById('staff');
+            container.innerHTML = '';
+            vfFactory = new Vex.Flow.Factory({
+                renderer: { elementId: 'staff', width: 700, height: 180 }
+            });
+        }
+
+        function drawStaff(midiNotes) {
+            if (!vfFactory) return;
+            const context = vfFactory.getContext();
+            context.clear();
+
+            const stave = new Vex.Flow.Stave(10, 50, 680);
+            stave.addClef('treble').setContext(context).draw();
+
+            if (midiNotes.length === 0) {
+                vfFactory.draw();
+                return;
+            }
+
+            const sorted = [...midiNotes].sort((a, b) => a - b);
+            const vfNotes = sorted.map(midi => {
+                const oct = Math.floor(midi / 12) - 1;
+                const name = vexFlowNames[midi % 12];
+                return `${name}${oct}/q`;
+            });
+
+            const score = vfFactory.EasyScore();
+            const voice = score.voice({ time: '4/4' }).setStrict(false);
+            
+            // VexFlow kann Probleme mit zu vielen Noten auf einem Schlag haben, wir limitieren auf 6 für die Lesbarkeit
+            const notesToDraw = vfNotes.length > 6 ? vfNotes.slice(0, 6) : vfNotes;
+            const notes = score.notes(notesToDraw.join(', '));
+            voice.addNotes(notes);
+            
+            new Vex.Flow.Formatter().joinVoices([voice]).format([voice], 600);
+            voice.draw(context, stave);
+        }
+
+        // --- ANALYSE LOGIK ---
+        function analyzeTriad(notesArray, keyRootPc, keyIsMajor) {
+            const pcs = [...new Set(notesArray.map(n => n % 12))];
+            
+            if (pcs.length === 0) return { status: 'EMPTY', text: 'Warte auf Eingabe...', color: '#666', detail: '' };
+            if (pcs.length !== 3) return { 
+                status: 'NOT_TRIAD', 
+                text: `Kein reiner Dreiklang (${pcs.length} Töne)`, 
+                color: '#ff9900', 
+                detail: 'Spiele exakt drei verschiedene Tonklassen.' 
+            };
+
+            let root = -1;
+            let quality = '';
+
+            // Finde Grundton und Qualität durch Permutation der Intervalle
+            for (let i = 0; i < 3; i++) {
+                const r = pcs[i];
+                const i1 = (pcs[(i+1)%3] - r + 12) % 12;
+                const i2 = (pcs[(i+2)%3] - r + 12) % 12;
+                
+                const intervals = [i1, i2].sort((a,b) => a-b);
+                
+                if (intervals[0] === 3 && intervals[1] === 7) { root = r; quality = 'Moll'; break; }
+                if (intervals[0] === 4 && intervals[1] === 7) { root = r; quality = 'Dur'; break; }
+                if (intervals[0] === 3 && intervals[1] === 6) { root = r; quality = 'dim'; break; }
+                if (intervals[0] === 4 && intervals[1] === 8) { root = r; quality = 'aug'; break; }
+            }
+
+            if (root === -1) return { 
+                status: 'UNKNOWN', 
+                text: 'Unbekannter Akkord-Typ', 
+                color: '#ff9900', 
+                detail: 'Keine Standard-Struktur (Dur/Moll/dim/aug) erkannt.' 
+            };
+
+            // Prüfe Diatonik
+            const steps = keyIsMajor ? STEPS_MAJOR : STEPS_MINOR;
+            const scaleIntervals = keyIsMajor ? SCALE_INTERVALS_MAJOR : SCALE_INTERVALS_MINOR;
+            const diatonicRoots = scaleIntervals.map(i => (keyRootPc + i) % 12);
+
+            const stepIndex = diatonicRoots.indexOf(root);
+
+            if (stepIndex === -1) {
+                return { 
+                    status: 'NOT_DIATONIC', 
+                    text: `Fremdakkord: ${noteNames[root]}-${quality}`,
+                    color: '#ff3366',
+                    detail: `Der Grundton ${noteNames[root]} liegt nicht in der Tonart.`
+                };
+            }
+
+            const expectedQuality = steps[stepIndex];
+            if (quality !== expectedQuality) {
+                return {
+                    status: 'WRONG_QUALITY',
+                    text: `Falsche Qualität: ${ROMAN[stepIndex]}. Stufe`,
+                    color: '#ff9900',
+                    detail: `Erwartet: ${noteNames[root]}-${expectedQuality}. Gespielt: ${noteNames[root]}-${quality}.`
+                };
+            }
+
+            return {
+                status: 'DIATONIC',
+                text: `Diatonisch: ${ROMAN[stepIndex]}. Stufe`,
+                color: '#00ffcc',
+                detail: `${noteNames[root]}-${quality}`
+            };
+        }
+
+        function updateUI() {
+            const notesArray = Array.from(activeNotes);
+            const analysis = analyzeTriad(notesArray, currentKeyRoot, currentKeyIsMajor);
+            
+            verdictEl.textContent = analysis.text;
+            verdictEl.style.color = analysis.color;
+            
+            detailEl.textContent = analysis.detail;
+            rawDataEl.textContent = `Pitch Classes: [${notesArray.map(n => n % 12).sort((a,b)=>a-b).join(', ')}]`;
+            
+            drawStaff(notesArray);
+        }
+
+        // --- MIDI ---
+        async function initMIDI() {
+            try {
+                const access = await navigator.requestMIDIAccess();
+                for (const input of access.inputs.values()) {
+                    input.onmidimessage = (event) => {
+                        const [status, note, velocity] = event.data;
+                        const command = status & 0xf0;
+                        if (command === 0x90 && velocity > 0) {
+                            activeNotes.add(note);
+                        } else if (command === 0x80 || (command === 0x90 && velocity === 0)) {
+                            activeNotes.delete(note);
+                        }
+                        updateUI();
+                    };
+                }
+            } catch (err) {
+                console.error("MIDI Error:", err);
+                verdictEl.textContent = 'MIDI-Fehler';
+                verdictEl.style.color = '#ff3366';
+            }
+        }
+
+        // --- EVENTS ---
+        keySelect.addEventListener('change', (e) => {
+            const [root, type] = e.target.value.split('-');
+            currentKeyRoot = parseInt(root);
+            currentKeyIsMajor = (type === 'major');
+            updateUI(); // Sofort neu bewerten mit der neuen Tonart
+        });
+
+        // --- INIT ---
+        initVexFlow();
+        updateUI();
+        initMIDI();
+
+    </script>
+</body>
+</html>
